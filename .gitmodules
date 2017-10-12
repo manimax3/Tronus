@@ -1,0 +1,13 @@
+[submodule "External/Catch"]
+	path = External/Catch
+	url = https://github.com/philsquared/Catch.git
+	branch = catch2
+[submodule "External/rang"]
+	path = External/rang
+	url = https://github.com/agauniyal/rang.git
+[submodule "External/stb"]
+	path = External/stb
+	url = https://github.com/nothings/stb.git
+[submodule "External/glfw"]
+	path = External/glfw
+	url = https://github.com/glfw/glfw.git

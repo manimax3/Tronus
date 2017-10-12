@@ -1,0 +1,25 @@
+language: cpp
+compiler: gcc
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-7
+      - xorg-dev
+
+before_install:
+  - if [ "$CC"  == "gcc"     ]; then export CC=gcc-7; fi
+  - if [ "$CXX" == "g++"     ]; then export CXX=g++-7; fi
+  - pushd . && cd $HOME
+  - git clone https://github.com/LB--/travis.git travis
+  - source "./travis/update-cmake.sh"
+  - popd
+
+install:
+  - git submodule init && git submodule update
+
+script:
+  - mkdir build && cd build
+  - cmake .. && cmake --build .
