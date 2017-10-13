@@ -1,4 +1,14 @@
-set(TRONUS_SOURCE_FILES)
+set(TRONUS_SOURCE_FILES
+        tr/math/Vec3.h
+        tr/math/Vec3.cpp
+        tr/math/Vec4.h
+        tr/math/Vec4.cpp
+        tr/math/Mat4.h
+        tr/math/Mat4.cpp
+        tr/math/Quaternion.h
+        tr/math/Quaternion.cpp
+        tr/math/Vec2.h
+        tr/math/Math.h)
 
 option(TRONUS_BUILD_SHARED off)
 
@@ -7,6 +17,9 @@ if(TRONUS_BUILD_SHARED)
 else()
   add_library(Tronus STATIC ${TRONUS_SOURCE_FILES})
 endif()
+
+target_include_directories(Tronus PUBLIC tr)
+target_include_directories(Tronus INTERFACE .)
 
 ## Dependencies: Link and include
 
