@@ -30,12 +30,11 @@ namespace tr
 		Vec3	   multiply(const Vec3		 &other)  const;
 
 		float	   dot(const Quaternion &other)		  const;
-		
-		friend TR_API Quaternion operator*(const Quaternion &lhs, const Quaternion &rhs);
-		friend TR_API Quaternion operator+(const Quaternion &lhs, const Quaternion &rhs);
-		friend TR_API Quaternion operator-(const Quaternion &lhs, const Quaternion &rhs);
-		friend TR_API Vec3 operator*(const Quaternion &lhs, const Vec3 &rhs);
 
+        Quaternion operator*(const Quaternion &other);
+        Quaternion operator+(const Quaternion &other);
+        Quaternion operator-(const Quaternion &other);
+        Vec3 operator*(const Vec3 &other);
 
 		static Quaternion Rotation(float radians, const Vec3 &axis);
 		static Quaternion FromEuler(float pitch, float yaw, float roll);

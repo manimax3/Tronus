@@ -161,7 +161,7 @@ Mat4::Mat4(float *elements)
 	std::memcpy(m_Values, elements, 16 * sizeof(float));
 }
 
-Mat4 tr::operator*(const Mat4& lhs, const Mat4& rhs)
+Mat4 Mat4::operator*(const Mat4& rhs)
 {
-	return lhs.multiply(rhs);
+	return this->multiply(rhs);
 }

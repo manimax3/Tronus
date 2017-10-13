@@ -134,22 +134,22 @@ Quaternion::Quaternion(float scalar, const Vec3 &vector)
 	: w(scalar), vec(vector)
 {}
 
-Quaternion operator*(const Quaternion &lhs, const Quaternion &rhs)
+Quaternion Quaternion::operator*(const Quaternion &rhs)
 {
-	return lhs.multiply(rhs);
+	return this->multiply(rhs);
 }
 
-Vec3 operator*(const Quaternion &lhs, const Vec3 &rhs)
+Vec3 Quaternion::operator*(const Vec3 &rhs)
 {
-	return lhs.multiply(rhs);
+	return this->multiply(rhs);
 }
 
-Quaternion operator+(const Quaternion &lhs, const Quaternion &rhs)
+Quaternion Quaternion::operator+(const Quaternion &rhs)
 {
-	return Quaternion(lhs.w + rhs.w, lhs.vec + rhs.vec);
+	return Quaternion(this->w + rhs.w, this->vec + rhs.vec);
 }
 
-Quaternion operator-(const Quaternion &lhs, const Quaternion &rhs)
+Quaternion Quaternion::operator-(const Quaternion &rhs)
 {
-	return Quaternion(lhs.w - rhs.w, lhs.vec - rhs.vec);
+	return Quaternion(this->w - rhs.w, this->vec - rhs.vec);
 }

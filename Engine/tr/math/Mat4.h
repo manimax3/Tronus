@@ -27,7 +27,7 @@ namespace tr
 
 		// Operator Overloads
 		Vec4& operator[](const std::size_t&);
-		friend TR_API Mat4 operator*(const Mat4& lhs, const Mat4& rhs);
+		Mat4 operator*(const Mat4& rhs) const;
 
 		// Static Members
 		static Mat4 Identity();

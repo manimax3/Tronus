@@ -18,7 +18,8 @@ else()
   add_library(Tronus STATIC ${TRONUS_SOURCE_FILES})
 endif()
 
-target_include_directories(Tronus PRIVATE tr)
+target_include_directories(Tronus PUBLIC tr)
+target_include_directories(Tronus INTERFACE .)
 
 ## Dependencies: Link and include
 

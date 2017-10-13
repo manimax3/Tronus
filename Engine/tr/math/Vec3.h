@@ -8,11 +8,10 @@ namespace tr
 	public:
 
 		// Constructors
-		Vec3()				= default;
 		Vec3(const Vec3&)   = default;
 		Vec3(Vec3&&)		= default;
 
-		Vec3(float v);
+		Vec3(float v = 0);
 		Vec3(float x, float y, float z);
 
 		// Basic Vector Math
@@ -30,12 +29,12 @@ namespace tr
 		Vec3 normalize()				  const;
 
 		// Operator Overloads
-		friend TR_API Vec3 operator+(const Vec3 &left, float v);
-		friend TR_API Vec3 operator+(const Vec3 &left, const Vec3 &right);
-		friend TR_API Vec3 operator-(const Vec3 &left, float v);
-		friend TR_API Vec3 operator-(const Vec3 &left, const Vec3 &right);
-		friend TR_API Vec3 operator*(const Vec3 &left, float v);
-		friend TR_API Vec3 operator/(const Vec3 &left, float v);
+		Vec3 operator+(float v)			  const;
+		Vec3 operator+(const Vec3 &right) const;
+		Vec3 operator-(float v)			  const;
+		Vec3 operator-(const Vec3 &right) const;
+		Vec3 operator*(float v)			  const;
+		Vec3 operator/(float v)			  const;
 
 		Vec3& operator+=(float v);
 		Vec3& operator+=(const Vec3 &other);

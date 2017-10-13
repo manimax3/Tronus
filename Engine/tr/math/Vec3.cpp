@@ -52,27 +52,27 @@ Vec3 Vec3::cross(const Vec3 &other) const
 
 Vec3 Vec3::normalize() const
 {
-	return *this / length();
+	return this->divide(length());
 }
 
-Vec3 operator+(const Vec3 &left, float v)
+Vec3 Vec3::operator+(float v) const
 {
-	return left.add(v);
+	return this->add(v);
 }
 
-Vec3 operator-(const Vec3 &left, float v)
+Vec3 Vec3::operator-(float v) const
 {
-	return left.subtract(v);
+	return this->subtract(v);
 }
 
-Vec3 operator*(const Vec3 &left, float v)
+Vec3 Vec3::operator*(float v) const
 {
-	return left.multiply(v);
+	return this->multiply(v);
 }
 
-Vec3 operator/(const Vec3 &left, float v)
+Vec3 Vec3::operator/(float v) const
 {
-	return left.divide(v);
+	return this->divide(v);
 }
 
 float& Vec3::operator[](const std::size_t& v)
@@ -139,14 +139,14 @@ Vec3& Vec3::operator+=(float v)
 	return *this;
 }
 
-Vec3 tr::operator-(const Vec3 &left, const Vec3 &right)
+Vec3 Vec3::operator-(const Vec3 &right) const
 {
-	return left.subtract(right);
+	return this->subtract(right);
 }
 
-Vec3 tr::operator+(const Vec3 &left, const Vec3 &right)
+Vec3 Vec3::operator+(const Vec3 &right) const
 {
-	return left.add(right);
+	return this->add(right);
 }
 
 Vec3 Vec3::subtract(const Vec3 &other) const
