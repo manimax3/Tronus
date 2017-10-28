@@ -11,3 +11,6 @@
 [submodule "External/glfw"]
 	path = External/glfw
 	url = https://github.com/glfw/glfw.git
+[submodule "External/concurrentqueue"]
+	path = External/concurrentqueue
+	url = https://github.com/cameron314/concurrentqueue.git

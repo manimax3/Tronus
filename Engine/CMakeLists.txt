@@ -8,7 +8,9 @@ set(TRONUS_SOURCE_FILES
         tr/math/Quaternion.h
         tr/math/Quaternion.cpp
         tr/math/Vec2.h
-        tr/math/Math.h)
+        tr/math/Math.h
+        tr/core/JobHandler.h
+        tr/core/JobHandler.cpp)
 
 option(TRONUS_BUILD_SHARED off)
 
@@ -25,6 +27,8 @@ target_include_directories(Tronus INTERFACE .)
 
 target_link_libraries(Tronus glfw)
 target_include_directories(Tronus PUBLIC "${CMAKE_SOURCE_DIR}/External/glfw/include")
+
+target_include_directories(Tronus PUBLIC "${CMAKE_SOURCE_DIR}/External/concurrentqueue")
 
 ## Compile options
 
