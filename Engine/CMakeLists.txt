@@ -10,7 +10,7 @@ set(TRONUS_SOURCE_FILES
         tr/math/Vec2.h
         tr/math/Math.h
         tr/core/JobHandler.h
-        tr/core/JobHandler.cpp tr/core/Subsystem.h tr/core/Subsystem.cpp tr/core/Engine.h tr/core/Engine.cpp tr/util/Timer.h tr/util/Timer.cpp)
+        tr/core/JobHandler.cpp tr/core/Subsystem.h tr/core/Subsystem.cpp tr/core/Engine.h tr/core/Engine.cpp tr/util/Timer.h tr/util/Timer.cpp tr/debug/Profiler.h)
 
 option(TRONUS_BUILD_SHARED off)
 
@@ -29,6 +29,8 @@ target_link_libraries(Tronus glfw)
 target_include_directories(Tronus PUBLIC "${CMAKE_SOURCE_DIR}/External/glfw/include")
 
 target_include_directories(Tronus PUBLIC "${CMAKE_SOURCE_DIR}/External/concurrentqueue")
+
+target_link_libraries(Tronus easy_profiler)
 
 ## Compile options
 
