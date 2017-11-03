@@ -1,4 +1,5 @@
 #include "JobHandler.h"
+#include "Engine.h"
 
 using namespace tr;
 
@@ -9,11 +10,13 @@ JobHandler::JobHandler()
 
 JobHandler::~JobHandler()
 {
-    Stop();
+    Shutdown();
 }
 
-void JobHandler::Start()
+bool JobHandler::Initialize(Engine *engine)
 {
+    Subsystem::Initialize(engine);
+    
     mRunning = true;
 
     for(auto &ptr : mThreadPool)
@@ -30,16 +33,25 @@ void JobHandler::Start()
 			mActiveThreads--;
         });
     }
+    
+    return true;
 }
 
-void JobHandler::Stop()
+bool JobHandler::Shutdown()
 {
 	if(!mRunning)
-		return;
+		return true;
 
     mRunning = false;
 	for(auto& thread : mThreadPool)
 		thread->join();
+    
+    return true;
+}
+
+bool JobHandler::Tick()
+{
+    return true;
 }
 
 //JobHandler::Job::operator bool() const

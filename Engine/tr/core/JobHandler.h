@@ -9,11 +9,11 @@
 #include <tuple>
 
 #include "concurrentqueue.h"
-
+#include "Subsystem.h"
 
 namespace tr
 {
-    class JobHandler
+    class JobHandler : public Subsystem
     {
     public:
         
@@ -48,7 +48,7 @@ namespace tr
         moodycamel::ConcurrentQueue<Job> mQueue;
 
         std::atomic_bool mRunning;
-	std::atomic_int8_t mActiveThreads;
+	    std::atomic_int8_t mActiveThreads;
 
    public:
         JobHandler();
@@ -57,8 +57,9 @@ namespace tr
         template<typename Func>
         bool AddJob(Func&& function);
 
-        void Start();
-        void Stop();
+        bool Initialize(Engine *engine) override;
+        bool Shutdown() override;
+        bool Tick() override;
     };
 
 
@@ -69,8 +70,8 @@ namespace tr
         if(!mRunning)
         	return false;
 
-	Job job(std::forward<Func>(function));
-	bool valid = mQueue.enqueue(std::move(job));
+	    Job job(std::forward<Func>(function));
+	    bool valid = mQueue.enqueue(std::move(job));
 
         return valid;
     }

@@ -7,7 +7,7 @@ TEST_CASE("JobHandler", "[jobs]")
 	tr::JobHandler handler;
 
 	// Start the handler right away
-	handler.Start();
+	handler.Initialize(nullptr);
 
 	SECTION("Adding a task")
 	{
@@ -17,7 +17,7 @@ TEST_CASE("JobHandler", "[jobs]")
 			i = 10;
 		});
 
-		handler.Stop();
+		handler.Shutdown();
 
 		REQUIRE(status);
 		REQUIRE(i == 10);
