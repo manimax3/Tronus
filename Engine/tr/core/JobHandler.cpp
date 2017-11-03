@@ -1,5 +1,6 @@
 #include "JobHandler.h"
 #include "Engine.h"
+#include "debug/Profiler.h"
 
 using namespace tr;
 
@@ -22,14 +23,19 @@ bool JobHandler::Initialize(Engine *engine)
     for(auto &ptr : mThreadPool)
     {
         ptr = std::make_unique<std::thread>([&](){
+            
+            EASY_THREAD_SCOPE("Worker");
 
 			mActiveThreads++;
             Job func;
 
             while(mRunning)
-                if(mQueue.try_dequeue(func))
-					func();
-
+                if (mQueue.try_dequeue(func))
+                {
+                    EASY_BLOCK("Task");
+                    func();
+                }
+            
 			mActiveThreads--;
         });
     }

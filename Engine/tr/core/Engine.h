@@ -3,6 +3,7 @@
 #include "tr.h"
 #include <type_traits>
 #include "JobHandler.h"
+#include "debug/Profiler.h"
 
 namespace tr
 {
@@ -10,6 +11,7 @@ namespace tr
     {
     private:
         std::unique_ptr<JobHandler> mJobHandler;
+        std::unique_ptr<Profiler> mProfiler;
         
         bool mRunning = false;
         int mUPS = 0;
@@ -26,6 +28,8 @@ namespace tr
             
             if constexpr(std::is_same_v<T, JobHandler>)
                     return mJobHandler.get();
+            else if constexpr(std::is_same_v<T, Profiler>)
+                    return mProfiler.get();
         };
         
     private:

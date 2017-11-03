@@ -5,15 +5,19 @@
 using namespace tr;
 
 Engine::Engine()
-    : mJobHandler(new JobHandler)
+    : mJobHandler(new JobHandler), mProfiler(new Profiler)
 {
 
 }
 
 void Engine::Start()
 {
+    EASY_MAIN_THREAD;
+    EASY_PROFILER_ENABLE;
+    
     // Init all the subsystems
     mJobHandler->Initialize(this);
+    mProfiler->Initialize(this);
     
     mRunning = true;
     
@@ -26,6 +30,7 @@ void Engine::Start()
     
     while(mRunning)
     {
+        
         if((timer.GetElapsed() - tickTimer) >= 1000.f)
         {
             std::cout << mUPS << '\n';
@@ -48,9 +53,13 @@ void Engine::Stop()
 {
     mRunning = false;
     mJobHandler->Shutdown();
+    mProfiler->Shutdown();
 }
 
 void Engine::Tick()
 {
+    EASY_FUNCTION();
+    
     mJobHandler->Tick();
+    mProfiler->Tick();
 }
