@@ -6,7 +6,7 @@
 
 namespace tr
 {
-    class Profiler : public Subsystem
+    class Profiler : public Subsystem<Profiler>
     {
     public:
         bool Initialize(Engine *engine) override;

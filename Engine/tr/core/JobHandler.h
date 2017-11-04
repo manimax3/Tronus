@@ -13,7 +13,7 @@
 
 namespace tr
 {
-    class JobHandler : public Subsystem
+    class JobHandler : public Subsystem<JobHandler>
     {
     public:
         

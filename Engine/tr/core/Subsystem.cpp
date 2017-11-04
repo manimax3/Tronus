@@ -3,19 +3,21 @@
 
 using namespace tr;
 
-bool Subsystem::Initialize(Engine *engine)
+uint BaseSubsystem::TypeCounter = 0;
+
+bool BaseSubsystem::Initialize(Engine *engine)
 {
     mEngine = engine;
     mInitialized = true;
     return true;
 }
 
-bool Subsystem::Tick()
+bool BaseSubsystem::Tick()
 {
     return true;
 }
 
-bool Subsystem::Shutdown()
+bool BaseSubsystem::Shutdown()
 {
     return false;
 }

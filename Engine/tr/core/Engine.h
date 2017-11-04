@@ -2,6 +2,7 @@
 
 #include "tr.h"
 #include <type_traits>
+#include <map>
 #include "JobHandler.h"
 #include "profile/Profiler.h"
 
@@ -10,8 +11,7 @@ namespace tr
     class Engine
     {
     private:
-        std::unique_ptr<JobHandler> mJobHandler;
-        std::unique_ptr<Profiler> mProfiler;
+        std::unordered_map<uint, std::unique_ptr<BaseSubsystem>> mSubsystems;
         
         bool mRunning = false;
         int mUPS = 0;
@@ -24,13 +24,35 @@ namespace tr
         template<typename T>
         T* GetSystem()
         {
-            static_assert(std::is_base_of_v<Subsystem, T>, "Tried to get an unknown Subsystem");
+            static_assert(std::is_base_of_v<Subsystem<T>, T>, "T is not base of Subsystem<T>");
+            assert(HasSystem<T>());
             
-            if constexpr(std::is_same_v<T, JobHandler>)
-                    return mJobHandler.get();
-            else if constexpr(std::is_same_v<T, Profiler>)
-                    return mProfiler.get();
+            return static_cast<T*>(mSubsystems.find(T::GetTypeID())->second.get());
+            
         };
+        
+        template<typename T, typename...Args>
+        T* AddSystem(Args&& ... args)
+        {
+            static_assert(std::is_base_of_v<Subsystem<T>, T>, "T is not base of Subsystem<T>");
+            assert(!HasSystem<T>());
+            
+            mSubsystems.emplace(T::GetTypeID(), std::unique_ptr<BaseSubsystem>(new T(std::forward<Args>(args)...)));
+            
+            // If the engine is already running init this subsystem directly
+            if(mRunning)
+                GetSystem<T>()->Initialize(this);
+            
+            return GetSystem<T>();
+        };
+        
+        template<typename T>
+        bool HasSystem() const
+        {
+            static_assert(std::is_base_of_v<Subsystem<T>, T>, "T is not base of Subsystem<T>");
+            
+            return mSubsystems.find(T::GetTypeID()) != mSubsystems.end();
+        }
         
     private:
         void Tick();

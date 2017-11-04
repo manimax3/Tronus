@@ -6,7 +6,7 @@ namespace tr
 {
     class Engine;
     
-    class Subsystem
+    class BaseSubsystem
     {
     public:
         virtual bool Initialize(Engine *engine);
@@ -18,6 +18,20 @@ namespace tr
     protected:
         bool mInitialized = false;
         Engine *mEngine;
+        
+        static uint TypeCounter;
     };
+    
+    template<typename T>
+    class Subsystem : public BaseSubsystem
+    {
+    public:
+        static uint GetTypeID()
+        {
+            static uint _typeID = BaseSubsystem::TypeCounter++;
+            return _typeID;
+        }
+    };
+    
 }
 
