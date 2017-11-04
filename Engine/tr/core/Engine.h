@@ -3,7 +3,7 @@
 #include "tr.h"
 #include <type_traits>
 #include "JobHandler.h"
-#include "debug/Profiler.h"
+#include "profile/Profiler.h"
 
 namespace tr
 {

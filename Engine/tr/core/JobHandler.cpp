@@ -1,6 +1,6 @@
 #include "JobHandler.h"
 #include "Engine.h"
-#include "debug/Profiler.h"
+#include "profile/Profiler.h"
 
 using namespace tr;
 
