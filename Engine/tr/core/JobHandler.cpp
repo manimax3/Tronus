@@ -30,16 +30,16 @@ bool JobHandler::Initialize(Engine *engine)
             Job func;
 
             while(mRunning)
-                if (mQueue.try_dequeue(func))
-                {
-                    EASY_BLOCK("Task");
-                    func();
-                }
+            {
+                mQueue.wait_dequeue(func);
+                EASY_BLOCK("Task");
+                func();
+            }
             
 			mActiveThreads--;
         });
     }
-    
+
     return true;
 }
 
@@ -49,6 +49,13 @@ bool JobHandler::Shutdown()
 		return true;
 
     mRunning = false;
+    
+    // Make sure that each thread leaves the while loop
+    for(int i = 0; i < std::thread::hardware_concurrency() + 4; i++)
+        AddJob([](){
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        });
+    
 	for(auto& thread : mThreadPool)
 		thread->join();
     

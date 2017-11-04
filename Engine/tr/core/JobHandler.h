@@ -8,7 +8,7 @@
 #include <atomic>
 #include <tuple>
 
-#include "concurrentqueue.h"
+#include "blockingconcurrentqueue.h"
 #include "Subsystem.h"
 
 namespace tr
@@ -45,7 +45,7 @@ namespace tr
         using ThreadPtr = std::unique_ptr<std::thread>;
 
         std::vector<ThreadPtr> mThreadPool;
-        moodycamel::ConcurrentQueue<Job> mQueue;
+        moodycamel::BlockingConcurrentQueue<Job> mQueue;
 
         std::atomic_bool mRunning;
 	    std::atomic_int8_t mActiveThreads;
