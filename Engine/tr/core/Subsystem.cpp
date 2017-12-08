@@ -7,7 +7,7 @@ uint BaseSubsystem::TypeCounter = 0;
 
 bool BaseSubsystem::Initialize(Engine *engine)
 {
-    mEngine = engine;
+    mEngine      = engine;
     mInitialized = true;
     return true;
 }

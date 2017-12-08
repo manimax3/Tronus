@@ -19,6 +19,6 @@ float Timer::GetElapsed() const
 float Timer::Reset()
 {
     const auto elapsed = GetElapsed();
-    mStartPoint = std::chrono::duration_cast<std::chrono::milliseconds>(HighResClock::now().time_since_epoch()).count();
+    mStartPoint        = std::chrono::duration_cast<std::chrono::milliseconds>(HighResClock::now().time_since_epoch()).count();
     return elapsed;
 }
