@@ -1,59 +1,112 @@
 #pragma once
 
+#include "StreamBuffer.h"
 #include <istream>
 #include <tr.h>
 #include <type_traits>
-#include "StreamDevice.h"
 
 namespace tr {
-class Instream : public std::istream {
-public:
-    explicit Instream(std::streambuf *in = nullptr)
-        : std::istream(in)
-    {
-    }
 
-    virtual ~Instream()
-    {
-        if (this->rdbuf())
-            delete this->rdbuf();
-    }
-    template<typename Device, typename... Args>
-    void Push(Args &&... args)
-    {
-        if constexpr (std::is_base_of_v<StreamDevice, Device>) {
-            this->rdbuf(static_cast<std::streambuf *>(
-                new Device(this->rdbuf(), std::forward<Args>(args)...)));
-        } else if constexpr (std::is_base_of_v<AdapterDevice, Device>) {
-            Device d(std::forward<Args>(args)...);
-            this->rdbuf(d.Get());
-        }
-    }
+struct StreamReadError : public std::exception {
+};
+struct StreamWriteError : public std::exception {
+};
+struct StreamBufferPushError : public std::exception {
 };
 
-class Outstream : public std::ostream {
+class Instream {
 public:
-    explicit Outstream(std::streambuf *in = nullptr)
-        : std::ostream(in)
+    explicit Instream() = default;
+    virtual ~Instream()
     {
+        if (mBuffer)
+            delete mBuffer;
+    };
+
+    inline void Flush() {
+        mBuffer->flush();
     }
 
+    inline std::streamsize Read(char *dest, std::streamsize count) noexcept
+    {
+        return mBuffer->Read(dest, count);
+    }
+
+    template<typename T, typename = std::enable_if_t<std::is_pod_v<T>>>
+    Instream &operator>>(T &&t)
+    {
+        std::size_t     size        = sizeof(T);
+        std::streamsize amount_read = Read(reinterpret_cast<char *>(&t), size);
+
+        if (size != amount_read)
+            throw StreamReadError();
+
+        return *this;
+    }
+
+    template<typename T, typename... Args>
+    std::enable_if_t<std::is_base_of_v<StreamBuffer, T>> Push(Args &&... args)
+    {
+        if constexpr (std::is_constructible<T, StreamBuffer *, Args...>::value)
+            mBuffer = new T(mBuffer, std::forward<Args>(args)...);
+        else if constexpr (std::is_constructible<T, Args...>::value) {
+            if (mBuffer)
+                delete mBuffer;
+            mBuffer = new T(std::forward<Args>(args)...);
+        } else
+            throw StreamBufferPushError();
+    }
+
+private:
+    StreamBuffer *mBuffer = nullptr;
+};
+
+class Outstream {
+public:
+    explicit Outstream() = default;
     virtual ~Outstream()
     {
-        if (this->rdbuf())
-            delete this->rdbuf();
+        mBuffer->flush();
+        if (mBuffer)
+            delete mBuffer;
+    };
+
+    inline std::streamsize Write(
+        const char *src, std::streamsize count) noexcept
+    {
+        return mBuffer->Write(src, count);
     }
 
-    template<typename Device, typename... Args>
-    void Push(Args &&... args)
-    {
-        if constexpr (std::is_base_of_v<StreamDevice, Device>) {
-            this->rdbuf(static_cast<std::streambuf *>(
-                new Device(this->rdbuf(), std::forward<Args>(args)...)));
-        } else if constexpr (std::is_base_of_v<AdapterDevice, Device>) {
-            Device d(std::forward<Args>(args)...);
-            this->rdbuf(d.Get());
-        }
+    inline void Flush() {
+        mBuffer->flush();
     }
+
+    template<typename T, typename = std::enable_if_t<std::is_pod_v<T>>>
+    Outstream &operator<<(T &&t)
+    {
+        std::size_t     size        = sizeof(T);
+        std::streamsize amount_read = Write(reinterpret_cast<char *>(&t), size);
+
+        if (size != amount_read)
+            throw StreamWriteError();
+
+        return *this;
+    }
+
+    template<typename T, typename... Args>
+    std::enable_if_t<std::is_base_of_v<StreamBuffer, T>> Push(Args &&... args)
+    {
+        if constexpr (std::is_constructible<T, StreamBuffer *, Args...>::value)
+            mBuffer = new T(mBuffer, std::forward<Args>(args)...);
+        else if constexpr (std::is_constructible<T, Args...>::value) {
+            if (mBuffer)
+                delete mBuffer;
+            mBuffer = new T(std::forward<Args>(args)...);
+        } else
+            throw StreamBufferPushError();
+    }
+
+private:
+    StreamBuffer *mBuffer = nullptr;
 };
 }
