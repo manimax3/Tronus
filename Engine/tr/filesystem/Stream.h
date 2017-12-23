@@ -14,18 +14,42 @@ struct StreamWriteError : public std::exception {
 struct StreamBufferPushError : public std::exception {
 };
 
-class Instream {
+class Basic_Stream {
 public:
-    explicit Instream() = default;
-    virtual ~Instream()
+    explicit Basic_Stream() = default;
+    virtual ~Basic_Stream()
     {
         if (mBuffer)
             delete mBuffer;
-    };
-
-    inline void Flush() {
-        mBuffer->flush();
     }
+
+    inline void Flush()
+    {
+        if (mBuffer)
+            mBuffer->flush();
+    }
+
+    template<typename T, typename... Args>
+    std::enable_if_t<std::is_base_of_v<StreamBuffer, T>> Push(
+        Args &&... args)
+    {
+        if constexpr (std::is_constructible<T, StreamBuffer *, Args...>::value)
+            mBuffer = new T(mBuffer, std::forward<Args>(args)...);
+        else if constexpr (std::is_constructible<T, Args...>::value) {
+            if (mBuffer)
+                delete mBuffer;
+            mBuffer = new T(std::forward<Args>(args)...);
+        } else
+            throw StreamBufferPushError();
+    }
+
+protected:
+    StreamBuffer *mBuffer = nullptr;
+};
+
+class Instream : public Basic_Stream {
+public:
+    explicit Instream() = default;
 
     inline std::streamsize Read(char *dest, std::streamsize count) noexcept
     {
@@ -43,42 +67,16 @@ public:
 
         return *this;
     }
-
-    template<typename T, typename... Args>
-    std::enable_if_t<std::is_base_of_v<StreamBuffer, T>> Push(Args &&... args)
-    {
-        if constexpr (std::is_constructible<T, StreamBuffer *, Args...>::value)
-            mBuffer = new T(mBuffer, std::forward<Args>(args)...);
-        else if constexpr (std::is_constructible<T, Args...>::value) {
-            if (mBuffer)
-                delete mBuffer;
-            mBuffer = new T(std::forward<Args>(args)...);
-        } else
-            throw StreamBufferPushError();
-    }
-
-private:
-    StreamBuffer *mBuffer = nullptr;
 };
 
-class Outstream {
+class Outstream : public Basic_Stream {
 public:
     explicit Outstream() = default;
-    virtual ~Outstream()
-    {
-        mBuffer->flush();
-        if (mBuffer)
-            delete mBuffer;
-    };
 
     inline std::streamsize Write(
         const char *src, std::streamsize count) noexcept
     {
         return mBuffer->Write(src, count);
-    }
-
-    inline void Flush() {
-        mBuffer->flush();
     }
 
     template<typename T, typename = std::enable_if_t<std::is_pod_v<T>>>
@@ -92,21 +90,5 @@ public:
 
         return *this;
     }
-
-    template<typename T, typename... Args>
-    std::enable_if_t<std::is_base_of_v<StreamBuffer, T>> Push(Args &&... args)
-    {
-        if constexpr (std::is_constructible<T, StreamBuffer *, Args...>::value)
-            mBuffer = new T(mBuffer, std::forward<Args>(args)...);
-        else if constexpr (std::is_constructible<T, Args...>::value) {
-            if (mBuffer)
-                delete mBuffer;
-            mBuffer = new T(std::forward<Args>(args)...);
-        } else
-            throw StreamBufferPushError();
-    }
-
-private:
-    StreamBuffer *mBuffer = nullptr;
 };
 }
