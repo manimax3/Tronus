@@ -23,12 +23,14 @@ void Engine::Start()
 
     // Start the tick loop
 
-    Timer       timer;
+    Timer       timer, sleep_timer;
     const float msPerTick   = 1000.f / 60.f;
     float       updateTimer = 0;
     float       tickTimer   = 0;
 
     while (mRunning) {
+
+        sleep_timer.Reset();
 
         if ((timer.GetElapsed() - tickTimer) >= 1000.f) {
             std::cout << mUPS << '\n';
@@ -36,10 +38,16 @@ void Engine::Start()
             tickTimer += 1000.f;
         }
 
-        while ((timer.GetElapsed() - updateTimer) >= msPerTick) {
+        if ((timer.GetElapsed() - updateTimer) >= msPerTick) {
             Tick();
             updateTimer += msPerTick;
             mUPS++;
+        }
+
+        if (sleep_timer.GetElapsed() < msPerTick) {
+            std::this_thread::yield();
+            std::this_thread::sleep_for(std::chrono::milliseconds(
+                static_cast<uint64>(msPerTick - sleep_timer.GetElapsed())));
         }
     }
 }
