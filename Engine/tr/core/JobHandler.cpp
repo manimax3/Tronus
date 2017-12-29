@@ -11,10 +11,7 @@ JobHandler::JobHandler()
 {
 }
 
-JobHandler::~JobHandler()
-{
-    Shutdown();
-}
+JobHandler::~JobHandler() { Shutdown(); }
 
 bool JobHandler::Initialize(Engine *engine)
 {
@@ -31,7 +28,9 @@ bool JobHandler::Initialize(Engine *engine)
             Job func;
 
             while (mRunning) {
-                if (mQueue.wait_dequeue_timed(func, std::chrono::microseconds(5))) {
+                mQueue.wait_dequeue(func);
+
+                {
                     EASY_BLOCK("Task");
                     func();
                 }
@@ -53,9 +52,7 @@ bool JobHandler::Shutdown()
 
     // Make sure that each thread leaves the while loop
     for (int i = 0; i < std::thread::hardware_concurrency() + 4; i++)
-        AddJob([]() {
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-        });
+        AddJob([]() { std::this_thread::sleep_for(std::chrono::seconds(1)); });
 
     for (auto &thread : mThreadPool)
         thread->join();
@@ -63,12 +60,9 @@ bool JobHandler::Shutdown()
     return true;
 }
 
-bool JobHandler::Tick()
-{
-    return true;
-}
+bool JobHandler::Tick() { return true; }
 
-//JobHandler::Job::operator bool() const
+// JobHandler::Job::operator bool() const
 //{
 //	return mStatus;
 //}
