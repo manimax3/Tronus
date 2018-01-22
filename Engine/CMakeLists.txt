@@ -10,7 +10,7 @@ set(TRONUS_SOURCE_FILES
         tr/math/Vec2.h
         tr/math/Math.h
         tr/core/JobHandler.h
-        tr/core/JobHandler.cpp tr/core/Subsystem.h tr/core/Subsystem.cpp tr/core/Engine.h tr/core/Engine.cpp tr/util/Timer.h tr/util/Timer.cpp tr/profile/Profiler.h tr/profile/Profiler.cpp tr/filesystem/StreamBuffer.cpp)
+        tr/core/JobHandler.cpp tr/core/Subsystem.h tr/core/Subsystem.cpp tr/core/Engine.h tr/core/Engine.cpp tr/util/Timer.h tr/util/Timer.cpp tr/profile/Profiler.h tr/profile/Profiler.cpp tr/filesystem/StreamBuffer.cpp tr/util/Log.h tr/util/Log.cpp)
 
 option(TRONUS_BUILD_SHARED off)
 

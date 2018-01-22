@@ -30,7 +30,7 @@ public:
 
 TEST_CASE("JobHandler", "[jobs]")
 {
-	tr::Engine engine;
-    engine.AddSystem<TestJobHandlder>();
-    engine.Start();
+	//tr::Engine engine;
+    //engine.AddSystem<TestJobHandlder>();
+    //engine.Start();
 }
