@@ -1,4 +1,5 @@
 #include "Engine.h"
+#include "../util/Log.h"
 #include "util/Timer.h"
 #include <iostream>
 
@@ -8,6 +9,7 @@ Engine::Engine()
 {
     AddSystem<JobHandler>();
     AddSystem<Profiler>();
+    AddSystem<Log>();
 }
 
 void Engine::Start()

@@ -29,6 +29,7 @@ target_link_libraries(Tronus glfw)
 target_include_directories(Tronus PUBLIC "${CMAKE_SOURCE_DIR}/External/glfw/include")
 
 target_include_directories(Tronus PUBLIC "${CMAKE_SOURCE_DIR}/External/concurrentqueue")
+target_include_directories(Tronus PRIVATE "${CMAKE_SOURCE_DIR}/External/rang/include")
 
 target_link_libraries(Tronus easy_profiler)
 
