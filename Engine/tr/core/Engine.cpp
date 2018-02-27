@@ -2,20 +2,24 @@
 #include "../util/Log.h"
 #include "util/Timer.h"
 #include <iostream>
+#include "../event/EventSystem.h"
 
 using namespace tr;
 
 Engine::Engine()
 {
+    AddSystem<Log>();
     AddSystem<JobHandler>();
     AddSystem<Profiler>();
-    AddSystem<Log>();
+    AddSystem<EventSystem>();
 }
 
 void Engine::Start()
 {
     EASY_MAIN_THREAD;
     EASY_PROFILER_ENABLE;
+
+    GetSystem<Log>()->log("Tronus Engine Starting...", LogLevel::WARNING);    
 
     // Init all the subsystems
     for (auto &subsystem : mSubsystems)
