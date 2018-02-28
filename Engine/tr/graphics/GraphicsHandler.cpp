@@ -7,6 +7,7 @@ namespace tr {
 void key_callback(
     GLFWwindow *window, int key, int scancode, int action, int mods);
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos);
+void close_callback(GLFWwindow *window);
 void error_callback(int error, const char *description);
 }
 
@@ -49,6 +50,8 @@ void tr::GraphicsHandler::Render()
 
     // Execute the commands in the command buffer
     if (const auto size = mGfxCommandBuffer.size(); size > 0) {
+        EASY_BLOCK("Executing GfxCommands");
+
         for (int i = 0; i < size; i++) {
             mGfxCommandBuffer.front()->Execute(this);
             delete mGfxCommandBuffer.front();
@@ -58,11 +61,6 @@ void tr::GraphicsHandler::Render()
 
     if (!mContext.valid)
         return; // We dont have a valid context
-
-    if (glfwWindowShouldClose(static_cast<GLFWwindow *>(mContext.window))) {
-        SubmitCommand(std::make_unique<CloseWindowCmd>());
-        return;
-    }
 
     // glClear(GL_COLOR_BUFFER_BIT);
     glfwSwapBuffers(static_cast<GLFWwindow *>(mContext.window));
@@ -87,6 +85,7 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
     glfwSetWindowUserPointer(window, static_cast<void *>(handler));
     glfwSetKeyCallback(window, key_callback);
     glfwSetCursorPosCallback(window, cursor_position_callback);
+    glfwSetWindowCloseCallback(window, close_callback);
 
     glfwMakeContextCurrent(window);
 
@@ -145,6 +144,14 @@ void tr::cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
     InputEvent event(xpos, ypos);
 
     handler->GetEngine().GetSystem<EventSystem>()->DispatchEvent(event);
+}
+
+void tr::close_callback(GLFWwindow *window)
+{
+    GraphicsHandler *handler
+        = static_cast<GraphicsHandler *>(glfwGetWindowUserPointer(window));
+
+    handler->SubmitCommand(std::make_unique<CloseWindowCmd>());
 }
 
 void tr::error_callback(int error, const char *description)
