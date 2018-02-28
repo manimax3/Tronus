@@ -1,6 +1,14 @@
 #include "GraphicsHandler.h"
+#include "../event/CommonEvents.h"
 #include "GLFW/glfw3.h"
 #include "easy/profiler.h"
+
+namespace tr {
+void key_callback(
+    GLFWwindow *window, int key, int scancode, int action, int mods);
+void cursor_position_callback(GLFWwindow *window, double xpos, double ypos);
+void error_callback(int error, const char *description);
+}
 
 bool tr::GraphicsHandler::Initialize(Engine *e)
 {
@@ -17,7 +25,11 @@ bool tr::GraphicsHandler::Tick()
     return true;
 }
 
-bool tr::GraphicsHandler::Shutdown() { return true; }
+bool tr::GraphicsHandler::Shutdown()
+{
+    SubmitCommand(std::make_unique<CloseWindowCmd>());
+    return true;
+}
 
 bool tr::GraphicsHandler::SubmitCommand(std::unique_ptr<GfxCommand> &&_cmd)
 {
@@ -64,12 +76,21 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
         handler->GetEngine().Logger().log(
             "Error Initializing GLFW!", LogLevel::ERROR);
 
-    GLFWwindow *window
-        = glfwCreateWindow(Size.x, Size.y, Name.c_str(), NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(Size.x, Size.y, Name.c_str(),
+        Fullscreen ? glfwGetPrimaryMonitor() : NULL, NULL);
 
     if (!window)
         handler->GetEngine().Logger().log(
             "Error Creating a GLFW Window", LogLevel::ERROR);
+
+    // Set the current GraphicsHandler as the user pointer
+    glfwSetWindowUserPointer(window, static_cast<void *>(handler));
+    glfwSetKeyCallback(window, key_callback);
+    glfwSetCursorPosCallback(window, cursor_position_callback);
+
+    glfwMakeContextCurrent(window);
+
+    glfwSwapInterval(VSync ? 1 : 0);
 
     handler->mContext.window = static_cast<void *>(window);
 
@@ -85,4 +106,51 @@ void tr::CloseWindowCmd::Execute(GraphicsHandler *handler)
 
     glfwDestroyWindow(static_cast<GLFWwindow *>(handler->Context().window));
     glfwTerminate();
+}
+
+void tr::key_callback(
+    GLFWwindow *window, int key, int scancode, int action, int mods)
+{
+    GraphicsHandler *handler
+        = static_cast<GraphicsHandler *>(glfwGetWindowUserPointer(window));
+
+    InputEvent::Action a;
+
+    if (action == GLFW_PRESS)
+        a = InputEvent::PRESS;
+    else if (action == GLFW_RELEASE)
+        a = InputEvent::RELEASE;
+    else
+        a = InputEvent::REPEAT;
+
+    InputEvent event(key, a);
+
+    if (mods & GLFW_MOD_ALT)
+        event.Alt = true;
+    if (mods & GLFW_MOD_SHIFT)
+        event.Shift = true;
+    if (mods & GLFW_MOD_SUPER)
+        event.Super = true;
+    if (mods & GLFW_MOD_CONTROL)
+        event.Control = true;
+
+    handler->GetEngine().GetSystem<EventSystem>()->DispatchEvent(event);
+}
+
+void tr::cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
+{
+    GraphicsHandler *handler
+        = static_cast<GraphicsHandler *>(glfwGetWindowUserPointer(window));
+
+    InputEvent event(xpos, ypos);
+
+    handler->GetEngine().GetSystem<EventSystem>()->DispatchEvent(event);
+}
+
+void tr::error_callback(int error, const char *description)
+{
+    if (Log::STATIC_LOGGER)
+        Log::STATIC_LOGGER->log(std::string("GLFW - ") + description
+                + " Error Code: " + std::to_string(error),
+            LogLevel::ERROR);
 }

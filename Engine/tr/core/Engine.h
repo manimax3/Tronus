@@ -2,13 +2,13 @@
 
 #include "../util/Log.h"
 #include "JobHandler.h"
-#include "profile/Profiler.h"
 #include "tr.h"
 #include <map>
 #include <type_traits>
+#include "../event/EventSystem.h"
 
 namespace tr {
-class Engine {
+class Engine : public EventListener{
 private:
     std::unordered_map<uint, std::unique_ptr<BaseSubsystem>> mSubsystems;
 
@@ -58,6 +58,10 @@ public:
 
         return mSubsystems.find(T::GetTypeID()) != mSubsystems.end();
     }
+
+    // EventListener
+    std::vector<int> SubscripeTo() const override;
+    void             OnEvent(const Event &e, int channel) override;
 
 private:
     void Tick();

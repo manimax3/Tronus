@@ -1,9 +1,11 @@
 #include "Engine.h"
-#include "../util/Log.h"
-#include "util/Timer.h"
-#include <iostream>
+#include "../event/CommonEvents.h"
 #include "../event/EventSystem.h"
 #include "../graphics/GraphicsHandler.h"
+#include "../util/Log.h"
+#include "profile/Profiler.h"
+#include "util/Timer.h"
+#include <iostream>
 
 using namespace tr;
 
@@ -22,13 +24,15 @@ void Engine::Start()
     EASY_PROFILER_ENABLE;
 
     mLog = GetSystem<Log>();
-    Logger().log("Tronus Engine Starting...", LogLevel::WARNING);    
+    Logger().log("Tronus Engine Starting...", LogLevel::WARNING);
 
     // Init all the subsystems
     for (auto &subsystem : mSubsystems)
         subsystem.second->Initialize(this);
 
     mRunning = true;
+
+    GetSystem<EventSystem>()->AddListener(this);
 
     // Start the tick loop
 
@@ -72,4 +76,14 @@ void Engine::Tick()
 
     for (auto &subsystem : mSubsystems)
         subsystem.second->Tick();
+}
+
+std::vector<int> tr::Engine::SubscripeTo() const { return { ENGINE_CHANNEL }; }
+
+void Engine::OnEvent(const Event &e, int channel)
+{
+    if (e.Identifier == INPUT_ID) {
+        const auto &ie = static_cast<const InputEvent &>(e);
+        Logger().log(std::string("Pressed key: "));
+    }
 }

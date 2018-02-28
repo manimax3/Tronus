@@ -7,7 +7,12 @@
 
 namespace tr {
 
+// Channels used by the Engine (0-100 reserved)
 constexpr int ENGINE_CHANNEL = 0;
+
+// Keys to determine type of Events (0-1000 reserved)
+constexpr int INPUT_ID  = 1;
+constexpr int WINDOW_ID = 2;
 
 class EventListener;
 struct Event;
@@ -41,6 +46,6 @@ struct Event {
     Event &operator=(const Event &) = default;
     Event &operator=(Event &&) = default;
 
-    int key;
+    int Identifier = -1;
 };
 }
