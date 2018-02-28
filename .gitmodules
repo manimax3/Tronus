@@ -14,3 +14,6 @@
 [submodule "External/concurrentqueue"]
 	path = External/concurrentqueue
 	url = https://github.com/cameron314/concurrentqueue.git
+[submodule "External/easy_profiler"]
+	path = External/easy_profiler
+	url = https://github.com/manimax3/easy_profiler.git
