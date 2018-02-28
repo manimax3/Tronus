@@ -40,6 +40,9 @@ public:
     Log &log(const std::string &out, LogLevel level = LogLevel::INFO,
         LogOptions options = DEFAULT);
 
+    // Use this only if no other choise
+    static Log *STATIC_LOGGER;
+
 private:
     Outstream mFileStream;
 };
