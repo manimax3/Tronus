@@ -12,6 +12,7 @@ public:
     virtual bool Shutdown();
 
     inline bool IsInitialized() const { return mInitialized; }
+    inline Engine &GetEngine() { return *mEngine; }
 
 protected:
     bool    mInitialized = false;

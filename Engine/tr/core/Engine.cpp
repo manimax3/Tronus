@@ -3,6 +3,7 @@
 #include "util/Timer.h"
 #include <iostream>
 #include "../event/EventSystem.h"
+#include "../graphics/GraphicsHandler.h"
 
 using namespace tr;
 
@@ -12,6 +13,7 @@ Engine::Engine()
     AddSystem<JobHandler>();
     AddSystem<Profiler>();
     AddSystem<EventSystem>();
+    AddSystem<GraphicsHandler>();
 }
 
 void Engine::Start()
