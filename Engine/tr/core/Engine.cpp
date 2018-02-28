@@ -19,7 +19,8 @@ void Engine::Start()
     EASY_MAIN_THREAD;
     EASY_PROFILER_ENABLE;
 
-    GetSystem<Log>()->log("Tronus Engine Starting...", LogLevel::WARNING);    
+    mLog = GetSystem<Log>();
+    Logger().log("Tronus Engine Starting...", LogLevel::WARNING);    
 
     // Init all the subsystems
     for (auto &subsystem : mSubsystems)

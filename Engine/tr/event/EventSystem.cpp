@@ -1,8 +1,10 @@
 #include "EventSystem.h"
 #include <algorithm>
+#include "../core/Engine.h"
 
 bool tr::EventSystem::Initialize(Engine *e)
 {
+    e->Logger().log("Starting EventSystem...");
     return Subsystem<EventSystem>::Initialize(e);
 }
 

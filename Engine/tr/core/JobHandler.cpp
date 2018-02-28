@@ -40,6 +40,8 @@ bool JobHandler::Initialize(Engine *engine)
         });
     }
 
+    engine->Logger().log("Starting JobHandler...");
+
     return true;
 }
 
