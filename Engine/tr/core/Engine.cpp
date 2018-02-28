@@ -37,6 +37,8 @@ void Engine::Start()
     float       updateTimer = 0;
     float       tickTimer   = 0;
 
+    GraphicsHandler *const gfx = GetSystem<GraphicsHandler>();
+
     while (mRunning) {
 
         sleep_timer.Reset();
@@ -53,11 +55,7 @@ void Engine::Start()
             mUPS++;
         }
 
-        if (sleep_timer.GetElapsed() < msPerTick) {
-            std::this_thread::yield();
-            std::this_thread::sleep_for(std::chrono::milliseconds(
-                static_cast<uint64>(msPerTick - sleep_timer.GetElapsed())));
-        }
+        gfx->Render();
     }
 }
 

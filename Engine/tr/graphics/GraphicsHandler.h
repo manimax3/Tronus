@@ -1,12 +1,18 @@
 #pragma once
 #include "../core/Engine.h"
 #include "../math/Math.h"
-#include "../util/MPSCQueue.h"
+#include <queue>
 #include <tr.h>
 
 namespace tr {
+
 class GfxCommand;
-class RenderContext;
+
+struct RenderContext {
+    void *window = nullptr;
+    bool  valid  = false;
+};
+
 class GraphicsHandler : public Subsystem<GraphicsHandler> {
 public:
     bool Initialize(Engine *e) override;
@@ -15,22 +21,22 @@ public:
 
     bool SubmitCommand(std::unique_ptr<GfxCommand> &&command);
 
-    inline RenderContext *Context() { return mContext; }
+    inline RenderContext &Context() { return mContext; }
+
+    bool Valid() const;
+
+    void Render();
 
     friend class CreateWindowCmd;
 
 private:
-    MPSCQueue<GfxCommand *> mGfxCommandBuffer;
-    MPSCQueue<GfxCommand *> mMainCommandBuffer;
+    std::queue<GfxCommand *> mGfxCommandBuffer;
 
-    RenderContext *mContext = nullptr;
-
-    void render();
+    RenderContext mContext;
 };
 
-class GfxCommand {
-public:
-    explicit GfxCommand(bool requires_main = false);
+struct GfxCommand {
+    explicit GfxCommand()          = default;
     virtual ~GfxCommand()          = default;
     GfxCommand(const GfxCommand &) = default;
     GfxCommand(GfxCommand &&)      = default;
@@ -38,20 +44,18 @@ public:
     GfxCommand &operator=(GfxCommand &&) = default;
 
     virtual void Execute(GraphicsHandler *handler) = 0;
-
-    inline bool RequiresMain() const { return mRequiresMain; }
-
-private:
-    bool mRequiresMain = false;
 };
 
 struct CreateWindowCmd : public GfxCommand {
-    CreateWindowCmd();
     void Execute(GraphicsHandler *handler) override;
 
     Vec2        Size       = { 1280, 720 };
     std::string Name       = "Tronus Engine";
     bool        Fullscreen = false;
     bool        VSync      = false;
+};
+
+struct CloseWindowCmd : public GfxCommand {
+    void Execute(GraphicsHandler *handler) override;
 };
 }

@@ -2,30 +2,16 @@
 #include "GLFW/glfw3.h"
 #include "easy/profiler.h"
 
-namespace tr {
-struct RenderContext {
-    GLFWwindow *  window;
-    volatile bool valid;
-};
-}
-
 bool tr::GraphicsHandler::Initialize(Engine *e)
 {
     e->Logger().log("Starting GraphicsHandler...");
     this->SubmitCommand(std::unique_ptr<GfxCommand>(new CreateWindowCmd()));
-    std::thread([this]() { this->render(); }).detach();
     return Subsystem::Initialize(e);
 }
 
 bool tr::GraphicsHandler::Tick()
 {
-    GfxCommand *cmd;
-    while (mMainCommandBuffer.dequeue(cmd)) {
-        cmd->Execute(this);
-        delete cmd;
-    }
-
-    if (mContext && mContext->valid)
+    if (mContext.valid)
         glfwPollEvents();
 
     return true;
@@ -40,47 +26,34 @@ bool tr::GraphicsHandler::SubmitCommand(std::unique_ptr<GfxCommand> &&_cmd)
     if (!cmd)
         return false;
 
-    if (cmd->RequiresMain())
-        mMainCommandBuffer.enqueue(cmd);
-    else
-        mGfxCommandBuffer.enqueue(cmd);
+    mGfxCommandBuffer.push(cmd);
 
     return true;
 }
 
-void tr::GraphicsHandler::render()
+void tr::GraphicsHandler::Render()
 {
-    EASY_THREAD_SCOPE("Render");
+    EASY_FUNCTION();
 
-    while (true) {
-
-        EASY_BLOCK("FrameCycle");
-
-        GfxCommand *cmd;
-        //while (mGfxCommandBuffer.dequeue(cmd)) {
-        //    cmd->Execute(this);
-        //    delete cmd;
-        //}
-
-        if (!mContext || !mContext->valid)
-            continue; // We dont have a valid context
-
-        if (glfwWindowShouldClose(mContext->window))
-            break; // Close the window. Maybe send some type of Event
-
-        // glClear(GL_COLOR_BUFFER_BIT);
-        glfwSwapBuffers(mContext->window);
+    // Execute the commands in the command buffer
+    if (const auto size = mGfxCommandBuffer.size(); size > 0) {
+        for (int i = 0; i < size; i++) {
+            mGfxCommandBuffer.front()->Execute(this);
+            delete mGfxCommandBuffer.front();
+            mGfxCommandBuffer.pop();
+        }
     }
-}
 
-tr::GfxCommand::GfxCommand(bool b)
-    : mRequiresMain(b)
-{
-}
+    if (!mContext.valid)
+        return; // We dont have a valid context
 
-tr::CreateWindowCmd::CreateWindowCmd()
-    : GfxCommand(true)
-{
+    if (glfwWindowShouldClose(static_cast<GLFWwindow *>(mContext.window))) {
+        SubmitCommand(std::make_unique<CloseWindowCmd>());
+        return;
+    }
+
+    // glClear(GL_COLOR_BUFFER_BIT);
+    glfwSwapBuffers(static_cast<GLFWwindow *>(mContext.window));
 }
 
 void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
@@ -91,8 +64,6 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
         handler->GetEngine().Logger().log(
             "Error Initializing GLFW!", LogLevel::ERROR);
 
-    handler->mContext = new RenderContext();
-
     GLFWwindow *window
         = glfwCreateWindow(Size.x, Size.y, Name.c_str(), NULL, NULL);
 
@@ -100,7 +71,18 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
         handler->GetEngine().Logger().log(
             "Error Creating a GLFW Window", LogLevel::ERROR);
 
-    handler->mContext->window = window;
+    handler->mContext.window = static_cast<void *>(window);
 
-    handler->mContext->valid = true;
+    handler->mContext.valid = true;
+}
+
+void tr::CloseWindowCmd::Execute(GraphicsHandler *handler)
+{
+    if (!handler->Context().valid)
+        return;
+
+    handler->Context().valid = false;
+
+    glfwDestroyWindow(static_cast<GLFWwindow *>(handler->Context().window));
+    glfwTerminate();
 }
