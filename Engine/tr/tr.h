@@ -15,6 +15,10 @@
 #define TR_API
 #endif
 
+#ifndef NDEBUG
+#define TR_DEBUG
+#endif
+
 namespace tr {
 typedef int8_t  int8;
 typedef int16_t int16;

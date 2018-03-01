@@ -4,6 +4,7 @@
 
 #include "glad/glad.h"
 
+#include "GLCheck.h"
 #include "GLFW/glfw3.h"
 
 namespace tr {
@@ -12,6 +13,8 @@ void key_callback(
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos);
 void close_callback(GLFWwindow *window);
 void error_callback(int error, const char *description);
+void gl_debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
+    GLsizei length, const GLchar *message, void *userParam);
 }
 
 bool tr::GraphicsHandler::Initialize(Engine *e)
@@ -82,6 +85,10 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, Resizeable ? GL_TRUE : GL_FALSE);
 
+#ifdef TR_DEBUG
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+#endif
+
     GLFWwindow *window = glfwCreateWindow(Size.x, Size.y, Name.c_str(),
         Fullscreen ? glfwGetPrimaryMonitor() : NULL, NULL);
 
@@ -101,9 +108,12 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
         handler->GetEngine().Logger().log(
             "Failed to initialize OpenGL context", LogLevel::ERROR);
 
+    if (glfwExtensionSupported("GL_ARB_debug_output"))
+        glDebugMessageCallback((GLDEBUGPROC)gl_debug_callback, handler);
+
     glfwSwapInterval(VSync ? 1 : 0);
 
-    glClearColor(ClearColor.x, ClearColor.y, ClearColor.z, ClearColor.w);
+    Call(glClearColor(ClearColor.x, ClearColor.y, ClearColor.z, ClearColor.w));
 
     handler->mContext.window = static_cast<void *>(window);
 
@@ -176,3 +186,17 @@ void tr::error_callback(int error, const char *description)
             LogLevel::ERROR);
 }
 
+void tr::gl_debug_callback(GLenum source, GLenum type, GLuint id,
+    GLenum severity, GLsizei length, const GLchar *message, void *userParam)
+{
+    GraphicsHandler *handler = static_cast<GraphicsHandler *>(userParam);
+
+    std::string m("OpenGL: ");
+    if (length == -1)
+        m += message;
+    else
+        m += std::string(message, length);
+
+    handler->GetEngine().Logger().log(m,
+        severity == GL_DEBUG_TYPE_ERROR ? LogLevel::ERROR : LogLevel::WARNING);
+}
