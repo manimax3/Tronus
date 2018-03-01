@@ -76,9 +76,10 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
 {
     EASY_BLOCK("CreateWindowCmd");
 
+    auto &Logger = handler->GetEngine().Logger();
+
     if (!glfwInit())
-        handler->GetEngine().Logger().log(
-            "Error Initializing GLFW!", LogLevel::ERROR);
+        Logger.log("Error Initializing GLFW!", LogLevel::ERROR);
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -92,24 +93,37 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
     GLFWwindow *window = glfwCreateWindow(Size.x, Size.y, Name.c_str(),
         Fullscreen ? glfwGetPrimaryMonitor() : NULL, NULL);
 
-    if (!window)
-        handler->GetEngine().Logger().log(
-            "Error Creating a GLFW Window", LogLevel::ERROR);
+    if (!window){
+        Logger.log("Error Creating a GLFW Window", LogLevel::ERROR);
+        return;
+    }
 
     // Set the current GraphicsHandler as the user pointer
     glfwSetWindowUserPointer(window, static_cast<void *>(handler));
+
+    // Set the window callbacks
     glfwSetKeyCallback(window, key_callback);
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetWindowCloseCallback(window, close_callback);
 
     glfwMakeContextCurrent(window);
 
+    // Load the OpenGL extensions
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-        handler->GetEngine().Logger().log(
-            "Failed to initialize OpenGL context", LogLevel::ERROR);
+        Logger.log("Failed to initialize OpenGL context", LogLevel::ERROR);
 
+    // Enable the Debug Message Callback if available (>=GL4.3)
     if (glfwExtensionSupported("GL_ARB_debug_output"))
         glDebugMessageCallback((GLDEBUGPROC)gl_debug_callback, handler);
+
+    // Log the OpenGl version
+    std::string version_info("OpenGL: ");
+    version_info += reinterpret_cast<char *>(
+        const_cast<byte *>(glGetString(GL_VERSION)));
+    version_info += " GLSL: ";
+    version_info += reinterpret_cast<char *>(
+        const_cast<byte *>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
+    Logger.log(version_info);
 
     glfwSwapInterval(VSync ? 1 : 0);
 
