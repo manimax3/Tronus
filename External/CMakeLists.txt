@@ -9,7 +9,7 @@ add_subdirectory(glfw)
 
 # GLAD
 add_library(Glad STATIC "glad/src/glad.c")
-target_include_directories(Glad PRIVATE "glad")
+target_include_directories(Glad PUBLIC "glad")
 
 # easy_profiler
 add_subdirectory(easy_profiler)

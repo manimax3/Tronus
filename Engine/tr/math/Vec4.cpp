@@ -60,7 +60,7 @@ float Vec4::dot(const Vec4 &other) const
 
 Vec4 Vec4::normalize() const
 {
-    return *this / length();
+    return this->divide(length());
 }
 
 Vec4 operator+(const Vec4 &left, float v)

@@ -52,7 +52,9 @@ struct CreateWindowCmd : public GfxCommand {
     Vec2        Size       = { 1280, 720 };
     std::string Name       = "Tronus Engine";
     bool        Fullscreen = false;
+    bool        Resizeable = true;
     bool        VSync      = true;
+    Vec4        ClearColor = { 0.2f, 0.3f, 0.3f, 1.0f };
 };
 
 struct CloseWindowCmd : public GfxCommand {

@@ -32,6 +32,7 @@ target_include_directories(Tronus PUBLIC "${CMAKE_SOURCE_DIR}/External/concurren
 target_include_directories(Tronus PRIVATE "${CMAKE_SOURCE_DIR}/External/rang/include")
 
 target_link_libraries(Tronus easy_profiler)
+target_link_libraries(Tronus Glad)
 
 ## Compile options
 

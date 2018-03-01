@@ -1,7 +1,10 @@
 #include "GraphicsHandler.h"
 #include "../event/CommonEvents.h"
-#include "GLFW/glfw3.h"
 #include "easy/profiler.h"
+
+#include "glad/glad.h"
+
+#include "GLFW/glfw3.h"
 
 namespace tr {
 void key_callback(
@@ -62,7 +65,7 @@ void tr::GraphicsHandler::Render()
     if (!mContext.valid)
         return; // We dont have a valid context
 
-    // glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT);
     glfwSwapBuffers(static_cast<GLFWwindow *>(mContext.window));
 }
 
@@ -73,6 +76,11 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
     if (!glfwInit())
         handler->GetEngine().Logger().log(
             "Error Initializing GLFW!", LogLevel::ERROR);
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_RESIZABLE, Resizeable ? GL_TRUE : GL_FALSE);
 
     GLFWwindow *window = glfwCreateWindow(Size.x, Size.y, Name.c_str(),
         Fullscreen ? glfwGetPrimaryMonitor() : NULL, NULL);
@@ -89,7 +97,13 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
 
     glfwMakeContextCurrent(window);
 
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+        handler->GetEngine().Logger().log(
+            "Failed to initialize OpenGL context", LogLevel::ERROR);
+
     glfwSwapInterval(VSync ? 1 : 0);
+
+    glClearColor(ClearColor.x, ClearColor.y, ClearColor.z, ClearColor.w);
 
     handler->mContext.window = static_cast<void *>(window);
 
@@ -161,3 +175,4 @@ void tr::error_callback(int error, const char *description)
                 + " Error Code: " + std::to_string(error),
             LogLevel::ERROR);
 }
+
