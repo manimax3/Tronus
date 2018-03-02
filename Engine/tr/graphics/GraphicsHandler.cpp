@@ -60,7 +60,8 @@ void tr::GraphicsHandler::Render()
 
         for (int i = 0; i < size; i++) {
             mGfxCommandBuffer.front()->Execute(this);
-            delete mGfxCommandBuffer.front();
+            if (mGfxCommandBuffer.front()->DeleteAfterExecution)
+                delete mGfxCommandBuffer.front();
             mGfxCommandBuffer.pop();
         }
     }
@@ -93,7 +94,7 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
     GLFWwindow *window = glfwCreateWindow(Size.x, Size.y, Name.c_str(),
         Fullscreen ? glfwGetPrimaryMonitor() : NULL, NULL);
 
-    if (!window){
+    if (!window) {
         Logger.log("Error Creating a GLFW Window", LogLevel::ERROR);
         return;
     }

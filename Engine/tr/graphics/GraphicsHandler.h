@@ -36,7 +36,11 @@ private:
 };
 
 struct GfxCommand {
-    explicit GfxCommand()          = default;
+    explicit GfxCommand(bool delete_after_exec = true)
+        : DeleteAfterExecution(delete_after_exec)
+    {
+    }
+
     virtual ~GfxCommand()          = default;
     GfxCommand(const GfxCommand &) = default;
     GfxCommand(GfxCommand &&)      = default;
@@ -44,6 +48,8 @@ struct GfxCommand {
     GfxCommand &operator=(GfxCommand &&) = default;
 
     virtual void Execute(GraphicsHandler *handler) = 0;
+
+    bool DeleteAfterExecution;
 };
 
 struct CreateWindowCmd : public GfxCommand {
