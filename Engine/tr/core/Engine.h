@@ -14,6 +14,7 @@ private:
 
     bool mRunning = false;
     int  mUPS     = 0;
+    int  mLastUps = 0;
     Log *mLog     = nullptr;
 
 public:

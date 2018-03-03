@@ -18,6 +18,7 @@ public:
     bool Initialize(Engine *e) override;
     bool Tick() override;
     bool Shutdown() override;
+    inline std::string GetName() const override { return "GraphicsHandler"; };
 
     bool SubmitCommand(std::unique_ptr<GfxCommand> &&command);
 

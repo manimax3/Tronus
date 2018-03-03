@@ -11,7 +11,7 @@ struct InputEvent : public Event {
         , action(action)
         , type(Keyboard)
     {
-        Identifier = INPUT_ID;
+        Identifier = event::INPUT;
     }
 
     InputEvent(double x, double y)
@@ -19,7 +19,7 @@ struct InputEvent : public Event {
         , YPos(y)
         , type(Mouse)
     {
-        Identifier = INPUT_ID;
+        Identifier = event::INPUT;
     }
 
     Type type;
@@ -35,5 +35,17 @@ struct InputEvent : public Event {
     // Mouse
     double XPos;
     double YPos;
+};
+
+struct WindowEvent : public Event {
+    enum Type { CLOSED };
+
+    WindowEvent(Type type)
+        : type(type)
+        , Event(event::WINDOW)
+    {
+    }
+
+    Type type;
 };
 }

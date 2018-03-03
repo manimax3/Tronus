@@ -19,7 +19,6 @@ void gl_debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
 
 bool tr::GraphicsHandler::Initialize(Engine *e)
 {
-    e->Logger().log("Starting GraphicsHandler...");
     this->SubmitCommand(std::unique_ptr<GfxCommand>(new CreateWindowCmd()));
     return Subsystem::Initialize(e);
 }
@@ -34,7 +33,8 @@ bool tr::GraphicsHandler::Tick()
 
 bool tr::GraphicsHandler::Shutdown()
 {
-    SubmitCommand(std::make_unique<CloseWindowCmd>());
+    if(Context().valid)
+        SubmitCommand(std::make_unique<CloseWindowCmd>());
     return true;
 }
 
@@ -144,6 +144,9 @@ void tr::CloseWindowCmd::Execute(GraphicsHandler *handler)
 
     glfwDestroyWindow(static_cast<GLFWwindow *>(handler->Context().window));
     glfwTerminate();
+
+    handler->GetEngine().GetSystem<EventSystem>()->DispatchEvent(
+        WindowEvent(WindowEvent::CLOSED));
 }
 
 void tr::key_callback(

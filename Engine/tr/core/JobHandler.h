@@ -56,6 +56,7 @@ public:
     bool Initialize(Engine *engine) override;
     bool Shutdown() override;
     bool Tick() override;
+    inline std::string GetName() const override { return "JobHandler"; }
 };
 
 template<typename Func>

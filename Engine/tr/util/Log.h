@@ -24,6 +24,7 @@ public:
         = LogOption::CONSOLE | LogOption::LOGFILE | LogOption::AUTOENDL;
 
     bool Initialize(Engine *engine) override;
+    inline std::string GetName() const override { return "Log"; };
 
     template<typename T>
     Log &log(const T &t, LogLevel level = LogLevel::INFO,

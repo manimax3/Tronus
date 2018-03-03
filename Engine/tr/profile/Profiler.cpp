@@ -5,7 +5,6 @@ using namespace tr;
 
 bool Profiler::Initialize(Engine *engine)
 {
-    engine->Logger().log("Starting Profiler...");
     profiler::startListen();
 
     return Subsystem::Initialize(engine);

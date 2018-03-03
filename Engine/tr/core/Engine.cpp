@@ -2,6 +2,7 @@
 #include "../event/CommonEvents.h"
 #include "../event/EventSystem.h"
 #include "../graphics/GraphicsHandler.h"
+#include "../util/Keys.h"
 #include "../util/Log.h"
 #include "profile/Profiler.h"
 #include "util/Timer.h"
@@ -27,8 +28,10 @@ void Engine::Start()
     Logger().log("Tronus Engine Starting...", LogLevel::WARNING);
 
     // Init all the subsystems
-    for (auto &subsystem : mSubsystems)
+    for (auto &subsystem : mSubsystems){
+        Logger().log(std::string("Starting ") + subsystem.second->GetName());
         subsystem.second->Initialize(this);
+    }
 
     mRunning = true;
 
@@ -48,8 +51,8 @@ void Engine::Start()
         sleep_timer.Reset();
 
         if ((timer.GetElapsed() - tickTimer) >= 1000.f) {
-            std::cout << mUPS << '\n';
-            mUPS = 0;
+            mLastUps = mUPS;
+            mUPS     = 0;
             tickTimer += 1000.f;
         }
 
@@ -66,8 +69,10 @@ void Engine::Start()
 void Engine::Stop()
 {
     mRunning = false;
-    for (auto &subsystem : mSubsystems)
+    for (auto &subsystem : mSubsystems){
         subsystem.second->Shutdown();
+        Logger().log(std::string("Stopped " + subsystem.second->GetName()));
+    }
 }
 
 void Engine::Tick()
@@ -82,8 +87,15 @@ std::vector<int> tr::Engine::SubscripeTo() const { return { ENGINE_CHANNEL }; }
 
 void Engine::OnEvent(const Event &e, int channel)
 {
-    if (e.Identifier == INPUT_ID) {
+    if (e.Identifier == event::INPUT) {
         const auto &ie = static_cast<const InputEvent &>(e);
-        Logger().log(std::string("Pressed key: "));
+        if (ie.type == InputEvent::Keyboard && ie.action == InputEvent::PRESS
+            && ie.Key == KEY_F3)
+            Logger().log(std::string("Ups: ") + std::to_string(mLastUps));
+    } else if (e.Identifier == event::WINDOW) {
+        const auto &we = static_cast<const WindowEvent &>(e);
+        if (we.type == WindowEvent::CLOSED){
+            this->Stop();
+        }
     }
 }
