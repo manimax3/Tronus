@@ -1,16 +1,26 @@
-set(TRONUS_SOURCE_FILES
-        tr/math/Vec3.h
-        tr/math/Vec3.cpp
-        tr/math/Vec4.h
-        tr/math/Vec4.cpp
-        tr/math/Mat4.h
-        tr/math/Mat4.cpp
-        tr/math/Quaternion.h
-        tr/math/Quaternion.cpp
-        tr/math/Vec2.h
-        tr/math/Math.h
-        tr/core/JobHandler.h
-        tr/core/JobHandler.cpp tr/core/Subsystem.h tr/core/Subsystem.cpp tr/core/Engine.h tr/core/Engine.cpp tr/util/Timer.h tr/util/Timer.cpp tr/profile/Profiler.h tr/profile/Profiler.cpp tr/filesystem/StreamBuffer.cpp tr/util/Log.h tr/util/Log.cpp tr/event/EventSystem.h tr/event/EventSystem.cpp)
+FUNCTION(PREPEND var prefix)
+   SET(listVar "")
+   FOREACH(f ${ARGN})
+      LIST(APPEND listVar "${prefix}/${f}")
+   ENDFOREACH(f)
+   SET(${var} "${listVar}" PARENT_SCOPE)
+ENDFUNCTION(PREPEND)
+
+set(TRONUS_CORE_SRC JobHandler.cpp Subsystem.cpp Engine.cpp)
+set(TRONUS_MATH_SRC Vec3.cpp Vec4.cpp Mat4.cpp Quaternion.cpp)
+set(TRONUS_PROFILE_SRC Profiler.cpp)
+set(TRONUS_UTIL_SRC Timer.cpp Log.cpp)
+set(TRONUS_EVENT_SRC EventSystem.cpp)
+set(TRONUS_FILESYSTEM_SRC StreamBuffer.cpp)
+
+PREPEND(TRONUS_CORE_SRC tr/core ${TRONUS_CORE_SRC})
+PREPEND(TRONUS_MATH_SRC tr/math ${TRONUS_MATH_SRC})
+PREPEND(TRONUS_UTIL_SRC tr/util ${TRONUS_UTIL_SRC})
+PREPEND(TRONUS_EVENT_SRC tr/event ${TRONUS_EVENT_SRC})
+PREPEND(TRONUS_PROFILE_SRC tr/profile ${TRONUS_PROFILE_SRC})
+PREPEND(TRONUS_FILESYSTEM_SRC tr/filesystem ${TRONUS_FILESYSTEM_SRC})
+
+set(TRONUS_SOURCE_FILES ${TRONUS_CORE_SRC} ${TRONUS_MATH_SRC} ${TRONUS_UTIL_SRC} ${TRONUS_EVENT_SRC} ${TRONUS_PROFILE_SRC} ${TRONUS_FILESYSTEM_SRC})
 
 option(TRONUS_BUILD_SHARED off)
 

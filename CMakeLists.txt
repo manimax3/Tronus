@@ -8,8 +8,16 @@ option(TRONUS_BUILD_TESTS on)
 
 add_subdirectory(External)
 add_subdirectory(Engine)
-add_subdirectory(Editor)
-add_subdirectory(Examples)
 
+if (TRONUS_BUILD_EXAMPLES)
+add_subdirectory(Editor)
+endif()
+
+if (TRONUS_BUILD_EXAMPLES)
+add_subdirectory(Examples)
+endif()
+
+if (TRONUS_BUILD_TESTS)
 enable_testing()
 add_subdirectory(Tests)
+endif()
