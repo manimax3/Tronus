@@ -7,7 +7,14 @@
 
 namespace tr {
 
+// Channels used by the Engine (0-100 reserved)
 constexpr int ENGINE_CHANNEL = 0;
+
+// Keys to determine type of Events (0-1000 reserved)
+namespace event {
+    constexpr int INPUT  = 1;
+    constexpr int WINDOW = 2;
+}
 
 class EventListener;
 struct Event;
@@ -15,6 +22,7 @@ struct Event;
 class EventSystem : public Subsystem<EventSystem> {
 public:
     bool Initialize(Engine *e) override;
+    inline std::string GetName() const override { return "EventSystem"; }
 
     void AddListener(EventListener *el);
     void RemoveListener(EventListener *el);
@@ -33,7 +41,11 @@ public:
 };
 
 struct Event {
-    Event()          = default;
+    Event(int id = -1)
+        : Identifier(id)
+    {
+    }
+
     virtual ~Event() = default;
 
     Event(const Event &) = default;
@@ -41,6 +53,6 @@ struct Event {
     Event &operator=(const Event &) = default;
     Event &operator=(Event &&) = default;
 
-    int key;
+    int Identifier = -1;
 };
 }

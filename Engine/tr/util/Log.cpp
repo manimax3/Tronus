@@ -2,9 +2,12 @@
 #include "rang.hpp"
 #include <mutex>
 
+tr::Log* tr::Log::STATIC_LOGGER = nullptr;
+
 bool tr::Log::Initialize(Engine *engine)
 {
     mFileStream.Push<FileBuffer>("tronus_log.txt", FileBuffer::WRITING);
+    STATIC_LOGGER = this;
     return Subsystem<Log>::Initialize(engine);
 }
 

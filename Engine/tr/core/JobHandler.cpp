@@ -6,7 +6,7 @@ using namespace tr;
 
 JobHandler::JobHandler()
     : mRunning(false)
-    , mThreadPool(std::thread::hardware_concurrency())
+    , mThreadPool(std::thread::hardware_concurrency() - 2)
     , mActiveThreads(0)
 {
 }
@@ -40,8 +40,6 @@ bool JobHandler::Initialize(Engine *engine)
         });
     }
 
-    engine->Logger().log("Starting JobHandler...");
-
     return true;
 }
 
@@ -50,14 +48,15 @@ bool JobHandler::Shutdown()
     if (!mRunning)
         return true;
 
-    mRunning = false;
-
     // Make sure that each thread leaves the while loop
     for (int i = 0; i < std::thread::hardware_concurrency() + 4; i++)
         AddJob([]() { std::this_thread::sleep_for(std::chrono::seconds(1)); });
 
-    for (auto &thread : mThreadPool)
+    mRunning = false;
+
+    for (auto &thread : mThreadPool) {
         thread->join();
+    }
 
     return true;
 }

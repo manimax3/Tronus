@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tr.h"
+#include <string>
 
 namespace tr {
 class Engine;
@@ -10,8 +11,10 @@ public:
     virtual bool Initialize(Engine *engine);
     virtual bool Tick();
     virtual bool Shutdown();
+    virtual inline std::string GetName() const { return "UNKNOWN"; }
 
     inline bool IsInitialized() const { return mInitialized; }
+    inline Engine &GetEngine() { return *mEngine; }
 
 protected:
     bool    mInitialized = false;

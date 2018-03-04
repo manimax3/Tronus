@@ -24,6 +24,7 @@ public:
         = LogOption::CONSOLE | LogOption::LOGFILE | LogOption::AUTOENDL;
 
     bool Initialize(Engine *engine) override;
+    inline std::string GetName() const override { return "Log"; };
 
     template<typename T>
     Log &log(const T &t, LogLevel level = LogLevel::INFO,
@@ -39,6 +40,9 @@ public:
 
     Log &log(const std::string &out, LogLevel level = LogLevel::INFO,
         LogOptions options = DEFAULT);
+
+    // Use this only if no other choise
+    static Log *STATIC_LOGGER;
 
 private:
     Outstream mFileStream;

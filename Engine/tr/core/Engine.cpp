@@ -1,8 +1,12 @@
 #include "Engine.h"
+#include "../event/CommonEvents.h"
+#include "../event/EventSystem.h"
+#include "../graphics/GraphicsHandler.h"
+#include "../util/Keys.h"
 #include "../util/Log.h"
+#include "profile/Profiler.h"
 #include "util/Timer.h"
 #include <iostream>
-#include "../event/EventSystem.h"
 
 using namespace tr;
 
@@ -12,6 +16,7 @@ Engine::Engine()
     AddSystem<JobHandler>();
     AddSystem<Profiler>();
     AddSystem<EventSystem>();
+    AddSystem<GraphicsHandler>();
 }
 
 void Engine::Start()
@@ -20,13 +25,17 @@ void Engine::Start()
     EASY_PROFILER_ENABLE;
 
     mLog = GetSystem<Log>();
-    Logger().log("Tronus Engine Starting...", LogLevel::WARNING);    
+    Logger().log("Tronus Engine Starting...", LogLevel::WARNING);
 
     // Init all the subsystems
-    for (auto &subsystem : mSubsystems)
+    for (auto &subsystem : mSubsystems){
+        Logger().log(std::string("Starting ") + subsystem.second->GetName());
         subsystem.second->Initialize(this);
+    }
 
     mRunning = true;
+
+    GetSystem<EventSystem>()->AddListener(this);
 
     // Start the tick loop
 
@@ -35,13 +44,15 @@ void Engine::Start()
     float       updateTimer = 0;
     float       tickTimer   = 0;
 
+    GraphicsHandler *const gfx = GetSystem<GraphicsHandler>();
+
     while (mRunning) {
 
         sleep_timer.Reset();
 
         if ((timer.GetElapsed() - tickTimer) >= 1000.f) {
-            std::cout << mUPS << '\n';
-            mUPS = 0;
+            mLastUps = mUPS;
+            mUPS     = 0;
             tickTimer += 1000.f;
         }
 
@@ -51,19 +62,17 @@ void Engine::Start()
             mUPS++;
         }
 
-        if (sleep_timer.GetElapsed() < msPerTick) {
-            std::this_thread::yield();
-            std::this_thread::sleep_for(std::chrono::milliseconds(
-                static_cast<uint64>(msPerTick - sleep_timer.GetElapsed())));
-        }
+        gfx->Render();
     }
 }
 
 void Engine::Stop()
 {
     mRunning = false;
-    for (auto &subsystem : mSubsystems)
+    for (auto &subsystem : mSubsystems){
         subsystem.second->Shutdown();
+        Logger().log(std::string("Stopped " + subsystem.second->GetName()));
+    }
 }
 
 void Engine::Tick()
@@ -72,4 +81,21 @@ void Engine::Tick()
 
     for (auto &subsystem : mSubsystems)
         subsystem.second->Tick();
+}
+
+std::vector<int> tr::Engine::SubscripeTo() const { return { ENGINE_CHANNEL }; }
+
+void Engine::OnEvent(const Event &e, int channel)
+{
+    if (e.Identifier == event::INPUT) {
+        const auto &ie = static_cast<const InputEvent &>(e);
+        if (ie.type == InputEvent::Keyboard && ie.action == InputEvent::PRESS
+            && ie.Key == KEY_F3)
+            Logger().log(std::string("Ups: ") + std::to_string(mLastUps));
+    } else if (e.Identifier == event::WINDOW) {
+        const auto &we = static_cast<const WindowEvent &>(e);
+        if (we.type == WindowEvent::CLOSED){
+            this->Stop();
+        }
+    }
 }
