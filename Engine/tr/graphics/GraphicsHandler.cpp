@@ -199,7 +199,7 @@ void tr::close_callback(GLFWwindow *window)
 void tr::error_callback(int error, const char *description)
 {
     if (Log::STATIC_LOGGER)
-        Log::STATIC_LOGGER->log(std::string("GLFW - ") + description
+        Log::STATIC_LOGGER->log("GLFW - "s + description
                 + " Error Code: " + std::to_string(error),
             LogLevel::ERROR);
 }

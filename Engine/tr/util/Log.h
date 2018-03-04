@@ -5,10 +5,13 @@
 #include <bitset>
 #include <tr.h>
 #include <type_traits>
+#include <string>
 
 namespace tr {
 
 using LogOptions = uint32;
+
+using namespace std::literals::string_literals;
 
 namespace LogOption {
     constexpr auto CONSOLE  = 1 << 0;

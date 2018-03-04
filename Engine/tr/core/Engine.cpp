@@ -29,7 +29,7 @@ void Engine::Start()
 
     // Init all the subsystems
     for (auto &subsystem : mSubsystems){
-        Logger().log(std::string("Starting ") + subsystem.second->GetName());
+        Logger().log("Starting "s + subsystem.second->GetName());
         subsystem.second->Initialize(this);
     }
 
@@ -71,7 +71,7 @@ void Engine::Stop()
     mRunning = false;
     for (auto &subsystem : mSubsystems){
         subsystem.second->Shutdown();
-        Logger().log(std::string("Stopped " + subsystem.second->GetName()));
+        Logger().log("Stopped"s + subsystem.second->GetName());
     }
 }
 
@@ -91,7 +91,7 @@ void Engine::OnEvent(const Event &e, int channel)
         const auto &ie = static_cast<const InputEvent &>(e);
         if (ie.type == InputEvent::Keyboard && ie.action == InputEvent::PRESS
             && ie.Key == KEY_F3)
-            Logger().log(std::string("Ups: ") + std::to_string(mLastUps));
+            Logger().log("UPS: "s + std::to_string(mLastUps));
     } else if (e.Identifier == event::WINDOW) {
         const auto &we = static_cast<const WindowEvent &>(e);
         if (we.type == WindowEvent::CLOSED){
