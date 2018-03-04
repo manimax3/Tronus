@@ -32,7 +32,7 @@ public:
     friend TR_API Vec4 operator-(const Vec4 &left, float v);
     friend TR_API Vec4 operator-(const Vec4 &left, const Vec4 &right);
     friend TR_API Vec4 operator*(const Vec4 &left, float v);
-    friend TR_API Vec4 operator/(const Vec4 &left, float v);
+    //friend TR_API Vec4 operator/(const Vec4 &left, float v);
 
     Vec4 &operator+=(float v);
     Vec4 &operator+=(const Vec4 &other);
