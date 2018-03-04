@@ -1,9 +1,9 @@
 cmake_minimum_required (VERSION 3.4)
 project(Tronus)
 
-option(TRONUS_BUILD_EDITOR on)
-option(TRONUS_BUILD_EXAMPLES on)
-option(TRONUS_BUILD_TESTS on)
+option(TRONUS_BUILD_EDITOR "Build Editor" OFF)
+option(TRONUS_BUILD_EXAMPLES "Build Examples" ON)
+option(TRONUS_BUILD_TESTS "Build Tests" ON)
 
 
 add_subdirectory(External)
