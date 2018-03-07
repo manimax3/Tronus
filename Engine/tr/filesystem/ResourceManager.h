@@ -28,8 +28,14 @@ public:
                                         Callback           cb       = nullptr,
                                         void *             userdata = nullptr);
 
-    std::optional<std::shared_ptr<Resource>>
-    GetResource(const std::string &identifier);
+    Resource *GetResource(const std::string &identifier);
+
+    template<typename T,
+             typename = std::enable_if_t<std::is_base_of_v<Resource, T>>>
+    T *GetRes(const std::string &identifier)
+    {
+        return static_cast<T *>(GetResource(identifier));
+    }
 
     void AddLoader(const ResType &type, LoaderFunc func);
 

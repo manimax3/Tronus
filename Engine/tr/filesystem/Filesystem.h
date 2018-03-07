@@ -1,22 +1,15 @@
 #pragma once
-
-#include "../core/Engine.h"
+#include <string>
 #include <tr.h>
+#include <vector>
 
 namespace tr::fs {
+bool FileExists(const std::string &name);
+bool DirExists(const std::string &name);
 
-class Filesystem : public Subsystem<Filesystem> {
-public:
-    bool Initialize(Engine *engine) override;
-    bool Shutdown() override;
+std::string CurrentWorkingDir();
+std::string GetExecutablePath();
 
-    template<typename Device, typename... Args>
-    bool Mount(const std::string &path, Args &&... args);
-
-    template<typename... Args>
-    std::streambuff Get(const std::string &name, Args &&... args);
-
-private:
-    std::unordered_map<std::string, class Device *> mDevices;
-};
+std::vector<std::string> FilesIn(const std::string &name);
+std::vector<std::string> DirsIn(const std::string &name);
 }

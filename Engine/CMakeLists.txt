@@ -11,7 +11,7 @@ set(TRONUS_MATH_SRC Vec3.cpp Vec4.cpp Mat4.cpp Quaternion.cpp)
 set(TRONUS_PROFILE_SRC Profiler.cpp)
 set(TRONUS_UTIL_SRC Timer.cpp Log.cpp)
 set(TRONUS_EVENT_SRC EventSystem.cpp)
-set(TRONUS_FILESYSTEM_SRC StreamBuffer.cpp ResourceManager.cpp)
+set(TRONUS_FILESYSTEM_SRC StreamBuffer.cpp ResourceManager.cpp Filesystem.cpp)
 set(TRONUS_GRAPHICS_SRC GraphicsHandler.cpp GLCheck.cpp)
 
 PREPEND(TRONUS_CORE_SRC tr/core ${TRONUS_CORE_SRC})

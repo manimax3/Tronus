@@ -2,6 +2,7 @@
 
 #include "../core/Engine.h"
 #include "../profile/Profiler.h"
+#include "Filesystem.h"
 
 #include "nlohmann/json.hpp"
 #include <fstream>
@@ -19,6 +20,12 @@ bool tr::ResourceManager::Initialize(Engine *engine)
               [](ResHandle handle, ResourceManager *rm) -> Resource * {
                   json        jhandle = json::parse(handle);
                   std::string file    = jhandle["file"];
+                  file                = fs::GetExecutablePath() + file;
+
+                  if (!fs::FileExists(file))
+                      if (Log::STATIC_LOGGER)
+                          Log::STATIC_LOGGER->log("Could not find file: "s
+                                                  + file);
 
                   auto res = new StringResource;
 
@@ -35,16 +42,25 @@ bool tr::ResourceManager::Initialize(Engine *engine)
     return Subsystem::Initialize(engine);
 }
 
-void tr::ResourceManager::LoadResource(const std::string &identifier)
+void tr::ResourceManager::LoadResource(const std::string &_identifier)
 {
     EASY_FUNCTION();
 
+    const std::string identifier = fs::GetExecutablePath() + _identifier;
+
+    if (!fs::FileExists(identifier)) {
+        mEngine->Logger().log("Couldnt resolve resource identifier: "s
+                                  + identifier,
+                              LogLevel::WARNING);
+        return;
+    }
+
     {
         std::shared_lock<std::shared_mutex> lck(mResLock);
-        if (mResourceList.find(identifier) != mResourceList.end()) {
+        if (mResourceList.find(_identifier) != mResourceList.end()) {
             mEngine->Logger().log("Tried to load resource twice: "s
                                       + identifier,
-                                  LogLevel::ERROR);
+                                  LogLevel::WARNING);
             return;
         }
     }
@@ -91,7 +107,7 @@ void tr::ResourceManager::LoadResource(const std::string &identifier)
     std::shared_ptr<Resource> res(mLoaders[type](handle.dump(), this));
 
     std::unique_lock<std::shared_mutex> lck(mResLock);
-    mResourceList[identifier] = std::move(res);
+    mResourceList[_identifier] = std::move(res);
 
     mEngine->Logger().log("Loaded resource: "s + identifier);
 }
@@ -114,15 +130,14 @@ tr::ResourceManager::LoadResourceAsync(const std::string &identifier,
     return fut;
 }
 
-std::optional<std::shared_ptr<tr::Resource>>
-tr::ResourceManager::GetResource(const std::string &identifier)
+tr::Resource *tr::ResourceManager::GetResource(const std::string &identifier)
 {
     std::unique_lock<std::shared_mutex> lck(mResLock);
 
     if (auto res = mResourceList.find(identifier); res != mResourceList.end())
-        return res->second;
+        return res->second.get();
 
-    return {};
+    return nullptr;
 }
 
 void tr::ResourceManager::AddLoader(const ResType &type, LoaderFunc func)

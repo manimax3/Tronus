@@ -73,7 +73,7 @@ void Engine::Stop()
     mRunning = false;
     for (auto &subsystem : mSubsystems){
         subsystem.second->Shutdown();
-        Logger().log("Stopped"s + subsystem.second->GetName());
+        Logger().log("Stopped "s + subsystem.second->GetName());
     }
 }
 
@@ -96,12 +96,10 @@ void Engine::OnEvent(const Event &e, int channel)
             Logger().log("UPS: "s + std::to_string(mLastUps));
         else if (ie.type == InputEvent::Keyboard
                  && ie.action == InputEvent::PRESS && ie.Key == KEY_F4) {
-            GetSystem<ResourceManager>()->LoadResource("test.json");
-            Logger().log(std::static_pointer_cast<StringResource>(
-                             GetSystem<ResourceManager>()
-                                 ->GetResource("test.json")
-                                 .value())
-                             ->data);
+            auto* rm = GetSystem<ResourceManager>();
+            rm->LoadResource("test.json");
+            Logger().log(rm->GetRes<StringResource>("test.json")->data);
+            Logger().log(rm->GetRes<StringResource>("test2.json")->data);
         }
     } else if (e.Identifier == event::WINDOW) {
         const auto &we = static_cast<const WindowEvent &>(e);
