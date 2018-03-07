@@ -17,3 +17,6 @@
 [submodule "External/easy_profiler"]
 	path = External/easy_profiler
 	url = https://github.com/manimax3/easy_profiler.git
+[submodule "External/json"]
+	path = External/json
+	url = https://github.com/nlohmann/json.git

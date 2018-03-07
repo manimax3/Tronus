@@ -4,6 +4,7 @@
 #include "../graphics/GraphicsHandler.h"
 #include "../util/Keys.h"
 #include "../util/Log.h"
+#include "../filesystem/ResourceManager.h"
 #include "profile/Profiler.h"
 #include "util/Timer.h"
 #include <iostream>
@@ -14,6 +15,7 @@ Engine::Engine()
 {
     AddSystem<Log>();
     AddSystem<JobHandler>();
+    AddSystem<ResourceManager>();
     AddSystem<Profiler>();
     AddSystem<EventSystem>();
     AddSystem<GraphicsHandler>();
@@ -92,6 +94,15 @@ void Engine::OnEvent(const Event &e, int channel)
         if (ie.type == InputEvent::Keyboard && ie.action == InputEvent::PRESS
             && ie.Key == KEY_F3)
             Logger().log("UPS: "s + std::to_string(mLastUps));
+        else if (ie.type == InputEvent::Keyboard
+                 && ie.action == InputEvent::PRESS && ie.Key == KEY_F4) {
+            GetSystem<ResourceManager>()->LoadResource("test.json");
+            Logger().log(std::static_pointer_cast<StringResource>(
+                             GetSystem<ResourceManager>()
+                                 ->GetResource("test.json")
+                                 .value())
+                             ->data);
+        }
     } else if (e.Identifier == event::WINDOW) {
         const auto &we = static_cast<const WindowEvent &>(e);
         if (we.type == WindowEvent::CLOSED){
