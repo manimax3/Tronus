@@ -1,9 +1,9 @@
 #include "ResourceManager.h"
 
 #include "../core/Engine.h"
+#include "../graphics/GLSLShader.h"
 #include "../profile/Profiler.h"
 #include "Filesystem.h"
-#include "../graphics/GLSLShader.h"
 
 #include "nlohmann/json.hpp"
 #include <fstream>
@@ -63,50 +63,93 @@ bool tr::ResourceManager::Initialize(Engine *engine)
     return Subsystem::Initialize(engine);
 }
 
-void tr::ResourceManager::LoadResource(const std::string &_identifier)
+bool tr::ResourceManager::CheckIfLoaded(const std::string &identifier) const
+{
+    std::shared_lock<std::shared_mutex> lck(mResLock);
+    return mResourceList.find(identifier) != mResourceList.end();
+}
+
+void tr::ResourceManager::LoadResource(const std::string &identifier,
+                                       bool               from_memory)
 {
     EASY_FUNCTION();
 
-    const std::string identifier = fs::GetExecutablePath() + _identifier;
+    std::string id     = identifier;
+    std::string handle = from_memory ? id : fs::GetExecutablePath() + id;
 
-    if (!fs::FileExists(identifier)) {
-        mEngine->Logger().log("Couldnt resolve resource identifier: "s
-                                  + identifier,
+    if (!from_memory && !fs::FileExists(handle)) {
+        mEngine->Logger().log("Couldnt resolve resource identifier: "s + id,
                               LogLevel::WARNING);
         return;
     }
 
-    {
-        std::shared_lock<std::shared_mutex> lck(mResLock);
-        if (mResourceList.find(_identifier) != mResourceList.end()) {
-            mEngine->Logger().log("Tried to load resource twice: "s
-                                      + identifier,
+    // Cant check for from_memory handles yet because we dont know the actual id
+    // yet
+    if (!from_memory && CheckIfLoaded(id)) {
+        mEngine->Logger().log("Tried to load resource twice: "s + id,
+                              LogLevel::WARNING);
+        return;
+    }
+
+    // Load the json Handle
+    json jhandle;
+
+    if (from_memory) {
+        try {
+            jhandle = json::parse(handle);
+            id      = jhandle.at("id").get<std::string>();
+        } catch (json::parse_error e) {
+            mEngine->Logger().log(
+                "Error parsing in memory resource identifier: "s + id + " | "
+                    + e.what(),
+                LogLevel::WARNING);
+
+            return;
+        } catch (json::out_of_range e) {
+            mEngine->Logger().log(
+                "In Memory Resource Identifier doesnt have an id specified: "s
+                    + handle + " | " + e.what(),
+                LogLevel::WARNING);
+
+            return;
+        }
+
+        // Now we can do the check for in memory handles
+        if (CheckIfLoaded(id)) {
+            mEngine->Logger().log("Tried to load resource twice: "s + id,
+                                  LogLevel::WARNING);
+            return;
+        }
+
+    } else {
+        std::ifstream ifs(handle, std::ios::in);
+        try {
+            ifs >> jhandle;
+        } catch (json::parse_error e) {
+            mEngine->Logger().log("Error parsing resource identifier: "s + id
+                                      + " | " + e.what(),
                                   LogLevel::WARNING);
             return;
         }
     }
 
-    // Load the json Handle
-    json handle;
-
-    {
-        std::ifstream ifs(identifier, std::ios::in);
-        ifs >> handle;
-    }
-
+    // Those futures are used to block this thread until all dependencies are
+    // fully loaded
     std::vector<std::future<void>> mDepsLoaded;
 
     try {
-        auto a = handle.at("dependencies");
+        auto a = jhandle.at("dependencies");
         for (const auto &dep : a) {
-            auto future = LoadResourceAsync(dep.get<std::string>());
+            const bool is_in_mem = dep.is_object();
+            const auto dep_id = is_in_mem ? dep.dump() : dep.get<std::string>();
+            auto       future = LoadResourceAsync(dep_id, is_in_mem);
             mDepsLoaded.push_back(std::move(future));
         }
     } catch (json::out_of_range e) {
         // Expected Error in case there are no dependencies
     } catch (json::type_error e) {
-        mEngine->Logger().log("Error parsing json dependencies of "s
-                                  + identifier + '\n' + e.what(),
+        mEngine->Logger().log("Error parsing json dependencies of "s + id
+                                  + " | " + e.what(),
                               LogLevel::ERROR);
     }
 
@@ -119,22 +162,23 @@ void tr::ResourceManager::LoadResource(const std::string &_identifier)
 
     ResType type;
     try {
-        type = handle["type"].get<ResType>();
+        type = jhandle["type"].get<ResType>();
     } catch (json::type_error e) {
-        mEngine->Logger().log("Error determining the type of "s + identifier,
+        mEngine->Logger().log("Error determining the type of "s + id,
                               LogLevel::ERROR);
     }
 
-    std::unique_ptr<Resource> res(mLoaders[type](handle.dump(), this));
+    std::unique_ptr<Resource> res(mLoaders[type](jhandle.dump(), this));
 
     std::unique_lock<std::shared_mutex> lck(mResLock);
-    mResourceList[_identifier] = std::move(res);
+    mResourceList[id] = std::move(res);
 
-    mEngine->Logger().log("Loaded resource: "s + identifier);
+    mEngine->Logger().log("Loaded resource: "s + id);
 }
 
 std::future<void>
 tr::ResourceManager::LoadResourceAsync(const std::string &identifier,
+                                       bool               from_memory,
                                        Callback           cb,
                                        void *             userdata)
 {
@@ -142,7 +186,7 @@ tr::ResourceManager::LoadResourceAsync(const std::string &identifier,
     auto fut  = prom->get_future();
 
     mJHandler->AddJob([=]() mutable {
-        this->LoadResource(identifier);
+        this->LoadResource(identifier, from_memory);
         if (cb)
             cb(identifier, userdata);
         prom->set_value();

@@ -22,9 +22,10 @@ public:
     using LoaderFunc = Resource *(*)(ResHandle handle, ResourceManager *);
     using Callback   = void (*)(const std::string &, void *);
 
-    void LoadResource(const std::string &identifier);
+    void LoadResource(const std::string &identifier, bool from_memory = false);
 
     std::future<void> LoadResourceAsync(const std::string &identifier,
+                                        bool               from_memory = false,
                                         Callback           cb       = nullptr,
                                         void *             userdata = nullptr);
 
@@ -40,7 +41,9 @@ public:
     void AddLoader(const ResType &type, LoaderFunc func);
 
 private:
-    std::shared_mutex                                mResLock;
+    bool CheckIfLoaded(const std::string &identifier) const;
+
+    mutable std::shared_mutex                        mResLock;
     std::map<std::string, std::unique_ptr<Resource>> mResourceList;
 
     std::map<ResType, LoaderFunc> mLoaders;
