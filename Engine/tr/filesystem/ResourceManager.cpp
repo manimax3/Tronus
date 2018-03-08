@@ -197,12 +197,19 @@ tr::ResourceManager::LoadResourceAsync(const std::string &identifier,
 
 tr::Resource *tr::ResourceManager::GetResource(const std::string &identifier)
 {
-    std::unique_lock<std::shared_mutex> lck(mResLock);
+    std::shared_lock<std::shared_mutex> lck(mResLock);
 
     if (auto res = mResourceList.find(identifier); res != mResourceList.end())
         return res->second.get();
 
     return nullptr;
+}
+
+bool tr::ResourceManager::DeleteResource(const std::string &identifier)
+{
+    std::unique_lock<std::shared_mutex> lck(mResLock);
+    const auto amount = mResourceList.erase(identifier);
+    return amount == 1;
 }
 
 void tr::ResourceManager::AddLoader(const ResType &type, LoaderFunc func)

@@ -38,6 +38,8 @@ public:
         return static_cast<T *>(GetResource(identifier));
     }
 
+    bool DeleteResource(const std::string &identifier);
+
     void AddLoader(const ResType &type, LoaderFunc func);
 
 private:
