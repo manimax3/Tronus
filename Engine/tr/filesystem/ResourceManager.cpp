@@ -122,7 +122,7 @@ void tr::ResourceManager::LoadResource(const std::string &_identifier)
                               LogLevel::ERROR);
     }
 
-    std::shared_ptr<Resource> res(mLoaders[type](handle.dump(), this));
+    std::unique_ptr<Resource> res(mLoaders[type](handle.dump(), this));
 
     std::unique_lock<std::shared_mutex> lck(mResLock);
     mResourceList[_identifier] = std::move(res);

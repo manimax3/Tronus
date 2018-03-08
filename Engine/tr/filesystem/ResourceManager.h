@@ -41,7 +41,7 @@ public:
 
 private:
     std::shared_mutex                                mResLock;
-    std::map<std::string, std::shared_ptr<Resource>> mResourceList;
+    std::map<std::string, std::unique_ptr<Resource>> mResourceList;
 
     std::map<ResType, LoaderFunc> mLoaders;
 
