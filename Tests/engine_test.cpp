@@ -6,7 +6,7 @@ TEST_CASE("Engine Creation and Running")
 {
     tr::Engine engine;
     
-    tr::JobHandler *handler = engine.GetSystem<tr::JobHandler>();
+    tr::JobHandler *handler = engine.sJobHandler;
     REQUIRE(handler);
     
     //engine.Start();

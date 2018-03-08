@@ -1,12 +1,15 @@
 #pragma once
-#include "../core/Engine.h"
+#include "../core/Subsystem.h"
 #include "../math/Math.h"
+#include "Simple2DRenderer.h"
+#include <memory>
 #include <queue>
 #include <tr.h>
 
 namespace tr {
 
 class GfxCommand;
+class Engine;
 
 struct RenderContext {
     void *window = nullptr;
@@ -15,9 +18,10 @@ struct RenderContext {
 
 class GraphicsHandler : public Subsystem<GraphicsHandler> {
 public:
-    bool Initialize(Engine *e) override;
-    bool Tick() override;
-    bool Shutdown() override;
+    bool               Initialize(Engine *e) override;
+    void               PostInit() override;
+    bool               Tick() override;
+    bool               Shutdown() override;
     inline std::string GetName() const override { return "GraphicsHandler"; };
 
     bool SubmitCommand(std::unique_ptr<GfxCommand> &&command);
@@ -33,7 +37,8 @@ public:
 private:
     std::queue<GfxCommand *> mGfxCommandBuffer;
 
-    RenderContext mContext;
+    RenderContext    mContext;
+    Simple2DRenderer mRenderer2D;
 };
 
 struct GfxCommand {

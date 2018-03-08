@@ -13,7 +13,7 @@ using json = nlohmann::json;
 
 bool tr::ResourceManager::Initialize(Engine *engine)
 {
-    mJHandler = engine->GetSystem<JobHandler>();
+    mJHandler = engine->sJobHandler;
     if (mJHandler == nullptr)
         return false;
 

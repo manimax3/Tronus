@@ -8,16 +8,16 @@ namespace tr {
 class Log;
 class GLSLShader : public Resource {
 public:
-    static uint64 CompileShader(const std::string &vertex,
-                                const std::string &fragment,
-                                Log &              log);
+    static uint CompileShader(const std::string &vertex,
+                              const std::string &fragment,
+                              Log &              log);
 
     static Resource *Loader(ResourceManager::ResHandle handle,
                             ResourceManager *          rm);
 
     inline static ResourceManager::ResType GetType() { return "GLSLShader"; }
 
-    explicit GLSLShader(uint64 program);
+    explicit GLSLShader(uint program);
     ~GLSLShader();
 
     void Bind() const;
@@ -31,12 +31,12 @@ public:
     void Set(const std::string &name, const Vec4 &value);
     void Set(const std::string &name, const Mat4 &value);
 
-    inline uint64 GetProgram() const { return mShader; }
+    inline uint GetProgram() const { return mShader; }
 
 private:
     int GetUniformLocation(const std::string &name);
 
-    uint64                     mShader;
+    uint                       mShader;
     std::map<std::string, int> mUnifoms;
 };
 }

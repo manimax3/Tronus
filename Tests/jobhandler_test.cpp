@@ -14,7 +14,7 @@ public:
     
     bool Tick() override {
     
-        auto* jh = mEngine->GetSystem<tr::JobHandler>();
+        auto* jh = mEngine->sJobHandler;
         jh->AddJob([&](){
             i = 10;
         });

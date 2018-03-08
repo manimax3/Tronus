@@ -1,5 +1,7 @@
 #include "GraphicsHandler.h"
 #include "../event/CommonEvents.h"
+#include "../filesystem/ResourceManager.h"
+#include "../core/Engine.h"
 #include "easy/profiler.h"
 
 #include "glad/glad.h"
@@ -8,19 +10,31 @@
 #include "GLFW/glfw3.h"
 
 namespace tr {
-void key_callback(
-    GLFWwindow *window, int key, int scancode, int action, int mods);
+void key_callback(GLFWwindow *window,
+                  int         key,
+                  int         scancode,
+                  int         action,
+                  int         mods);
 void cursor_position_callback(GLFWwindow *window, double xpos, double ypos);
 void close_callback(GLFWwindow *window);
 void error_callback(int error, const char *description);
-void gl_debug_callback(GLenum source, GLenum type, GLuint id, GLenum severity,
-    GLsizei length, const GLchar *message, void *userParam);
+void gl_debug_callback(GLenum        source,
+                       GLenum        type,
+                       GLuint        id,
+                       GLenum        severity,
+                       GLsizei       length,
+                       const GLchar *message,
+                       void *        userParam);
 }
 
 bool tr::GraphicsHandler::Initialize(Engine *e)
 {
     this->SubmitCommand(std::unique_ptr<GfxCommand>(new CreateWindowCmd()));
     return Subsystem::Initialize(e);
+}
+
+void tr::GraphicsHandler::PostInit()
+{
 }
 
 bool tr::GraphicsHandler::Tick()
@@ -33,7 +47,7 @@ bool tr::GraphicsHandler::Tick()
 
 bool tr::GraphicsHandler::Shutdown()
 {
-    if(Context().valid)
+    if (Context().valid)
         SubmitCommand(std::make_unique<CloseWindowCmd>());
     return true;
 }
@@ -70,6 +84,7 @@ void tr::GraphicsHandler::Render()
         return; // We dont have a valid context
 
     glClear(GL_COLOR_BUFFER_BIT);
+    mRenderer2D.Render();
     glfwSwapBuffers(static_cast<GLFWwindow *>(mContext.window));
 }
 
@@ -91,8 +106,9 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 #endif
 
-    GLFWwindow *window = glfwCreateWindow(Size.x, Size.y, Name.c_str(),
-        Fullscreen ? glfwGetPrimaryMonitor() : NULL, NULL);
+    GLFWwindow *window
+        = glfwCreateWindow(Size.x, Size.y, Name.c_str(),
+                           Fullscreen ? glfwGetPrimaryMonitor() : NULL, NULL);
 
     if (!window) {
         Logger.log("Error Creating a GLFW Window", LogLevel::ERROR);
@@ -132,6 +148,8 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
 
     handler->mContext.window = static_cast<void *>(window);
 
+    handler->mRenderer2D.Init(handler, handler->GetEngine().sResourceManager);
+
     handler->mContext.valid = true;
 }
 
@@ -145,12 +163,15 @@ void tr::CloseWindowCmd::Execute(GraphicsHandler *handler)
     glfwDestroyWindow(static_cast<GLFWwindow *>(handler->Context().window));
     glfwTerminate();
 
-    handler->GetEngine().GetSystem<EventSystem>()->DispatchEvent(
+    handler->GetEngine().sEventSystem->DispatchEvent(
         WindowEvent(WindowEvent::CLOSED));
 }
 
-void tr::key_callback(
-    GLFWwindow *window, int key, int scancode, int action, int mods)
+void tr::key_callback(GLFWwindow *window,
+                      int         key,
+                      int         scancode,
+                      int         action,
+                      int         mods)
 {
     GraphicsHandler *handler
         = static_cast<GraphicsHandler *>(glfwGetWindowUserPointer(window));
@@ -175,7 +196,7 @@ void tr::key_callback(
     if (mods & GLFW_MOD_CONTROL)
         event.Control = true;
 
-    handler->GetEngine().GetSystem<EventSystem>()->DispatchEvent(event);
+    handler->GetEngine().sEventSystem->DispatchEvent(event);
 }
 
 void tr::cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
@@ -185,7 +206,7 @@ void tr::cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
 
     InputEvent event(xpos, ypos);
 
-    handler->GetEngine().GetSystem<EventSystem>()->DispatchEvent(event);
+    handler->GetEngine().sEventSystem->DispatchEvent(event);
 }
 
 void tr::close_callback(GLFWwindow *window)
@@ -200,12 +221,17 @@ void tr::error_callback(int error, const char *description)
 {
     if (Log::STATIC_LOGGER)
         Log::STATIC_LOGGER->log("GLFW - "s + description
-                + " Error Code: " + std::to_string(error),
-            LogLevel::ERROR);
+                                    + " Error Code: " + std::to_string(error),
+                                LogLevel::ERROR);
 }
 
-void tr::gl_debug_callback(GLenum source, GLenum type, GLuint id,
-    GLenum severity, GLsizei length, const GLchar *message, void *userParam)
+void tr::gl_debug_callback(GLenum        source,
+                           GLenum        type,
+                           GLuint        id,
+                           GLenum        severity,
+                           GLsizei       length,
+                           const GLchar *message,
+                           void *        userParam)
 {
     GraphicsHandler *handler = static_cast<GraphicsHandler *>(userParam);
 
@@ -215,6 +241,7 @@ void tr::gl_debug_callback(GLenum source, GLenum type, GLuint id,
     else
         m += std::string(message, length);
 
-    handler->GetEngine().Logger().log(m,
+    handler->GetEngine().Logger().log(
+        m,
         severity == GL_DEBUG_TYPE_ERROR ? LogLevel::ERROR : LogLevel::WARNING);
 }
