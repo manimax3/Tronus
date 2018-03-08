@@ -1,6 +1,7 @@
 #pragma once
 #include "../core/Engine.h"
 #include "../math/Math.h"
+#include "Simple2DRenderer.h"
 #include <queue>
 #include <tr.h>
 
@@ -16,6 +17,7 @@ struct RenderContext {
 class GraphicsHandler : public Subsystem<GraphicsHandler> {
 public:
     bool Initialize(Engine *e) override;
+    void PostInit() override;
     bool Tick() override;
     bool Shutdown() override;
     inline std::string GetName() const override { return "GraphicsHandler"; };
@@ -34,6 +36,7 @@ private:
     std::queue<GfxCommand *> mGfxCommandBuffer;
 
     RenderContext mContext;
+    Simple2DRenderer mRenderer2D;
 };
 
 struct GfxCommand {

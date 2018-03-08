@@ -9,6 +9,7 @@ class Engine;
 class BaseSubsystem {
 public:
     virtual bool Initialize(Engine *engine);
+    virtual void PostInit() {};
     virtual bool Tick();
     virtual bool Shutdown();
     virtual inline std::string GetName() const { return "UNKNOWN"; }

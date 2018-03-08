@@ -38,6 +38,9 @@ void Engine::Start()
                          LogLevel::ERROR);
     }
 
+    for (auto &subsystem : mSubsystems)
+        subsystem.second->PostInit();
+
     mRunning = true;
 
     GetSystem<EventSystem>()->AddListener(this);

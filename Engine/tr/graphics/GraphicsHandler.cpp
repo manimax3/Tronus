@@ -1,6 +1,7 @@
 #include "GraphicsHandler.h"
 #include "../event/CommonEvents.h"
 #include "easy/profiler.h"
+#include "../filesystem/ResourceManager.h"
 
 #include "glad/glad.h"
 
@@ -21,6 +22,11 @@ bool tr::GraphicsHandler::Initialize(Engine *e)
 {
     this->SubmitCommand(std::unique_ptr<GfxCommand>(new CreateWindowCmd()));
     return Subsystem::Initialize(e);
+}
+
+void tr::GraphicsHandler::PostInit()
+{
+    mRenderer2D.Init(this, mEngine->GetSystem<ResourceManager>());
 }
 
 bool tr::GraphicsHandler::Tick()
@@ -70,6 +76,7 @@ void tr::GraphicsHandler::Render()
         return; // We dont have a valid context
 
     glClear(GL_COLOR_BUFFER_BIT);
+    //mRenderer2D.Render();
     glfwSwapBuffers(static_cast<GLFWwindow *>(mContext.window));
 }
 
