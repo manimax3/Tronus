@@ -1,11 +1,6 @@
 #include "Engine.h"
 #include "../event/CommonEvents.h"
-#include "../event/EventSystem.h"
-#include "../filesystem/ResourceManager.h"
-#include "../graphics/GraphicsHandler.h"
 #include "../util/Keys.h"
-#include "../util/Log.h"
-#include "profile/Profiler.h"
 #include "util/Timer.h"
 #include <iostream>
 
@@ -13,12 +8,22 @@ using namespace tr;
 
 Engine::Engine()
 {
-    AddSystem<Log>();
-    AddSystem<JobHandler>();
-    AddSystem<ResourceManager>();
-    AddSystem<Profiler>();
-    AddSystem<EventSystem>();
-    AddSystem<GraphicsHandler>();
+    sLog             = new Log;
+    sJobHandler      = new JobHandler;
+    sResourceManager = new ResourceManager;
+    sProfiler        = new Profiler;
+    sEventSystem     = new EventSystem;
+    sGraphicsHandler = new GraphicsHandler;
+}
+
+Engine::~Engine()
+{
+    delete sLog;
+    delete sJobHandler;
+    delete sResourceManager;
+    delete sProfiler;
+    delete sEventSystem;
+    delete sGraphicsHandler;
 }
 
 void Engine::Start()
@@ -26,24 +31,20 @@ void Engine::Start()
     EASY_MAIN_THREAD;
     EASY_PROFILER_ENABLE;
 
-    mLog = GetSystem<Log>();
     Logger().log("Tronus Engine Starting...", LogLevel::WARNING);
 
-    // Init all the subsystems
-    for (auto &subsystem : mSubsystems) {
-        Logger().log("Starting "s + subsystem.second->GetName());
-        if (!subsystem.second->Initialize(this))
-            Logger().log("Problem during starting of: "s
-                             + subsystem.second->GetName(),
-                         LogLevel::ERROR);
-    }
+    sLog->Initialize(this);
+    sJobHandler->Initialize(this);
+    sResourceManager->Initialize(this);
+    sProfiler->Initialize(this);
+    sEventSystem->Initialize(this);
+    sGraphicsHandler->Initialize(this);
 
-    for (auto &subsystem : mSubsystems)
-        subsystem.second->PostInit();
+    // Init all the subsystems
 
     mRunning = true;
 
-    GetSystem<EventSystem>()->AddListener(this);
+    sEventSystem->AddListener(this);
 
     // Start the tick loop
 
@@ -52,7 +53,7 @@ void Engine::Start()
     float       updateTimer = 0;
     float       tickTimer   = 0;
 
-    GraphicsHandler *const gfx = GetSystem<GraphicsHandler>();
+    GraphicsHandler *const gfx = sGraphicsHandler;
 
     while (mRunning) {
 
@@ -77,18 +78,24 @@ void Engine::Start()
 void Engine::Stop()
 {
     mRunning = false;
-    for (auto &subsystem : mSubsystems) {
-        subsystem.second->Shutdown();
-        Logger().log("Stopped "s + subsystem.second->GetName());
-    }
+    sLog->Shutdown();
+    sJobHandler->Shutdown();
+    sResourceManager->Shutdown();
+    sProfiler->Shutdown();
+    sEventSystem->Shutdown();
+    sGraphicsHandler->Shutdown();
 }
 
 void Engine::Tick()
 {
     EASY_FUNCTION();
 
-    for (auto &subsystem : mSubsystems)
-        subsystem.second->Tick();
+    sLog->Tick();
+    sJobHandler->Tick();
+    sResourceManager->Tick();
+    sProfiler->Tick();
+    sEventSystem->Tick();
+    sGraphicsHandler->Tick();
 }
 
 std::vector<int> tr::Engine::SubscripeTo() const { return { ENGINE_CHANNEL }; }
@@ -102,7 +109,7 @@ void Engine::OnEvent(const Event &e, int channel)
             Logger().log("UPS: "s + std::to_string(mLastUps));
         else if (ie.type == InputEvent::Keyboard
                  && ie.action == InputEvent::PRESS && ie.Key == KEY_F4) {
-            auto *rm = GetSystem<ResourceManager>();
+            auto *rm = sResourceManager;
             rm->LoadResource("test.json");
             rm->LoadResource("test_shader.json");
 
