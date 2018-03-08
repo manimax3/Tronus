@@ -101,6 +101,7 @@ void Engine::OnEvent(const Event &e, int channel)
                  && ie.action == InputEvent::PRESS && ie.Key == KEY_F4) {
             auto *rm = GetSystem<ResourceManager>();
             rm->LoadResource("test.json");
+            rm->LoadResource("test_shader.json");
 
             auto *test  = rm->GetRes<StringResource>("test.json");
             auto *test2 = rm->GetRes<StringResource>("test2.json");

@@ -3,6 +3,7 @@
 #include "../core/Engine.h"
 #include "../profile/Profiler.h"
 #include "Filesystem.h"
+#include "../graphics/GLSLShader.h"
 
 #include "nlohmann/json.hpp"
 #include <fstream>
@@ -56,6 +57,8 @@ bool tr::ResourceManager::Initialize(Engine *engine)
 
             return res;
         });
+
+    AddLoader(GLSLShader::GetType(), GLSLShader::Loader);
 
     return Subsystem::Initialize(engine);
 }

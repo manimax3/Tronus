@@ -1,0 +1,6 @@
+{
+    "type" : "GLSLShader",
+    "shader_source" : "test_shader.glsl",
+    "vertex_seperator" : "#shader vertex",
+    "fragment_seperator" : "#shader fragment"
+}
