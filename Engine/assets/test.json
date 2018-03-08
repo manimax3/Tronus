@@ -1,0 +1,5 @@
+{
+    "type" : "SimpleString",
+    "string" : "Hallo Welt",
+    "dependencies" : ["test2.json"]
+}
