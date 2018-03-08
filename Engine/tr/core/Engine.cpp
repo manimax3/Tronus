@@ -1,10 +1,10 @@
 #include "Engine.h"
 #include "../event/CommonEvents.h"
 #include "../event/EventSystem.h"
+#include "../filesystem/ResourceManager.h"
 #include "../graphics/GraphicsHandler.h"
 #include "../util/Keys.h"
 #include "../util/Log.h"
-#include "../filesystem/ResourceManager.h"
 #include "profile/Profiler.h"
 #include "util/Timer.h"
 #include <iostream>
@@ -30,7 +30,7 @@ void Engine::Start()
     Logger().log("Tronus Engine Starting...", LogLevel::WARNING);
 
     // Init all the subsystems
-    for (auto &subsystem : mSubsystems){
+    for (auto &subsystem : mSubsystems) {
         Logger().log("Starting "s + subsystem.second->GetName());
         subsystem.second->Initialize(this);
     }
@@ -71,7 +71,7 @@ void Engine::Start()
 void Engine::Stop()
 {
     mRunning = false;
-    for (auto &subsystem : mSubsystems){
+    for (auto &subsystem : mSubsystems) {
         subsystem.second->Shutdown();
         Logger().log("Stopped "s + subsystem.second->GetName());
     }
@@ -96,14 +96,20 @@ void Engine::OnEvent(const Event &e, int channel)
             Logger().log("UPS: "s + std::to_string(mLastUps));
         else if (ie.type == InputEvent::Keyboard
                  && ie.action == InputEvent::PRESS && ie.Key == KEY_F4) {
-            auto* rm = GetSystem<ResourceManager>();
+            auto *rm = GetSystem<ResourceManager>();
             rm->LoadResource("test.json");
-            Logger().log(rm->GetRes<StringResource>("test.json")->data);
-            Logger().log(rm->GetRes<StringResource>("test2.json")->data);
+
+            auto *test  = rm->GetRes<StringResource>("test.json");
+            auto *test2 = rm->GetRes<StringResource>("test2.json");
+
+            if (test)
+                Logger().log(test->data);
+            if (test2)
+                Logger().log(test2->data);
         }
     } else if (e.Identifier == event::WINDOW) {
         const auto &we = static_cast<const WindowEvent &>(e);
-        if (we.type == WindowEvent::CLOSED){
+        if (we.type == WindowEvent::CLOSED) {
             this->Stop();
         }
     }
