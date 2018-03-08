@@ -32,7 +32,10 @@ void Engine::Start()
     // Init all the subsystems
     for (auto &subsystem : mSubsystems) {
         Logger().log("Starting "s + subsystem.second->GetName());
-        subsystem.second->Initialize(this);
+        if (!subsystem.second->Initialize(this))
+            Logger().log("Problem during starting of: "s
+                             + subsystem.second->GetName(),
+                         LogLevel::ERROR);
     }
 
     mRunning = true;
