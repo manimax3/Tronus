@@ -16,28 +16,46 @@ bool tr::ResourceManager::Initialize(Engine *engine)
     if (mJHandler == nullptr)
         return false;
 
-    AddLoader("SimpleString",
-              [](ResHandle handle, ResourceManager *rm) -> Resource * {
-                  json        jhandle = json::parse(handle);
-                  std::string file    = jhandle["file"];
-                  file                = fs::GetExecutablePath() + file;
+    AddLoader(
+        "SimpleString",
+        [](ResHandle handle, ResourceManager *rm) -> Resource * {
+            json jhandle   = json::parse(handle);
+            bool load_file = true;
 
-                  if (!fs::FileExists(file))
-                      if (Log::STATIC_LOGGER)
-                          Log::STATIC_LOGGER->log("Could not find file: "s
-                                                  + file);
+            std::string file;
 
-                  auto res = new StringResource;
+            if (auto loc = jhandle.find("file"); loc != jhandle.end()) {
+                // There is a file specified to load the string from
+                file = *loc;
+            } else if (auto loc = jhandle.find("string");
+                       loc != jhandle.end()) {
+                load_file = false;
+                file      = *loc; // We store the string data in the file string
+            } else if (Log::STATIC_LOGGER)
+                Log::STATIC_LOGGER->log("Tried to load resource with "
+                                        "no file or string specified",
+                                        LogLevel::WARNING);
 
-                  {
-                      std::ifstream     ifs(file, std::ios::in);
-                      std::stringstream str;
-                      str << ifs.rdbuf();
-                      res->data = str.str();
-                  }
+            if (load_file)
+                file = fs::GetExecutablePath() + file;
 
-                  return res;
-              });
+            if (load_file && !fs::FileExists(file))
+                if (Log::STATIC_LOGGER)
+                    Log::STATIC_LOGGER->log("Could not find file: "s + file);
+
+            StringResource *res = new StringResource;
+
+            if (load_file) {
+                std::ifstream     ifs(file, std::ios::in);
+                std::stringstream str;
+                str << ifs.rdbuf();
+                res->data = str.str();
+            } else {
+                res->data = file;
+            }
+
+            return res;
+        });
 
     return Subsystem::Initialize(engine);
 }
@@ -85,7 +103,7 @@ void tr::ResourceManager::LoadResource(const std::string &_identifier)
         // Expected Error in case there are no dependencies
     } catch (json::type_error e) {
         mEngine->Logger().log("Error parsing json dependencies of "s
-                                  + identifier,
+                                  + identifier + '\n' + e.what(),
                               LogLevel::ERROR);
     }
 
