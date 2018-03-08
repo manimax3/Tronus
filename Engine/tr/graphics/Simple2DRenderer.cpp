@@ -1,5 +1,6 @@
 #include "Simple2DRenderer.h"
 #include "../filesystem/ResourceManager.h"
+#include "../core/Engine.h"
 #include "GLCheck.h"
 #include "GLSLShader.h"
 #include "GraphicsHandler.h"
@@ -11,22 +12,22 @@ void tr::Simple2DRenderer::Init(GraphicsHandler *gfx, ResourceManager *rm)
     mGfxHandler = gfx;
     mResManager = rm;
 
-    const std::string shader_id = "shaders/SimpleRenderer2D.json";
+    const std::string shader_id = "SimpleRenderer2D.json";
 
     const GLfloat     vertices[]
         = { // Position
             -0.5f, -0.5f, 0.0f, 0.5f, -0.5f, 0.0f, 0.0f, 0.5f, 0.0f
           };
 
-    return;
     mResManager->LoadResource(shader_id);
-    mShader = mResManager->GetRes<GLSLShader>("Simple2DRendererShader");
+    mShader = mResManager->GetRes<GLSLShader>(shader_id);
 
     GLuint vbo;
     Call(glGenBuffers(1, &vbo));
     Call(glBindBuffer(GL_ARRAY_BUFFER, vbo));
 
     Call(glGenVertexArrays(1, &mVao));
+    Call(glBindVertexArray(mVao));
 
     Call(glBindBuffer(GL_ARRAY_BUFFER, vbo));
     Call(glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,

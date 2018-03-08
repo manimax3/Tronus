@@ -40,7 +40,13 @@ void Engine::Start()
     sEventSystem->Initialize(this);
     sGraphicsHandler->Initialize(this);
 
-    // Init all the subsystems
+
+    sLog->PostInit();
+    sJobHandler->PostInit();
+    sResourceManager->PostInit();
+    sProfiler->PostInit();
+    sEventSystem->PostInit();
+    sGraphicsHandler->PostInit();
 
     mRunning = true;
 

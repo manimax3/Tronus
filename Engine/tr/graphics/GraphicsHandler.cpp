@@ -35,7 +35,6 @@ bool tr::GraphicsHandler::Initialize(Engine *e)
 
 void tr::GraphicsHandler::PostInit()
 {
-    mRenderer2D.Init(this, mEngine->sResourceManager);
 }
 
 bool tr::GraphicsHandler::Tick()
@@ -85,7 +84,7 @@ void tr::GraphicsHandler::Render()
         return; // We dont have a valid context
 
     glClear(GL_COLOR_BUFFER_BIT);
-    // mRenderer2D.Render();
+    mRenderer2D.Render();
     glfwSwapBuffers(static_cast<GLFWwindow *>(mContext.window));
 }
 
@@ -148,6 +147,8 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
     Call(glClearColor(ClearColor.x, ClearColor.y, ClearColor.z, ClearColor.w));
 
     handler->mContext.window = static_cast<void *>(window);
+
+    handler->mRenderer2D.Init(handler, handler->GetEngine().sResourceManager);
 
     handler->mContext.valid = true;
 }

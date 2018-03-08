@@ -17,9 +17,9 @@ std::tuple<std::string, std::string>
 void checkCompileErrors(uint shader, const std::string &type, Log &log);
 }
 
-tr::uint64 tr::GLSLShader::CompileShader(const std::string &vertex,
-                                         const std::string &fragment,
-                                         Log &              log)
+tr::uint tr::GLSLShader::CompileShader(const std::string &vertex,
+                                       const std::string &fragment,
+                                       Log &              log)
 {
     GLuint s_vertex, s_fragment;
 
@@ -54,7 +54,7 @@ tr::uint64 tr::GLSLShader::CompileShader(const std::string &vertex,
     glDeleteShader(s_vertex);
     glDeleteShader(s_fragment);
 
-    return static_cast<tr::uint64>(program);
+    return static_cast<uint>(program);
 }
 
 tr::Resource *tr::GLSLShader::Loader(ResourceManager::ResHandle handle,
@@ -101,7 +101,7 @@ tr::Resource *tr::GLSLShader::Loader(ResourceManager::ResHandle handle,
     return program ? new GLSLShader(program) : nullptr;
 }
 
-tr::GLSLShader::GLSLShader(uint64 program)
+tr::GLSLShader::GLSLShader(uint program)
     : mShader(static_cast<GLuint>(program))
 {
 }
