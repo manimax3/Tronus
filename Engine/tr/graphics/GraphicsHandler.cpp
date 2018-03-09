@@ -155,7 +155,8 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
 
     handler->mContext.window = static_cast<void *>(window);
 
-    handler->mSimpleRenderer2D.Init(handler, handler->GetEngine().sResourceManager);
+    handler->mSimpleRenderer2D.Init(handler,
+                                    handler->GetEngine().sResourceManager);
     handler->mRenderer2D.Init(handler, handler->GetEngine().sResourceManager);
 
     handler->mContext.valid = true;
@@ -228,6 +229,10 @@ void tr::gl_debug_callback(GLenum        source,
                            const GLchar *message,
                            void *        userParam)
 {
+    if (!(severity == GL_DEBUG_SEVERITY_HIGH
+          || severity == GL_DEBUG_SEVERITY_MEDIUM))
+        return;
+
     GraphicsHandler *handler = static_cast<GraphicsHandler *>(userParam);
 
     std::string m("OpenGL: ");
