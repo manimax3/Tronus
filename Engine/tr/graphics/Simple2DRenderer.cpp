@@ -47,4 +47,7 @@ void tr::Simple2DRenderer::Render()
     Call(glDrawArrays(GL_TRIANGLES, 0, 3));
 }
 
-void tr::Simple2DRenderer::Shutdown() {}
+void tr::Simple2DRenderer::Shutdown() {
+    if (mShader)
+        mResManager->DeleteResource("SimpleRenderer2D.json");
+}

@@ -1,7 +1,7 @@
 #include "GraphicsHandler.h"
+#include "../core/Engine.h"
 #include "../event/CommonEvents.h"
 #include "../filesystem/ResourceManager.h"
-#include "../core/Engine.h"
 #include "easy/profiler.h"
 
 #include "glad/glad.h"
@@ -33,9 +33,7 @@ bool tr::GraphicsHandler::Initialize(Engine *e)
     return Subsystem::Initialize(e);
 }
 
-void tr::GraphicsHandler::PostInit()
-{
-}
+void tr::GraphicsHandler::PostInit() {}
 
 bool tr::GraphicsHandler::Tick()
 {
@@ -48,7 +46,14 @@ bool tr::GraphicsHandler::Tick()
 bool tr::GraphicsHandler::Shutdown()
 {
     if (Context().valid)
-        SubmitCommand(std::make_unique<CloseWindowCmd>());
+        return true;
+
+    mRenderer2D.Shutdown();
+
+    Context().valid = false;
+
+    glfwDestroyWindow(static_cast<GLFWwindow *>(Context().window));
+    glfwTerminate();
     return true;
 }
 
@@ -153,20 +158,6 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
     handler->mContext.valid = true;
 }
 
-void tr::CloseWindowCmd::Execute(GraphicsHandler *handler)
-{
-    if (!handler->Context().valid)
-        return;
-
-    handler->Context().valid = false;
-
-    glfwDestroyWindow(static_cast<GLFWwindow *>(handler->Context().window));
-    glfwTerminate();
-
-    handler->GetEngine().sEventSystem->DispatchEvent(
-        WindowEvent(WindowEvent::CLOSED));
-}
-
 void tr::key_callback(GLFWwindow *window,
                       int         key,
                       int         scancode,
@@ -214,7 +205,8 @@ void tr::close_callback(GLFWwindow *window)
     GraphicsHandler *handler
         = static_cast<GraphicsHandler *>(glfwGetWindowUserPointer(window));
 
-    handler->SubmitCommand(std::make_unique<CloseWindowCmd>());
+    handler->GetEngine().sEventSystem->DispatchEvent(
+        WindowEvent(WindowEvent::CLOSED));
 }
 
 void tr::error_callback(int error, const char *description)

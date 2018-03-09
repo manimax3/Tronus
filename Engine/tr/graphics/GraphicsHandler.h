@@ -68,8 +68,4 @@ struct CreateWindowCmd : public GfxCommand {
     bool        VSync      = true;
     Vec4        ClearColor = { 0.2f, 0.3f, 0.3f, 1.0f };
 };
-
-struct CloseWindowCmd : public GfxCommand {
-    void Execute(GraphicsHandler *handler) override;
-};
 }

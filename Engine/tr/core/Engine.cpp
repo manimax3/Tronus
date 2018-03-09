@@ -33,6 +33,7 @@ void Engine::Start()
 
     Logger().log("Tronus Engine Starting...", LogLevel::WARNING);
 
+    Logger().log("Starting Subsystem Initialization...");
     sLog->Initialize(this);
     sJobHandler->Initialize(this);
     sResourceManager->Initialize(this);
@@ -41,6 +42,7 @@ void Engine::Start()
     sGraphicsHandler->Initialize(this);
 
 
+    Logger().log("Starting Subsystem Post Initialization...");
     sLog->PostInit();
     sJobHandler->PostInit();
     sResourceManager->PostInit();
@@ -84,12 +86,13 @@ void Engine::Start()
 void Engine::Stop()
 {
     mRunning = false;
-    sLog->Shutdown();
-    sJobHandler->Shutdown();
-    sResourceManager->Shutdown();
     sProfiler->Shutdown();
     sEventSystem->Shutdown();
     sGraphicsHandler->Shutdown();
+    sResourceManager->Shutdown();
+    sJobHandler->Shutdown();
+    sLog->Shutdown();
+    Logger().log("All subsystems have been stopped");
 }
 
 void Engine::Tick()
