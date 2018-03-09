@@ -48,6 +48,7 @@ bool tr::GraphicsHandler::Shutdown()
     if (Context().valid)
         return true;
 
+    mSimpleRenderer2D.Shutdown();
     mRenderer2D.Shutdown();
 
     Context().valid = false;
@@ -89,6 +90,7 @@ void tr::GraphicsHandler::Render()
         return; // We dont have a valid context
 
     glClear(GL_COLOR_BUFFER_BIT);
+    mSimpleRenderer2D.Render();
     mRenderer2D.Render();
     glfwSwapBuffers(static_cast<GLFWwindow *>(mContext.window));
 }
@@ -153,6 +155,7 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
 
     handler->mContext.window = static_cast<void *>(window);
 
+    handler->mSimpleRenderer2D.Init(handler, handler->GetEngine().sResourceManager);
     handler->mRenderer2D.Init(handler, handler->GetEngine().sResourceManager);
 
     handler->mContext.valid = true;

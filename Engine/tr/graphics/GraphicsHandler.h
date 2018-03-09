@@ -2,6 +2,7 @@
 #include "../core/Subsystem.h"
 #include "../math/Math.h"
 #include "Simple2DRenderer.h"
+#include "Renderer2D.h"
 #include <memory>
 #include <queue>
 #include <tr.h>
@@ -38,7 +39,8 @@ private:
     std::queue<GfxCommand *> mGfxCommandBuffer;
 
     RenderContext    mContext;
-    Simple2DRenderer mRenderer2D;
+    Simple2DRenderer mSimpleRenderer2D;
+    Renderer2D       mRenderer2D;
 };
 
 struct GfxCommand {
