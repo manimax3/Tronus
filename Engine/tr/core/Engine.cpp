@@ -70,6 +70,10 @@ void Engine::Start()
         if ((timer.GetElapsed() - tickTimer) >= 1000.f) {
             mLastUps = mUPS;
             mUPS     = 0;
+
+            mLastFps = mFPS;
+            mFPS     = 0;
+
             tickTimer += 1000.f;
         }
 
@@ -79,6 +83,7 @@ void Engine::Start()
             mUPS++;
         }
 
+        mFPS++;
         gfx->Render();
     }
 }
@@ -115,7 +120,8 @@ void Engine::OnEvent(const Event &e, int channel)
         const auto &ie = static_cast<const InputEvent &>(e);
         if (ie.type == InputEvent::Keyboard && ie.action == InputEvent::PRESS
             && ie.Key == KEY_F3)
-            Logger().log("UPS: "s + std::to_string(mLastUps));
+            Logger().log("UPS: "s + std::to_string(mLastUps)
+                         + " FPS: " + std::to_string(mLastFps));
         else if (ie.type == InputEvent::Keyboard
                  && ie.action == InputEvent::PRESS && ie.Key == KEY_F4) {
             auto *rm = sResourceManager;

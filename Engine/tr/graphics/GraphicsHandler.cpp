@@ -37,8 +37,11 @@ void tr::GraphicsHandler::PostInit() {}
 
 bool tr::GraphicsHandler::Tick()
 {
-    if (mContext.valid)
-        glfwPollEvents();
+    if (!mContext.valid)
+        return false;
+
+    glfwPollEvents();
+    mRenderer2D.Tick();
 
     return true;
 }
@@ -111,6 +114,8 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
 
 #ifdef TR_DEBUG
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+#else
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_FALSE);
 #endif
 
     GLFWwindow *window
@@ -136,9 +141,11 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
         Logger.log("Failed to initialize OpenGL context", LogLevel::ERROR);
 
+#ifdef TR_DEBUG
     // Enable the Debug Message Callback if available (>=GL4.3)
     if (glfwExtensionSupported("GL_ARB_debug_output"))
         glDebugMessageCallback((GLDEBUGPROC)gl_debug_callback, handler);
+#endif
 
     // Log the OpenGl version
     std::string version_info("OpenGL: ");

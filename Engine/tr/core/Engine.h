@@ -25,6 +25,9 @@ private:
     int  mUPS     = 0;
     int  mLastUps = 0;
 
+    int mFPS     = 0;
+    int mLastFps = 0;
+
 public:
     Engine();
     ~Engine();

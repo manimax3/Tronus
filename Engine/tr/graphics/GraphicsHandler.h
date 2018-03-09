@@ -67,7 +67,7 @@ struct CreateWindowCmd : public GfxCommand {
     std::string Name       = "Tronus Engine";
     bool        Fullscreen = false;
     bool        Resizeable = true;
-    bool        VSync      = true;
+    bool        VSync      = false;
     Vec4        ClearColor = { 0.2f, 0.3f, 0.3f, 1.0f };
 };
 }

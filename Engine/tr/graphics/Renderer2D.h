@@ -37,6 +37,7 @@ public:
     static constexpr const char *SHADER_ID     = "Renderer2D.json";
 
     void Init(GraphicsHandler *gfx, ResourceManager *rm);
+    void Tick();
     void Render();
     void Shutdown();
 

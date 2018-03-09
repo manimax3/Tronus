@@ -6,6 +6,8 @@
 #include "GLCheck.h"
 #include "GraphicsHandler.h"
 
+#include <random>
+
 #include "glad/glad.h"
 
 void tr::Renderer2D::Init(GraphicsHandler *gfx, ResourceManager *rm)
@@ -19,7 +21,7 @@ void tr::Renderer2D::Init(GraphicsHandler *gfx, ResourceManager *rm)
     mResManager->LoadResource(SHADER_ID);
     mShader = mResManager->GetRes<GLSLShader>(SHADER_ID);
 
-    mProjectionMatrix = Mat4::Identity();
+    mProjectionMatrix = Mat4::Orthographic(0, 1280, 720, 0, 1, -1);
 
     // Generate the buffers
     Call(glGenBuffers(1, &mVbo));
@@ -62,47 +64,64 @@ void tr::Renderer2D::Init(GraphicsHandler *gfx, ResourceManager *rm)
     Call(glBindVertexArray(0));
 }
 
-void tr::Renderer2D::Render()
+void tr::Renderer2D::Tick() 
 {
+    EASY_BLOCK("Renderer2D Tick");
+
     uint count = mRenderables.size();
 
-    Call(glBindVertexArray(mVao));
+    if (count == 0){
+        mRenderCount = 0;
+        return;
+    }
 
-    Call(Vertex *v
-         = static_cast<Vertex *>(glMapBuffer(GL_ARRAY_BUFFER, GL_READ_WRITE)));
+    Call(glBindBuffer(GL_ARRAY_BUFFER, mVbo));
 
-    for (const auto &r : mRenderables) {
+        EASY_BLOCK("Transforming renderables");
+        Call(Vertex *v = static_cast<Vertex *>(glMapBufferRange(
+                 GL_ARRAY_BUFFER, 0, count * sizeof(Vertex) * 4,
+                 GL_MAP_WRITE_BIT)));
 
-        if (!r.visible) {
-            count--;
-            continue;
-        }
+        for (const auto &r : mRenderables) {
 
-        v->pos   = r.bottom_left;
-        v->color = r.color;
+            if (!r.visible) {
+                count--;
+                continue;
+            }
 
-        v++;
+            v->pos   = r.bottom_left;
+            v->color = r.color;
 
-        v->pos   = r.top_left;
-        v->color = r.color;
+            v++;
 
-        v++;
+            v->pos   = r.top_left;
+            v->color = r.color;
 
-        v->pos   = r.top_right;
-        v->color = r.color;
+            v++;
 
-        v++;
+            v->pos   = r.top_right;
+            v->color = r.color;
 
-        v->pos   = r.bottom_right;
-        v->color = r.color;
+            v++;
 
-        v++;
+            v->pos   = r.bottom_right;
+            v->color = r.color;
+
+            v++;
     }
 
     Call(glUnmapBuffer(GL_ARRAY_BUFFER));
+    mRenderCount = count;
+}
 
+void tr::Renderer2D::Render()
+{
+    EASY_BLOCK("Renderer2D Render");
+
+    Call(glBindVertexArray(mVao));
     mShader->Bind();
-    Call(glDrawElements(GL_TRIANGLES, count * 6, GL_UNSIGNED_INT, (void *)0));
+    mShader->Set("vp", mProjectionMatrix);
+    Call(glDrawElements(GL_TRIANGLES, mRenderCount * 6, GL_UNSIGNED_INT, (void *)0));
     Call(glBindVertexArray(0));
 }
 
@@ -134,24 +153,32 @@ void tr::Renderer2D::OnEvent(const Event &e, int channel)
 
     const InputEvent &ie = static_cast<const InputEvent &>(e);
 
-    static Renderable *r = nullptr;
-
     if (ie.type != InputEvent::Keyboard)
         return;
     if (ie.action != InputEvent::PRESS)
         return;
 
+    static std::mt19937       rng;
+
     if (ie.Key == KEY_F5) {
-        if (!r) {
-            r               = GetNewRenderable();
-            r->top_left     = { -.5f, -.5f };
-            r->top_right    = { .5f, -.5f };
-            r->bottom_left  = { -.5f, .5f };
-            r->bottom_right = { .5f, .5f };
-            r->color        = { .5f, 0.f, 0.f, 1.f };
-            r->visible      = false;
+        for (int i = 0; i < 1023; i++) {
+            std::uniform_real_distribution<> width(0, 1280.f);
+            std::uniform_real_distribution<> height(0, 720.f);
+            std::uniform_real_distribution<> color(0.f, 1.f);
+            auto *                           r = GetNewRenderable();
+            r->top_left     = { static_cast<float>(width(rng)),
+                            static_cast<float>(height(rng)) };
+            r->top_right    = { static_cast<float>(width(rng)),
+                             static_cast<float>(height(rng)) };
+            r->bottom_left  = { static_cast<float>(width(rng)),
+                               static_cast<float>(height(rng)) };
+            r->bottom_right = { static_cast<float>(width(rng)),
+                                static_cast<float>(height(rng)) };
+            r->color        = { static_cast<float>(color(rng)),
+                         static_cast<float>(color(rng)),
+                         static_cast<float>(color(rng)), 1.0f };
+            r->visible      = true;
         }
-        r->visible = !r->visible;
     }
 }
 
