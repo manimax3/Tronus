@@ -107,8 +107,8 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
     if (!glfwInit())
         Logger.log("Error Initializing GLFW!", LogLevel::ERROR);
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, Resizeable ? GL_TRUE : GL_FALSE);
 
@@ -143,7 +143,8 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
 
 #ifdef TR_DEBUG
     // Enable the Debug Message Callback if available (>=GL4.3)
-    if (glfwExtensionSupported("GL_ARB_debug_output"))
+    if (glfwExtensionSupported("GL_ARB_debug_output") && GLVersion.major >= 4
+        && GLVersion.minor >= 3)
         glDebugMessageCallback((GLDEBUGPROC)gl_debug_callback, handler);
 #endif
 

@@ -38,17 +38,17 @@ void tr::Renderer2D::Init(GraphicsHandler *gfx, ResourceManager *rm)
     Call(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * BUFFER_GROWTH * 6,
                       NULL, GL_STATIC_DRAW));
 
-    Call(uint *indices = static_cast<uint *>(
+    Call(uint *indices = reinterpret_cast<uint *>(
              glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY)));
 
     for (uint i = 0; i < BUFFER_GROWTH * 6; i += 6) {
-        const uint vertex = i / 6;
+        const uint vertex = (i / 6) * 4;
         indices[i + 0]    = vertex + 0;
         indices[i + 1]    = vertex + 1;
         indices[i + 2]    = vertex + 2;
-        indices[i + 3]    = vertex + 0;
-        indices[i + 4]    = vertex + 2;
-        indices[i + 5]    = vertex + 3;
+        indices[i + 3]    = vertex + 2;
+        indices[i + 4]    = vertex + 3;
+        indices[i + 5]    = vertex + 0;
     }
 
     Call(glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER));
@@ -64,54 +64,54 @@ void tr::Renderer2D::Init(GraphicsHandler *gfx, ResourceManager *rm)
     Call(glBindVertexArray(0));
 }
 
-void tr::Renderer2D::Tick() 
+void tr::Renderer2D::Tick()
 {
     EASY_BLOCK("Renderer2D Tick");
 
     uint count = mRenderables.size();
 
-    if (count == 0){
+    if (count == 0) {
         mRenderCount = 0;
         return;
     }
 
-    Call(glBindBuffer(GL_ARRAY_BUFFER, mVbo));
+    Call(glBindVertexArray(mVao));
 
-        EASY_BLOCK("Transforming renderables");
-        Call(Vertex *v = static_cast<Vertex *>(glMapBufferRange(
-                 GL_ARRAY_BUFFER, 0, count * sizeof(Vertex) * 4,
-                 GL_MAP_WRITE_BIT)));
+    Call(
+        Vertex *v = reinterpret_cast<Vertex *>(glMapBufferRange(
+            GL_ARRAY_BUFFER, 0, count * sizeof(Vertex) * 4, GL_MAP_WRITE_BIT)));
 
-        for (const auto &r : mRenderables) {
+    for (const auto &r : mRenderables) {
 
-            if (!r.visible) {
-                count--;
-                continue;
-            }
+        if (!r.visible) {
+            count--;
+            continue;
+        }
 
-            v->pos   = r.bottom_left;
-            v->color = r.color;
+        std::memcpy(v[0].color, r.color.m_Values, 4 * sizeof(float));
+        std::memcpy(v[1].color, r.color.m_Values, 4 * sizeof(float));
+        std::memcpy(v[2].color, r.color.m_Values, 4 * sizeof(float));
+        std::memcpy(v[3].color, r.color.m_Values, 4 * sizeof(float));
 
-            v++;
+        v[0].x = r.bottom_left.x;
+        v[0].y = r.bottom_left.y;
 
-            v->pos   = r.top_left;
-            v->color = r.color;
+        v[1].x = r.top_left.x;
+        v[1].y = r.top_left.y;
 
-            v++;
+        v[2].x = r.top_right.x;
+        v[2].y = r.top_right.y;
 
-            v->pos   = r.top_right;
-            v->color = r.color;
+        v[3].x = r.bottom_right.x;
+        v[3].y = r.bottom_right.y;
 
-            v++;
-
-            v->pos   = r.bottom_right;
-            v->color = r.color;
-
-            v++;
+        v += 4;
     }
 
     Call(glUnmapBuffer(GL_ARRAY_BUFFER));
     mRenderCount = count;
+
+    Call(glBindVertexArray(0));
 }
 
 void tr::Renderer2D::Render()
@@ -121,7 +121,8 @@ void tr::Renderer2D::Render()
     Call(glBindVertexArray(mVao));
     mShader->Bind();
     mShader->Set("vp", mProjectionMatrix);
-    Call(glDrawElements(GL_TRIANGLES, mRenderCount * 6, GL_UNSIGNED_INT, (void *)0));
+    Call(glDrawElements(GL_TRIANGLES, mRenderCount * 6, GL_UNSIGNED_INT,
+                        (void *)0));
     Call(glBindVertexArray(0));
 }
 
@@ -158,26 +159,27 @@ void tr::Renderer2D::OnEvent(const Event &e, int channel)
     if (ie.action != InputEvent::PRESS)
         return;
 
-    static std::mt19937       rng;
+    static std::mt19937 rng;
 
     if (ie.Key == KEY_F5) {
-        for (int i = 0; i < 1023; i++) {
-            std::uniform_real_distribution<> width(0, 1280.f);
-            std::uniform_real_distribution<> height(0, 720.f);
-            std::uniform_real_distribution<> color(0.f, 1.f);
-            auto *                           r = GetNewRenderable();
-            r->top_left     = { static_cast<float>(width(rng)),
-                            static_cast<float>(height(rng)) };
-            r->top_right    = { static_cast<float>(width(rng)),
-                             static_cast<float>(height(rng)) };
-            r->bottom_left  = { static_cast<float>(width(rng)),
-                               static_cast<float>(height(rng)) };
-            r->bottom_right = { static_cast<float>(width(rng)),
-                                static_cast<float>(height(rng)) };
-            r->color        = { static_cast<float>(color(rng)),
-                         static_cast<float>(color(rng)),
-                         static_cast<float>(color(rng)), 1.0f };
-            r->visible      = true;
+        for (float _x = 0; _x < 1280; _x += 4) {
+            for (float _y = 0; _y < 720; _y += 4) {
+                std::uniform_real_distribution<> color(0.f, 1.f);
+                const float                      x = _x * 1;
+                const float                      y = _y * 1;
+                const float                      size = 4;
+
+                auto *r         = GetNewRenderable();
+                r->top_left     = { x, y };
+                r->top_right    = { x + size, y };
+                r->bottom_left  = { x, y + size };
+                r->bottom_right = { x + size, y + size };
+
+                r->color   = { static_cast<float>(color(rng)),
+                             static_cast<float>(color(rng)),
+                             static_cast<float>(color(rng)), 1.0f };
+                r->visible = true;
+            }
         }
     }
 }

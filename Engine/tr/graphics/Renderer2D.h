@@ -14,8 +14,10 @@ public:
     using Camera = Mat4;
 
     struct Vertex {
-        Vec2 pos;
-        Vec4 color;
+        /* Vec2 pos; */
+        /* Vec4 color; */
+        float x, y;
+        float color[4];
     };
 
     struct Renderable {
@@ -33,7 +35,7 @@ public:
     };
 
     // How many rectangles get allocated when running out of vram
-    static constexpr uint        BUFFER_GROWTH = 1024;
+    static constexpr uint        BUFFER_GROWTH = 60000;
     static constexpr const char *SHADER_ID     = "Renderer2D.json";
 
     void Init(GraphicsHandler *gfx, ResourceManager *rm);
