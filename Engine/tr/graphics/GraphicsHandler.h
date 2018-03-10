@@ -69,5 +69,6 @@ struct CreateWindowCmd : public GfxCommand {
     bool        Resizeable = true;
     bool        VSync      = false;
     Vec4        ClearColor = { 0.2f, 0.3f, 0.3f, 1.0f };
+    Vec2        OpenGLVersion = { 3, 3 };
 };
 }
