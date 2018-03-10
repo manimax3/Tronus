@@ -102,7 +102,7 @@ void Engine::Stop()
 
 void Engine::Tick()
 {
-    EASY_FUNCTION();
+    EASY_FUNCTION(profiler::colors::Red);
 
     sLog->Tick();
     sJobHandler->Tick();

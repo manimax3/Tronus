@@ -16,10 +16,13 @@ public:
     struct Vertex {
         Vec2 pos;
         Vec4 color;
+        /* float x, y; */
+        /* float color[4]; */
     };
 
     struct Renderable {
         bool visible = true;
+        bool dirty = false;
         Vec2 top_left;
         Vec2 top_right;
         Vec2 bottom_left;
@@ -33,8 +36,10 @@ public:
     };
 
     // How many rectangles get allocated when running out of vram
-    static constexpr uint        BUFFER_GROWTH = 1024;
-    static constexpr const char *SHADER_ID     = "Renderer2D.json";
+    static constexpr uint RENDERABLE_SIZE = 60000;
+    static constexpr uint I_BUF_SIZE      = RENDERABLE_SIZE * 6;
+    static constexpr uint V_BUF_SIZE = RENDERABLE_SIZE * sizeof(Vertex) * 4;
+    static constexpr const char *SHADER_ID = "Renderer2D.json";
 
     void Init(GraphicsHandler *gfx, ResourceManager *rm);
     void Tick();
@@ -59,5 +64,6 @@ private:
     ResourceManager *       mResManager  = nullptr;
     Mat4                    mProjectionMatrix;
     std::vector<Renderable> mRenderables;
+    std::vector<Vertex>     mUpdateBuffer;
 };
 }
