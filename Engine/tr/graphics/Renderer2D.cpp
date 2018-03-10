@@ -16,7 +16,8 @@ void tr::Renderer2D::Init(GraphicsHandler *gfx, ResourceManager *rm)
     mGfxHandler = gfx;
     mResManager = rm;
 
-    mRenderables.reserve(BUFFER_GROWTH);
+    mRenderables.reserve(RENDERABLE_SIZE);
+    mUpdateBuffer.reserve(V_BUF_SIZE / sizeof(Vertex));
 
     mResManager->LoadResource(SHADER_ID);
     mShader = mResManager->GetRes<GLSLShader>(SHADER_ID);
@@ -31,17 +32,16 @@ void tr::Renderer2D::Init(GraphicsHandler *gfx, ResourceManager *rm)
     Call(glBindVertexArray(mVao));
 
     Call(glBindBuffer(GL_ARRAY_BUFFER, mVbo));
-    Call(glBufferData(GL_ARRAY_BUFFER, sizeof(Vertex) * BUFFER_GROWTH * 4, NULL,
-                      GL_DYNAMIC_DRAW));
+    Call(glBufferData(GL_ARRAY_BUFFER, V_BUF_SIZE, NULL, GL_DYNAMIC_DRAW));
 
     Call(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIbo));
-    Call(glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(uint) * BUFFER_GROWTH * 6,
-                      NULL, GL_STATIC_DRAW));
+    Call(glBufferData(GL_ELEMENT_ARRAY_BUFFER, I_BUF_SIZE * sizeof(uint), NULL,
+                      GL_STATIC_DRAW));
 
     Call(uint *indices = reinterpret_cast<uint *>(
              glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY)));
 
-    for (uint i = 0; i < BUFFER_GROWTH * 6; i += 6) {
+    for (uint i = 0; i < I_BUF_SIZE; i += 6) {
         const uint vertex = (i / 6) * 4;
         indices[i + 0]    = vertex + 0;
         indices[i + 1]    = vertex + 1;
@@ -75,42 +75,44 @@ void tr::Renderer2D::Tick()
         return;
     }
 
-    Call(glBindVertexArray(mVao));
+    Vertex *v           = mUpdateBuffer.data();
+    bool    found_dirty = false;
 
-    Call(
-        Vertex *v = reinterpret_cast<Vertex *>(glMapBufferRange(
-            GL_ARRAY_BUFFER, 0, count * sizeof(Vertex) * 4, GL_MAP_WRITE_BIT)));
-
-    for (const auto &r : mRenderables) {
+    for (auto &r : mRenderables) {
 
         if (!r.visible) {
             count--;
             continue;
         }
 
-        std::memcpy(v[0].color, r.color.m_Values, 4 * sizeof(float));
-        std::memcpy(v[1].color, r.color.m_Values, 4 * sizeof(float));
-        std::memcpy(v[2].color, r.color.m_Values, 4 * sizeof(float));
-        std::memcpy(v[3].color, r.color.m_Values, 4 * sizeof(float));
+        if (r.dirty) {
+            r.dirty     = false;
+            found_dirty = true;
+        }
 
-        v[0].x = r.bottom_left.x;
-        v[0].y = r.bottom_left.y;
+        v[0].pos   = r.bottom_left;
+        v[0].color = r.color;
 
-        v[1].x = r.top_left.x;
-        v[1].y = r.top_left.y;
+        v[1].pos   = r.top_left;
+        v[1].color = r.color;
 
-        v[2].x = r.top_right.x;
-        v[2].y = r.top_right.y;
+        v[2].pos   = r.top_right;
+        v[2].color = r.color;
 
-        v[3].x = r.bottom_right.x;
-        v[3].y = r.bottom_right.y;
+        v[3].pos   = r.bottom_right;
+        v[3].color = r.color;
 
         v += 4;
     }
 
-    Call(glUnmapBuffer(GL_ARRAY_BUFFER));
     mRenderCount = count;
 
+    if (!found_dirty)
+        return;
+
+    Call(glBindVertexArray(mVao));
+    Call(glBufferSubData(GL_ARRAY_BUFFER, 0, mRenderCount * sizeof(Vertex) * 4,
+                         mUpdateBuffer.data()));
     Call(glBindVertexArray(0));
 }
 
@@ -165,8 +167,8 @@ void tr::Renderer2D::OnEvent(const Event &e, int channel)
         for (float _x = 0; _x < 1280; _x += 4) {
             for (float _y = 0; _y < 720; _y += 4) {
                 std::uniform_real_distribution<> color(0.f, 1.f);
-                const float                      x = _x * 1;
-                const float                      y = _y * 1;
+                const float                      x    = _x * 1;
+                const float                      y    = _y * 1;
                 const float                      size = 4;
 
                 auto *r         = GetNewRenderable();
@@ -179,6 +181,7 @@ void tr::Renderer2D::OnEvent(const Event &e, int channel)
                              static_cast<float>(color(rng)),
                              static_cast<float>(color(rng)), 1.0f };
                 r->visible = true;
+                r->dirty   = true;
             }
         }
     }
