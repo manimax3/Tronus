@@ -178,12 +178,16 @@ void tr::Renderer2D::OnEvent(const Event &e, int channel)
                 r->bottom_left  = { x, y + size };
                 r->bottom_right = { x + size, y + size };
 
-                uint32 pixel
-                    = i->GetPixelAt((_x / 1280.f) * 255, (_y / 720.f) * 255);
+                uint32 pixel = i->GetPixelAt((_x / 1280.f) * 255, (_y / 720.f) * 256);
 
-                float red   = (pixel & 0xFF);
-                float green = (pixel & 0xFF00) >> 8;
-                float blue  = (pixel & 0xFF0000) >> 16;
+                byte _red = reinterpret_cast<byte*>(&pixel)[0];
+                byte _green = reinterpret_cast<byte*>(&pixel)[1];
+                byte _blue = reinterpret_cast<byte*>(&pixel)[2];
+
+                float red   = static_cast<float>(_red) / 256.f;
+                float green = static_cast<float>(_green) / 256.f;
+                float blue  = static_cast<float>(_blue) / 256.f;
+
                 Vec4  c     = { red, green, blue, 1.f };
                 r->color    = c;
 
