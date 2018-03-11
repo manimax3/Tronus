@@ -5,6 +5,7 @@
 #include "../util/Keys.h"
 #include "GLCheck.h"
 #include "GraphicsHandler.h"
+#include "Image.h"
 
 #include <random>
 
@@ -164,12 +165,12 @@ void tr::Renderer2D::OnEvent(const Event &e, int channel)
     static std::mt19937 rng;
 
     if (ie.Key == KEY_F5) {
-        for (float _x = 0; _x < 1280; _x += 4) {
-            for (float _y = 0; _y < 720; _y += 4) {
-                std::uniform_real_distribution<> color(0.f, 1.f);
-                const float                      x    = _x * 1;
-                const float                      y    = _y * 1;
-                const float                      size = 4;
+        Image *i = mResManager->GetRes<Image>("test_image.json");
+        for (int _x = 0; _x < 1280; _x += 4) {
+            for (int _y = 0; _y < 720; _y += 4) {
+                const float x    = _x * 1;
+                const float y    = _y * 1;
+                const float size = 4;
 
                 auto *r         = GetNewRenderable();
                 r->top_left     = { x, y };
@@ -177,13 +178,28 @@ void tr::Renderer2D::OnEvent(const Event &e, int channel)
                 r->bottom_left  = { x, y + size };
                 r->bottom_right = { x + size, y + size };
 
-                r->color   = { static_cast<float>(color(rng)),
-                             static_cast<float>(color(rng)),
-                             static_cast<float>(color(rng)), 1.0f };
+                uint32 pixel
+                    = i->GetPixelAt((_x / 1280.f) * 255, (_y / 720.f) * 255);
+
+                float red   = (pixel & 0xFF);
+                float green = (pixel & 0xFF00) >> 8;
+                float blue  = (pixel & 0xFF0000) >> 16;
+                Vec4  c     = { red, green, blue, 1.f };
+                r->color    = c;
+
                 r->visible = true;
                 r->dirty   = true;
             }
         }
+
+        return;
+    }
+
+    if (ie.Key == KEY_F6) {
+        mResManager->LoadResource("test_image.json");
+        Image *i = mResManager->GetRes<Image>("test_image.json");
+        /* std::cout << std::hex << i->GetPixelAt(0, 0) << std::endl; */
+        std::cout << i->GetSizeX() << i->GetSizeY() << std::endl;
     }
 }
 

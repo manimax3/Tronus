@@ -2,6 +2,7 @@
 
 #include "../core/Engine.h"
 #include "../graphics/GLSLShader.h"
+#include "../graphics/Image.h"
 #include "../profile/Profiler.h"
 #include "Filesystem.h"
 
@@ -59,6 +60,7 @@ bool tr::ResourceManager::Initialize(Engine *engine)
         });
 
     AddLoader(GLSLShader::GetType(), GLSLShader::Loader);
+    AddLoader(Image::GetType(), Image::Loader);
 
     return Subsystem::Initialize(engine);
 }
