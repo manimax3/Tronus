@@ -3,20 +3,46 @@
 
 layout(location = 0) in vec2 position;
 layout(location = 1) in vec4 iColor;
+layout(location = 2) in int _tid;
+layout(location = 3) in vec2 uv;
 
 uniform mat4 vp = mat4(1.0);
 
-out vec4 oColor;
+out struct VS_out {
+    vec4 color;
+    vec2 uv;
+} vs_out;
 
-void main() { 
-    oColor = iColor;
-    gl_Position = vp * vec4(position.x, position.y, 0.0, 1.0); }
+flat out int tid;
+
+void main()
+{
+    vs_out.color = iColor;
+    tid   = _tid;
+    vs_out.uv    = uv;
+    gl_Position  = vp * vec4(position.x, position.y, 0.0, 1.0);
+}
 
 #shader fragment
 #version 330 core
 
-in vec4 oColor;
+in struct VS_out {
+    vec4 color;
+    vec2 uv;
+} vs_out;
+
+flat in int tid;
+
+uniform sampler2D tex0;
+
 out vec4 color;
 
-void main() { color = oColor; }
+void main()
+{
+    if (tid < 0) {
+        color = vs_out.color;
+    } else {
+        color = texture(tex0, vs_out.uv) * vs_out.color;
+    }
+}
 

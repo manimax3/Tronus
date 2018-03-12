@@ -6,6 +6,7 @@
 #include "GLCheck.h"
 #include "GraphicsHandler.h"
 #include "Image.h"
+#include "Texture.h"
 
 #include <random>
 
@@ -58,9 +59,16 @@ void tr::Renderer2D::Init(GraphicsHandler *gfx, ResourceManager *rm)
                                (void *)0));
     Call(glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                                (void *)sizeof(Vec2)));
+    Call(glVertexAttribPointer(2, 1, GL_INT, GL_FALSE, sizeof(Vertex),
+                               (void *)(sizeof(Vec2) + sizeof(Vec4))));
+    Call(glVertexAttribPointer(
+        3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+        (void *)(sizeof(Vec2) + sizeof(Vec4) + sizeof(int))));
 
     Call(glEnableVertexAttribArray(0));
     Call(glEnableVertexAttribArray(1));
+    Call(glEnableVertexAttribArray(2));
+    Call(glEnableVertexAttribArray(3));
 
     Call(glBindVertexArray(0));
 }
@@ -93,15 +101,23 @@ void tr::Renderer2D::Tick()
 
         v[0].pos   = r.bottom_left;
         v[0].color = r.color;
+        v[0].tid = r.tid;
+        v[0].uv    = { r.uv.x, r.uv.w };
 
         v[1].pos   = r.top_left;
         v[1].color = r.color;
+        v[1].tid = r.tid;
+        v[1].uv    = { r.uv.x, r.uv.y };
 
         v[2].pos   = r.top_right;
         v[2].color = r.color;
+        v[2].tid = r.tid;
+        v[2].uv    = { r.uv.z, r.uv.y };
 
         v[3].pos   = r.bottom_right;
         v[3].color = r.color;
+        v[3].tid = r.tid;
+        v[3].uv    = { r.uv.z, r.uv.w };
 
         v += 4;
     }
@@ -124,6 +140,7 @@ void tr::Renderer2D::Render()
     Call(glBindVertexArray(mVao));
     mShader->Bind();
     mShader->Set("vp", mProjectionMatrix);
+    mShader->Set("tex0", 0);
     Call(glDrawElements(GL_TRIANGLES, mRenderCount * 6, GL_UNSIGNED_INT,
                         (void *)0));
     Call(glBindVertexArray(0));
@@ -190,6 +207,7 @@ void tr::Renderer2D::OnEvent(const Event &e, int channel)
 
                 Vec4  c     = { red, green, blue, 1.f };
                 r->color    = c;
+                r->tid = -1;
 
                 r->visible = true;
                 r->dirty   = true;
@@ -202,8 +220,25 @@ void tr::Renderer2D::OnEvent(const Event &e, int channel)
     if (ie.Key == KEY_F6) {
         mResManager->LoadResource("test_texture.json");
         Image *i = mResManager->GetRes<Image>("test_image.json");
+        Texture *t = mResManager->GetRes<Texture>("test_texture.json");
+        t->Bind();
         /* std::cout << std::hex << i->GetPixelAt(0, 0) << std::endl; */
         std::cout << i->GetSizeX() << i->GetSizeY() << std::endl;
+        return;
+    }
+
+    if (ie.Key == KEY_F7){
+        auto *r         = GetNewRenderable();
+        r->top_left     = { 0.f, 0.f };
+        r->top_right    = { 1280.f, 0.f };
+        r->bottom_left  = { 0.f, 720.f };
+        r->bottom_right = { 1280.f, 720.f };
+        r->color        = Vec4(1.f);
+        r->tid          = 0;
+        r->uv           = Vec4(0, 0, 1, 1);
+        r->visible      = true;
+        r->dirty        = true;
+        return;
     }
 }
 

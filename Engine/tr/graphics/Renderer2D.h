@@ -16,8 +16,8 @@ public:
     struct Vertex {
         Vec2 pos;
         Vec4 color;
-        /* float x, y; */
-        /* float color[4]; */
+        int tid;
+        Vec2 uv;
     };
 
     struct Renderable {
@@ -28,6 +28,8 @@ public:
         Vec2 bottom_left;
         Vec2 bottom_right;
         Vec4 color;
+        int tid = -1;
+        Vec4 uv;
 
         friend class Renderer2D;
 
