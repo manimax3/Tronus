@@ -69,11 +69,7 @@ void tr::Renderer2D::Init(GraphicsHandler *gfx, ResourceManager *rm)
     Call(glBindVertexArray(0));
 }
 
-void tr::Renderer2D::Tick()
-{
-    EASY_BLOCK("Renderer2D Tick");
-
-}
+void tr::Renderer2D::Tick() { EASY_BLOCK("Renderer2D Tick"); }
 
 void tr::Renderer2D::RenderRenderables()
 {
@@ -92,10 +88,9 @@ void tr::Renderer2D::Render()
     RenderRenderables();
 }
 
-
 void tr::Renderer2D::StartFrame()
 {
-        EASY_FUNCTION();
+    EASY_FUNCTION();
     Call(glBindVertexArray(mVao));
 
     mShader->Bind();
@@ -113,33 +108,33 @@ void tr::Renderer2D::StartFrame()
              glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY)));
 }
 
-void tr::Renderer2D::Submit(const Renderable& r)
+void tr::Renderer2D::Submit(const Renderable &r)
 {
-        EASY_FUNCTION();
+    EASY_FUNCTION();
 
-        if (!r.visible) {
-            return;
-        }
+    if (!r.visible) {
+        return;
+    }
 
-        mBufferAccess[0].pos   = r.bottom_left;
-        mBufferAccess[0].color = r.color;
-        mBufferAccess[0].uv    = { r.uv.x, r.uv.w };
+    mBufferAccess[0].pos   = r.bottom_left;
+    mBufferAccess[0].color = r.color;
+    mBufferAccess[0].uv    = { r.uv.x, r.uv.w };
 
-        mBufferAccess[1].pos   = r.top_left;
-        mBufferAccess[1].color = r.color;
-        mBufferAccess[1].uv    = { r.uv.x, r.uv.y };
+    mBufferAccess[1].pos   = r.top_left;
+    mBufferAccess[1].color = r.color;
+    mBufferAccess[1].uv    = { r.uv.x, r.uv.y };
 
-        mBufferAccess[2].pos   = r.top_right;
-        mBufferAccess[2].color = r.color;
-        mBufferAccess[2].uv    = { r.uv.z, r.uv.y };
+    mBufferAccess[2].pos   = r.top_right;
+    mBufferAccess[2].color = r.color;
+    mBufferAccess[2].uv    = { r.uv.z, r.uv.y };
 
-        mBufferAccess[3].pos   = r.bottom_right;
-        mBufferAccess[3].color = r.color;
-        mBufferAccess[3].uv    = { r.uv.z, r.uv.w };
+    mBufferAccess[3].pos   = r.bottom_right;
+    mBufferAccess[3].color = r.color;
+    mBufferAccess[3].uv    = { r.uv.z, r.uv.w };
 
-        mBufferAccess += 4;
+    mBufferAccess += 4;
 
-        mRenderCount++;
+    mRenderCount++;
 }
 
 void tr::Renderer2D::EndFrame()
@@ -162,15 +157,9 @@ void tr::Renderer2D::PushTransform(const Mat4 &transform, bool over)
         mTransformation.push(mTransformation.top() * transform);
 }
 
-void tr::Renderer2D::PopTransform()
-{
-    mTransformation.pop();
-}
+void tr::Renderer2D::PopTransform() { mTransformation.pop(); }
 
-void tr::Renderer2D::PushTexture(Texture *const tex)
-{
-    mCurrenTexture = tex;
-}
+void tr::Renderer2D::PushTexture(Texture *const tex) { mCurrenTexture = tex; }
 
 void tr::Renderer2D::Shutdown() { mResManager->DeleteResource(SHADER_ID); }
 
@@ -209,7 +198,7 @@ void tr::Renderer2D::OnEvent(const Event &e, int channel)
 
     if (ie.Key == KEY_F5) {
         Image *i = mResManager->GetRes<Image>("test_image.json");
-                PushTexture(nullptr);
+        PushTexture(nullptr);
         for (int _x = 0; _x < 1280; _x += 4) {
             for (int _y = 0; _y < 720; _y += 4) {
                 const float x    = _x * 1;
