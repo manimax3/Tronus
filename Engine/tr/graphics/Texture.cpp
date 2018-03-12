@@ -1,10 +1,12 @@
 #include "Texture.h"
+#include "../core/Engine.h"
 #include "GLCheck.h"
 #include "Image.h"
 #include "glad/glad.h"
+#include "nlohmann/json.hpp"
 
-GLenum ScaleFilterToEnum(tr::Texture::ScaleFilter f);
-GLenum WrapModeToEnum(tr::Texture::WrapMode w);
+GLenum                   ScaleFilterToEnum(tr::Texture::ScaleFilter f);
+GLenum                   WrapModeToEnum(tr::Texture::WrapMode w);
 
 tr::Texture::Texture(const Image &im,
                      WrapMode     s,
@@ -38,7 +40,7 @@ tr::Texture::Texture(const Image &im,
 
 tr::Texture::~Texture()
 {
-    if(mTextureHandle)
+    if (mTextureHandle)
         Call(glDeleteTextures(1, &mTextureHandle));
 }
 
@@ -51,7 +53,43 @@ void tr::Texture::Bind(int slot)
 tr::Resource *tr::Texture::Loader(ResourceManager::ResHandle handle,
                                   ResourceManager *          rm)
 {
-    return nullptr;
+    using json   = nlohmann::json;
+    json jhandle = json::parse(handle);
+
+    std::string image_dep_handle;
+    WrapMode    s, t;
+    ScaleFilter mag, min;
+    bool        compression, generate_mipmaps;
+
+    try {
+        mag              = static_cast<ScaleFilter>(jhandle["mag_filter"]);
+        min              = static_cast<ScaleFilter>(jhandle["min_filter"]);
+        s                = static_cast<WrapMode>(jhandle["wrap_s"]);
+        t                = static_cast<WrapMode>(jhandle["wrap_t"]);
+        compression      = jhandle["compression"];
+        generate_mipmaps = jhandle["generate_mipmaps"];
+        image_dep_handle = jhandle["dependencies"][0];
+    } catch (json::out_of_range e) {
+        rm->GetEngine().Logger().log(
+            "Error Loading values from Texture Handle: "s + handle + " | "
+                + e.what(),
+            LogLevel::WARNING);
+        return nullptr;
+    } catch (...) {
+        rm->GetEngine().Logger().log("See the doctor!", LogLevel::ERROR);
+        return nullptr;
+    }
+
+    Image *im = rm->GetRes<Image>(image_dep_handle);
+
+    if (!im) {
+        rm->GetEngine().Logger().log(
+            "Couldnt find corresponding image to load Texture",
+            LogLevel::WARNING);
+        return nullptr;
+    }
+
+    return new Texture(*im, s, t, mag, min, generate_mipmaps, compression);
 }
 
 GLenum ScaleFilterToEnum(tr::Texture::ScaleFilter f)
@@ -101,3 +139,4 @@ GLenum WrapModeToEnum(tr::Texture::WrapMode w)
         throw std::logic_error("Unsupporetd WrapModeEnum");
     }
 }
+

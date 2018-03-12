@@ -12,15 +12,20 @@ public:
     static Resource *            Loader(ResourceManager::ResHandle handle,
                                         ResourceManager *          rm);
 
-    enum WrapMode { REPEAT, MIRRORED_REPEAT, CLAMP_EDGE, CLAMP_BORDER };
+    enum WrapMode {
+        REPEAT          = 1,
+        MIRRORED_REPEAT = 2,
+        CLAMP_EDGE      = 3,
+        CLAMP_BORDER    = 4
+    };
 
     enum ScaleFilter {
-        LINEAR,
-        NEAREST,
-        MIPMAP_NEAREST_NEAREST,
-        MIPMAP_LINEAR_NEAREST,
-        MIPMAP_NEAREST_LINEAR,
-        MIPMAP_LINEAR_LINEAR
+        LINEAR                 = 1,
+        NEAREST                = 2,
+        MIPMAP_NEAREST_NEAREST = 3,
+        MIPMAP_LINEAR_NEAREST  = 4,
+        MIPMAP_NEAREST_LINEAR  = 5,
+        MIPMAP_LINEAR_LINEAR   = 6
     };
 
     Texture(const Image &im,

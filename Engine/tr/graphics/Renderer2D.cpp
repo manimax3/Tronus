@@ -200,7 +200,7 @@ void tr::Renderer2D::OnEvent(const Event &e, int channel)
     }
 
     if (ie.Key == KEY_F6) {
-        mResManager->LoadResource("test_image.json");
+        mResManager->LoadResource("test_texture.json");
         Image *i = mResManager->GetRes<Image>("test_image.json");
         /* std::cout << std::hex << i->GetPixelAt(0, 0) << std::endl; */
         std::cout << i->GetSizeX() << i->GetSizeY() << std::endl;

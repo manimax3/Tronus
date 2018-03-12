@@ -1,0 +1,10 @@
+{
+    "type" : "Texture",
+    "dependencies" : ["test_image.json"],
+    "compression" : false,
+    "generate_mipmaps" : false,
+    "mag_filter" : 1,
+    "min_filter" : 1,
+    "wrap_s" : 1,
+    "wrap_t" : 1
+}
