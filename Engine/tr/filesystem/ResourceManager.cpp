@@ -3,6 +3,7 @@
 #include "../core/Engine.h"
 #include "../graphics/GLSLShader.h"
 #include "../graphics/Image.h"
+#include "../graphics/Texture.h"
 #include "../profile/Profiler.h"
 #include "Filesystem.h"
 
@@ -61,6 +62,7 @@ bool tr::ResourceManager::Initialize(Engine *engine)
 
     AddLoader(GLSLShader::GetType(), GLSLShader::Loader);
     AddLoader(Image::GetType(), Image::Loader);
+    AddLoader(Texture::GetType(), Texture::Loader);
 
     return Subsystem::Initialize(engine);
 }
@@ -170,7 +172,24 @@ void tr::ResourceManager::LoadResource(const std::string &identifier,
                               LogLevel::ERROR);
     }
 
-    std::unique_ptr<Resource> res(mLoaders[type](jhandle.dump(), this));
+    Resource *_res = nullptr;
+
+    try {
+        _res = mLoaders[type](jhandle.dump(), this);
+    } catch (std::exception e) {
+        GetEngine().Logger().log(
+            "Exception during running the Resource Loader for: "s + handle
+                + " | " + e.what(),
+            LogLevel::ERROR);
+    }
+
+    if (!_res) {
+        GetEngine().Logger().log("The Resource Loader returned nullptr for: "s
+                                     + handle,
+                                 LogLevel::ERROR);
+    }
+
+    std::unique_ptr<Resource> res(_res);
 
     std::unique_lock<std::shared_mutex> lck(mResLock);
     mResourceList[id] = std::move(res);

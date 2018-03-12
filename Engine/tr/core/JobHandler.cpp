@@ -6,7 +6,7 @@ using namespace tr;
 
 JobHandler::JobHandler()
     : mRunning(false)
-    , mThreadPool(std::thread::hardware_concurrency() - 2)
+    , mThreadPool(std::max((int)std::thread::hardware_concurrency() - 2, 2))
     , mActiveThreads(0)
 {
 }
