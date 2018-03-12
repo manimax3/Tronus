@@ -19,12 +19,12 @@ void tr::Renderer2D::Init(GraphicsHandler *gfx, ResourceManager *rm)
     mResManager = rm;
 
     mRenderables.reserve(RENDERABLE_SIZE);
-    mUpdateBuffer.reserve(V_BUF_SIZE / sizeof(Vertex));
 
     mResManager->LoadResource(SHADER_ID);
     mShader = mResManager->GetRes<GLSLShader>(SHADER_ID);
 
     mProjectionMatrix = Mat4::Orthographic(0, 1280, 720, 0, 1, -1);
+    mTransformation.push(Mat4::Identity());
 
     // Generate the buffers
     Call(glGenBuffers(1, &mVbo));
@@ -59,16 +59,12 @@ void tr::Renderer2D::Init(GraphicsHandler *gfx, ResourceManager *rm)
                                (void *)0));
     Call(glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                                (void *)sizeof(Vec2)));
-    Call(glVertexAttribPointer(2, 1, GL_INT, GL_FALSE, sizeof(Vertex),
+    Call(glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                                (void *)(sizeof(Vec2) + sizeof(Vec4))));
-    Call(glVertexAttribPointer(
-        3, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-        (void *)(sizeof(Vec2) + sizeof(Vec4) + sizeof(int))));
 
     Call(glEnableVertexAttribArray(0));
     Call(glEnableVertexAttribArray(1));
     Call(glEnableVertexAttribArray(2));
-    Call(glEnableVertexAttribArray(3));
 
     Call(glBindVertexArray(0));
 }
@@ -77,73 +73,103 @@ void tr::Renderer2D::Tick()
 {
     EASY_BLOCK("Renderer2D Tick");
 
-    uint count = mRenderables.size();
+}
 
-    if (count == 0) {
-        mRenderCount = 0;
-        return;
-    }
-
-    Vertex *v           = mUpdateBuffer.data();
-    bool    found_dirty = false;
-
+void tr::Renderer2D::RenderRenderables()
+{
+    PushTransform(Mat4::Identity(), true);
+    StartFrame();
     for (auto &r : mRenderables) {
-
-        if (!r.visible) {
-            count--;
-            continue;
-        }
-
-        if (r.dirty) {
-            r.dirty     = false;
-            found_dirty = true;
-        }
-
-        v[0].pos   = r.bottom_left;
-        v[0].color = r.color;
-        v[0].tid = r.tid;
-        v[0].uv    = { r.uv.x, r.uv.w };
-
-        v[1].pos   = r.top_left;
-        v[1].color = r.color;
-        v[1].tid = r.tid;
-        v[1].uv    = { r.uv.x, r.uv.y };
-
-        v[2].pos   = r.top_right;
-        v[2].color = r.color;
-        v[2].tid = r.tid;
-        v[2].uv    = { r.uv.z, r.uv.y };
-
-        v[3].pos   = r.bottom_right;
-        v[3].color = r.color;
-        v[3].tid = r.tid;
-        v[3].uv    = { r.uv.z, r.uv.w };
-
-        v += 4;
+        Submit(r);
     }
-
-    mRenderCount = count;
-
-    if (!found_dirty)
-        return;
-
-    Call(glBindVertexArray(mVao));
-    Call(glBufferSubData(GL_ARRAY_BUFFER, 0, mRenderCount * sizeof(Vertex) * 4,
-                         mUpdateBuffer.data()));
-    Call(glBindVertexArray(0));
+    PopTransform();
+    EndFrame();
 }
 
 void tr::Renderer2D::Render()
 {
     EASY_BLOCK("Renderer2D Render");
+    RenderRenderables();
+}
 
+
+void tr::Renderer2D::StartFrame()
+{
+        EASY_FUNCTION();
     Call(glBindVertexArray(mVao));
+
     mShader->Bind();
+
     mShader->Set("vp", mProjectionMatrix);
     mShader->Set("tex0", 0);
+    mShader->Set("tex_avail", !!mCurrenTexture);
+
+    if (mCurrenTexture)
+        mCurrenTexture->Bind();
+
+    mRenderCount = 0;
+
+    Call(mBufferAccess = reinterpret_cast<Vertex *>(
+             glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY)));
+}
+
+void tr::Renderer2D::Submit(const Renderable& r)
+{
+        EASY_FUNCTION();
+
+        if (!r.visible) {
+            return;
+        }
+
+        mBufferAccess[0].pos   = r.bottom_left;
+        mBufferAccess[0].color = r.color;
+        mBufferAccess[0].uv    = { r.uv.x, r.uv.w };
+
+        mBufferAccess[1].pos   = r.top_left;
+        mBufferAccess[1].color = r.color;
+        mBufferAccess[1].uv    = { r.uv.x, r.uv.y };
+
+        mBufferAccess[2].pos   = r.top_right;
+        mBufferAccess[2].color = r.color;
+        mBufferAccess[2].uv    = { r.uv.z, r.uv.y };
+
+        mBufferAccess[3].pos   = r.bottom_right;
+        mBufferAccess[3].color = r.color;
+        mBufferAccess[3].uv    = { r.uv.z, r.uv.w };
+
+        mBufferAccess += 4;
+
+        mRenderCount++;
+}
+
+void tr::Renderer2D::EndFrame()
+{
+    EASY_FUNCTION();
+
+    Call(glUnmapBuffer(GL_ARRAY_BUFFER));
+
     Call(glDrawElements(GL_TRIANGLES, mRenderCount * 6, GL_UNSIGNED_INT,
                         (void *)0));
+
     Call(glBindVertexArray(0));
+}
+
+void tr::Renderer2D::PushTransform(const Mat4 &transform, bool over)
+{
+    if (over)
+        mTransformation.push(transform);
+    else
+        mTransformation.push(mTransformation.top() * transform);
+}
+
+void tr::Renderer2D::PopTransform()
+{
+    mTransformation.pop();
+}
+
+void tr::Renderer2D::PushTexture(Texture *const tex)
+{
+    mCurrenTexture = tex;
 }
 
 void tr::Renderer2D::Shutdown() { mResManager->DeleteResource(SHADER_ID); }
@@ -183,6 +209,7 @@ void tr::Renderer2D::OnEvent(const Event &e, int channel)
 
     if (ie.Key == KEY_F5) {
         Image *i = mResManager->GetRes<Image>("test_image.json");
+                PushTexture(nullptr);
         for (int _x = 0; _x < 1280; _x += 4) {
             for (int _y = 0; _y < 720; _y += 4) {
                 const float x    = _x * 1;
@@ -195,22 +222,21 @@ void tr::Renderer2D::OnEvent(const Event &e, int channel)
                 r->bottom_left  = { x, y + size };
                 r->bottom_right = { x + size, y + size };
 
-                uint32 pixel = i->GetPixelAt((_x / 1280.f) * 255, (_y / 720.f) * 256);
+                uint32 pixel
+                    = i->GetPixelAt((_x / 1280.f) * 255, (_y / 720.f) * 256);
 
-                byte _red = reinterpret_cast<byte*>(&pixel)[0];
-                byte _green = reinterpret_cast<byte*>(&pixel)[1];
-                byte _blue = reinterpret_cast<byte*>(&pixel)[2];
+                byte _red   = reinterpret_cast<byte *>(&pixel)[0];
+                byte _green = reinterpret_cast<byte *>(&pixel)[1];
+                byte _blue  = reinterpret_cast<byte *>(&pixel)[2];
 
                 float red   = static_cast<float>(_red) / 256.f;
                 float green = static_cast<float>(_green) / 256.f;
                 float blue  = static_cast<float>(_blue) / 256.f;
 
-                Vec4  c     = { red, green, blue, 1.f };
-                r->color    = c;
-                r->tid = -1;
+                Vec4 c   = { red, green, blue, 1.f };
+                r->color = c;
 
                 r->visible = true;
-                r->dirty   = true;
             }
         }
 
@@ -219,25 +245,23 @@ void tr::Renderer2D::OnEvent(const Event &e, int channel)
 
     if (ie.Key == KEY_F6) {
         mResManager->LoadResource("test_texture.json");
-        Image *i = mResManager->GetRes<Image>("test_image.json");
+        Image *  i = mResManager->GetRes<Image>("test_image.json");
         Texture *t = mResManager->GetRes<Texture>("test_texture.json");
-        t->Bind();
+        PushTexture(t);
         /* std::cout << std::hex << i->GetPixelAt(0, 0) << std::endl; */
         std::cout << i->GetSizeX() << i->GetSizeY() << std::endl;
         return;
     }
 
-    if (ie.Key == KEY_F7){
+    if (ie.Key == KEY_F7) {
         auto *r         = GetNewRenderable();
         r->top_left     = { 0.f, 0.f };
         r->top_right    = { 1280.f, 0.f };
         r->bottom_left  = { 0.f, 720.f };
         r->bottom_right = { 1280.f, 720.f };
         r->color        = Vec4(1.f);
-        r->tid          = 0;
         r->uv           = Vec4(0, 0, 1, 1);
         r->visible      = true;
-        r->dirty        = true;
         return;
     }
 }

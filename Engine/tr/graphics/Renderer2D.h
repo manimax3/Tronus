@@ -3,11 +3,13 @@
 #include "../math/Math.h"
 #include "GLSLShader.h"
 #include <stack>
+#include <variant>
 #include <tr.h>
 
 namespace tr {
 class GraphicsHandler;
 class ResourceManager;
+class Texture;
 
 class Renderer2D : public EventListener {
 public:
@@ -16,20 +18,19 @@ public:
     struct Vertex {
         Vec2 pos;
         Vec4 color;
-        int tid;
         Vec2 uv;
     };
 
     struct Renderable {
         bool visible = true;
-        bool dirty = false;
+
         Vec2 top_left;
         Vec2 top_right;
         Vec2 bottom_left;
         Vec2 bottom_right;
-        Vec4 color;
-        int tid = -1;
-        Vec4 uv;
+
+        Vec4 color = Vec4(1.f);
+        Vec4     uv      = { 0.f, 0.f, 1.f, 1.f };
 
         friend class Renderer2D;
 
@@ -54,6 +55,16 @@ public:
     void             OnEvent(const Event &e, int channel) override;
     std::vector<int> SubscripeTo() const override;
 
+    void StartFrame();
+    void Submit(const Renderable& r);
+    void EndFrame();
+
+    void PushTransform(const Mat4 &transform, bool over = false);
+    void PopTransform();
+    void PushTexture(Texture* const tex);
+
+    void RenderRenderables();
+    
 private:
     GLSLShader *            mShader      = nullptr;
     uint                    mVao         = 0;
@@ -64,8 +75,10 @@ private:
     Camera                  mCamera      = Mat4::Identity();
     GraphicsHandler *       mGfxHandler  = nullptr;
     ResourceManager *       mResManager  = nullptr;
+    Vertex *                mBufferAccess = nullptr;
+    Texture *               mCurrenTexture = nullptr;
     Mat4                    mProjectionMatrix;
+    std::stack<Mat4>        mTransformation;
     std::vector<Renderable> mRenderables;
-    std::vector<Vertex>     mUpdateBuffer;
 };
 }
