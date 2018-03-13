@@ -41,7 +41,6 @@ void Engine::Start()
     sEventSystem->Initialize(this);
     sGraphicsHandler->Initialize(this);
 
-
     Logger().log("Starting Subsystem Post Initialization...");
     sLog->PostInit();
     sJobHandler->PostInit();
@@ -116,27 +115,7 @@ std::vector<int> tr::Engine::SubscripeTo() const { return { ENGINE_CHANNEL }; }
 
 void Engine::OnEvent(const Event &e, int channel)
 {
-    if (e.Identifier == event::INPUT) {
-        const auto &ie = static_cast<const InputEvent &>(e);
-        if (ie.type == InputEvent::Keyboard && ie.action == InputEvent::PRESS
-            && ie.Key == KEY_F3)
-            Logger().log("UPS: "s + std::to_string(mLastUps)
-                         + " FPS: " + std::to_string(mLastFps));
-        else if (ie.type == InputEvent::Keyboard
-                 && ie.action == InputEvent::PRESS && ie.Key == KEY_F4) {
-            auto *rm = sResourceManager;
-            rm->LoadResource("test.json");
-            rm->LoadResource("test_shader.json");
-
-            auto *test  = rm->GetRes<StringResource>("test.json");
-            auto *test2 = rm->GetRes<StringResource>("test2.json");
-
-            if (test)
-                Logger().log(test->data);
-            if (test2)
-                Logger().log(test2->data);
-        }
-    } else if (e.Identifier == event::WINDOW) {
+    if (e.Identifier == event::WINDOW) {
         const auto &we = static_cast<const WindowEvent &>(e);
         if (we.type == WindowEvent::CLOSED) {
             this->Stop();

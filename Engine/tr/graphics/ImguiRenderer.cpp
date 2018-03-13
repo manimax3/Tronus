@@ -149,8 +149,7 @@ void tr::ImguiRenderer::StartDebugFrame()
     g_time = current_time;
 
     for (int i = 0; i < 3; i++) {
-        im.MouseDown[i]       = g_MouseJustPressed[i];
-        g_MouseJustPressed[i] = false;
+        im.MouseDown[i] = g_MouseJustPressed[i];
     }
 
     ImGui::NewFrame();
@@ -218,7 +217,8 @@ void tr::ImguiRenderer::draw_data(ImDrawData *draw_data)
             idx_buffer_offset += pcmd->ElemCount;
         }
     }
-
+    Call(glDisable(GL_SCISSOR_TEST));
+    Call(glDisable(GL_BLEND));
     Call(glBindVertexArray(0));
 }
 
@@ -235,10 +235,13 @@ void tr::ImguiRenderer::OnEvent(const Event &e, int channel)
     const InputEvent &ie = static_cast<const InputEvent &>(e);
     auto &            im = ImGui::GetIO();
 
-    if (ie.type == InputEvent::MouseButton && ie.action == InputEvent::PRESS) {
+    if (ie.type == InputEvent::MouseButton) {
+
+        if (ie.action == InputEvent::REPEAT)
+            return;
 
         if (ie.Key >= 0 && ie.Key < 3)
-            g_MouseJustPressed[ie.Key] = true;
+            g_MouseJustPressed[ie.Key] = ie.action == InputEvent::PRESS;
 
     } else if (ie.type == InputEvent::Scroll) {
 

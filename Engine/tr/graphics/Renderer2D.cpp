@@ -8,9 +8,9 @@
 #include "Image.h"
 #include "Texture.h"
 
-#include <random>
-
 #include "glad/glad.h"
+
+#include "imgui.h"
 
 void tr::Renderer2D::Init(GraphicsHandler *gfx, ResourceManager *rm)
 {
@@ -144,9 +144,6 @@ void tr::Renderer2D::EndFrame()
 
     Call(glUnmapBuffer(GL_ARRAY_BUFFER));
 
-    Call(glDisable(GL_SCISSOR_TEST));
-    Call(glDisable(GL_BLEND));
-
     Call(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIbo));
     Call(glDrawElements(GL_TRIANGLES, mRenderCount * 6, GL_UNSIGNED_INT,
                         (void *)0));
@@ -187,78 +184,7 @@ void tr::Renderer2D::DeleteRenderable(Renderable *r)
     r = nullptr;
 }
 
-void tr::Renderer2D::OnEvent(const Event &e, int channel)
-{
-    if (e.Identifier != event::INPUT)
-        return;
-
-    const InputEvent &ie = static_cast<const InputEvent &>(e);
-
-    if (ie.type != InputEvent::Keyboard)
-        return;
-    if (ie.action != InputEvent::PRESS)
-        return;
-
-    static std::mt19937 rng;
-
-    if (ie.Key == KEY_F5) {
-        Image *i = mResManager->GetRes<Image>("test_image.json");
-        PushTexture(nullptr);
-        for (int _x = 0; _x < 1280; _x += 4) {
-            for (int _y = 0; _y < 720; _y += 4) {
-                const float x    = _x * 1;
-                const float y    = _y * 1;
-                const float size = 4;
-
-                auto *r         = GetNewRenderable();
-                r->top_left     = { x, y };
-                r->top_right    = { x + size, y };
-                r->bottom_left  = { x, y + size };
-                r->bottom_right = { x + size, y + size };
-
-                uint32 pixel
-                    = i->GetPixelAt((_x / 1280.f) * 255, (_y / 720.f) * 256);
-
-                byte _red   = reinterpret_cast<byte *>(&pixel)[0];
-                byte _green = reinterpret_cast<byte *>(&pixel)[1];
-                byte _blue  = reinterpret_cast<byte *>(&pixel)[2];
-
-                float red   = static_cast<float>(_red) / 256.f;
-                float green = static_cast<float>(_green) / 256.f;
-                float blue  = static_cast<float>(_blue) / 256.f;
-
-                Vec4 c   = { red, green, blue, 1.f };
-                r->color = c;
-
-                r->visible = true;
-            }
-        }
-
-        return;
-    }
-
-    if (ie.Key == KEY_F6) {
-        mResManager->LoadResource("test_texture.json");
-        Image *  i = mResManager->GetRes<Image>("test_image.json");
-        Texture *t = mResManager->GetRes<Texture>("test_texture.json");
-        PushTexture(t);
-        /* std::cout << std::hex << i->GetPixelAt(0, 0) << std::endl; */
-        std::cout << i->GetSizeX() << i->GetSizeY() << std::endl;
-        return;
-    }
-
-    if (ie.Key == KEY_F7) {
-        auto *r         = GetNewRenderable();
-        r->top_left     = { 0.f, 0.f };
-        r->top_right    = { 1280.f, 0.f };
-        r->bottom_left  = { 0.f, 720.f };
-        r->bottom_right = { 1280.f, 720.f };
-        r->color        = Vec4(1.f);
-        r->uv           = Vec4(0, 0, 1, 1);
-        r->visible      = true;
-        return;
-    }
-}
+void tr::Renderer2D::OnEvent(const Event &e, int channel) {}
 
 std::vector<int> tr::Renderer2D::SubscripeTo() const
 {
