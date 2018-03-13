@@ -4,7 +4,7 @@
 namespace tr {
 struct InputEvent : public Event {
     enum Action { PRESS, RELEASE, REPEAT };
-    enum Type { Mouse, Keyboard };
+    enum Type { Mouse, Keyboard, Char, CursorEntered, CursorLeave, MouseButton, Scroll };
 
     InputEvent(int key, Action action)
         : Key(key)
@@ -22,6 +22,19 @@ struct InputEvent : public Event {
         Identifier = event::INPUT;
     }
 
+    InputEvent(uint c)
+        : type(Char)
+        , codepoint(c)
+    {
+        Identifier = event::INPUT;
+    }
+
+    InputEvent(Type type)
+        : type(type)
+    {
+        Identifier = event::INPUT;
+    }
+
     Type type;
 
     // Keyboard
@@ -35,6 +48,13 @@ struct InputEvent : public Event {
     // Mouse
     double XPos;
     double YPos;
+
+    // Char
+    uint codepoint = 0;
+
+    // Scroll
+    double xoffset;
+    double yoffset;
 };
 
 struct WindowEvent : public Event {

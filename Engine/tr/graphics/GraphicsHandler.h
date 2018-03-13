@@ -1,8 +1,8 @@
 #pragma once
 #include "../core/Subsystem.h"
 #include "../math/Math.h"
-#include "Simple2DRenderer.h"
 #include "Renderer2D.h"
+#include "Simple2DRenderer.h"
 #include <memory>
 #include <queue>
 #include <tr.h>
@@ -33,10 +33,18 @@ public:
 
     void Render();
 
+    // Input functionality
+    const char *GetClipboard() const;
+    ;
+    void SetClipboard(const std::string &c);
+
+    Vec2 GetWindowSize() const;
+
     friend class CreateWindowCmd;
 
 private:
     std::queue<GfxCommand *> mGfxCommandBuffer;
+    class CreateWindowCmd *  mWindowCmd = nullptr;
 
     RenderContext    mContext;
     Simple2DRenderer mSimpleRenderer2D;
@@ -63,12 +71,12 @@ struct GfxCommand {
 struct CreateWindowCmd : public GfxCommand {
     void Execute(GraphicsHandler *handler) override;
 
-    Vec2        Size       = { 1280, 720 };
-    std::string Name       = "Tronus Engine";
-    bool        Fullscreen = false;
-    bool        Resizeable = true;
-    bool        VSync      = false;
-    Vec4        ClearColor = { 0.2f, 0.3f, 0.3f, 1.0f };
+    Vec2        Size          = { 1280, 720 };
+    std::string Name          = "Tronus Engine";
+    bool        Fullscreen    = false;
+    bool        Resizeable    = true;
+    bool        VSync         = false;
+    Vec4        ClearColor    = { 0.2f, 0.3f, 0.3f, 1.0f };
     Vec2        OpenGLVersion = { 3, 3 };
 };
 }

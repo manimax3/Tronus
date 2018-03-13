@@ -25,12 +25,26 @@ void gl_debug_callback(GLenum        source,
                        GLsizei       length,
                        const GLchar *message,
                        void *        userParam);
+void character_callback(GLFWwindow *window, uint codepoint);
+void cursor_enter_callback(GLFWwindow *window, int entered);
+void mouse_button_callback(GLFWwindow *window,
+                           int         button,
+                           int         action,
+                           int         mods);
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 }
 
 bool tr::GraphicsHandler::Initialize(Engine *e)
 {
-    this->SubmitCommand(std::unique_ptr<GfxCommand>(new CreateWindowCmd()));
+    this->mWindowCmd                       = new CreateWindowCmd;
+    this->mWindowCmd->DeleteAfterExecution = false;
+    this->SubmitCommand(std::unique_ptr<GfxCommand>(mWindowCmd));
     return Subsystem::Initialize(e);
+}
+
+tr::Vec2 tr::GraphicsHandler::GetWindowSize() const
+{
+    return mWindowCmd ? mWindowCmd->Size : Vec2{ 0.f, 0.f };
 }
 
 void tr::GraphicsHandler::PostInit() {}
@@ -98,6 +112,17 @@ void tr::GraphicsHandler::Render()
     glfwSwapBuffers(static_cast<GLFWwindow *>(mContext.window));
 }
 
+const char *tr::GraphicsHandler::GetClipboard() const
+{
+    return glfwGetClipboardString(static_cast<GLFWwindow *>(mContext.window));
+}
+
+void tr::GraphicsHandler::SetClipboard(const std::string &c)
+{
+    glfwSetClipboardString(static_cast<GLFWwindow *>(mContext.window),
+                           c.c_str());
+}
+
 void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
 {
     EASY_BLOCK("CreateWindowCmd");
@@ -134,6 +159,10 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
     glfwSetKeyCallback(window, key_callback);
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetWindowCloseCallback(window, close_callback);
+    glfwSetCharCallback(window, character_callback);
+    glfwSetCursorEnterCallback(window, cursor_enter_callback);
+    glfwSetMouseButtonCallback(window, mouse_button_callback);
+    glfwSetScrollCallback(window, scroll_callback);
 
     glfwMakeContextCurrent(window);
 
@@ -252,4 +281,65 @@ void tr::gl_debug_callback(GLenum        source,
     handler->GetEngine().Logger().log(
         m,
         severity == GL_DEBUG_TYPE_ERROR ? LogLevel::ERROR : LogLevel::WARNING);
+}
+
+void tr::character_callback(GLFWwindow *window, uint codepoint)
+{
+    GraphicsHandler *handler
+        = static_cast<GraphicsHandler *>(glfwGetWindowUserPointer(window));
+
+    handler->GetEngine().sEventSystem->DispatchEvent(InputEvent(codepoint));
+}
+
+void tr::cursor_enter_callback(GLFWwindow *window, int entered)
+{
+    GraphicsHandler *handler
+        = static_cast<GraphicsHandler *>(glfwGetWindowUserPointer(window));
+
+    handler->GetEngine().sEventSystem->DispatchEvent(InputEvent(
+        entered ? InputEvent::CursorEntered : InputEvent::CursorLeave));
+}
+
+void tr::mouse_button_callback(GLFWwindow *window,
+                               int         button,
+                               int         action,
+                               int         mods)
+{
+    GraphicsHandler *handler
+        = static_cast<GraphicsHandler *>(glfwGetWindowUserPointer(window));
+
+    InputEvent::Action a;
+
+    if (action == GLFW_PRESS)
+        a = InputEvent::PRESS;
+    else if (action == GLFW_RELEASE)
+        a = InputEvent::RELEASE;
+    else
+        a = InputEvent::REPEAT;
+
+    InputEvent event(button, a);
+    event.type = InputEvent::MouseButton;
+
+    if (mods & GLFW_MOD_ALT)
+        event.Alt = true;
+    if (mods & GLFW_MOD_SHIFT)
+        event.Shift = true;
+    if (mods & GLFW_MOD_SUPER)
+        event.Super = true;
+    if (mods & GLFW_MOD_CONTROL)
+        event.Control = true;
+
+    handler->GetEngine().sEventSystem->DispatchEvent(event);
+}
+
+void tr::scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
+{
+    GraphicsHandler *handler
+        = static_cast<GraphicsHandler *>(glfwGetWindowUserPointer(window));
+
+    InputEvent event(InputEvent::Scroll);
+    event.xoffset = xoffset;
+    event.yoffset = yoffset;
+
+    handler->GetEngine().sEventSystem->DispatchEvent(event);
 }
