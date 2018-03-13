@@ -13,3 +13,7 @@ target_include_directories(Glad PUBLIC "glad")
 
 # easy_profiler
 add_subdirectory(easy_profiler)
+
+#imgui
+add_library(ImGui STATIC "imgui/imgui.cpp" "imgui/imgui_demo.cpp" "imgui/imgui_draw.cpp")
+target_include_directories(ImGui INTERFACE imgui)
