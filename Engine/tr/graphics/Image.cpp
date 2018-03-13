@@ -88,7 +88,7 @@ tr::Resource *tr::Image::Loader(ResourceManager::ResHandle handle,
             return nullptr;
         }
 
-        uint32 *ptr = reinterpret_cast<uint32*>(it->get<uint32>());
+        uint32 *ptr = reinterpret_cast<uint32*>(it->get<uint64>());
 
         return new Image(ptr, xSize, ySize);
 

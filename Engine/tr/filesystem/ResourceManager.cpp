@@ -144,6 +144,8 @@ void tr::ResourceManager::LoadResource(const std::string &identifier,
     try {
         auto a = jhandle.at("dependencies");
         for (const auto &dep : a) {
+            if (CheckIfLoaded(dep))
+                continue;
             const bool is_in_mem = dep.is_object();
             const auto dep_id = is_in_mem ? dep.dump() : dep.get<std::string>();
             auto       future = LoadResourceAsync(dep_id, is_in_mem);
