@@ -68,4 +68,12 @@ struct WindowEvent : public Event {
 
     Type type;
 };
+
+struct RenderDebugEvent : public Event{
+    RenderDebugEvent()
+        : Event(event::RENDER_DEBUG)
+    {
+    }
+};
+
 }

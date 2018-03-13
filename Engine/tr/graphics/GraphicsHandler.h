@@ -1,6 +1,7 @@
 #pragma once
 #include "../core/Subsystem.h"
 #include "../math/Math.h"
+#include "ImguiRenderer.h"
 #include "Renderer2D.h"
 #include "Simple2DRenderer.h"
 #include <memory>
@@ -35,8 +36,9 @@ public:
 
     // Input functionality
     const char *GetClipboard() const;
-    ;
-    void SetClipboard(const std::string &c);
+    void        SetClipboard(const std::string &c);
+
+    double GetTime() const;
 
     Vec2 GetWindowSize() const;
 
@@ -49,6 +51,7 @@ private:
     RenderContext    mContext;
     Simple2DRenderer mSimpleRenderer2D;
     Renderer2D       mRenderer2D;
+    ImguiRenderer    mImguiRenderer;
 };
 
 struct GfxCommand {

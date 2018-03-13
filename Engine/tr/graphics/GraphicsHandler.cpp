@@ -9,6 +9,8 @@
 #include "GLCheck.h"
 #include "GLFW/glfw3.h"
 
+#include "imgui.h"
+
 namespace tr {
 void key_callback(GLFWwindow *window,
                   int         key,
@@ -47,6 +49,8 @@ tr::Vec2 tr::GraphicsHandler::GetWindowSize() const
     return mWindowCmd ? mWindowCmd->Size : Vec2{ 0.f, 0.f };
 }
 
+double tr::GraphicsHandler::GetTime() const { return glfwGetTime(); }
+
 void tr::GraphicsHandler::PostInit() {}
 
 bool tr::GraphicsHandler::Tick()
@@ -67,6 +71,7 @@ bool tr::GraphicsHandler::Shutdown()
 
     mSimpleRenderer2D.Shutdown();
     mRenderer2D.Shutdown();
+    mImguiRenderer.Shutdown();
 
     Context().valid = false;
 
@@ -107,8 +112,10 @@ void tr::GraphicsHandler::Render()
         return; // We dont have a valid context
 
     glClear(GL_COLOR_BUFFER_BIT);
+    mImguiRenderer.StartDebugFrame();
     mSimpleRenderer2D.Render();
     mRenderer2D.Render();
+    mImguiRenderer.Render();
     glfwSwapBuffers(static_cast<GLFWwindow *>(mContext.window));
 }
 
@@ -195,6 +202,8 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
     handler->mSimpleRenderer2D.Init(handler,
                                     handler->GetEngine().sResourceManager);
     handler->mRenderer2D.Init(handler, handler->GetEngine().sResourceManager);
+    handler->mImguiRenderer.Init(handler,
+                                 handler->GetEngine().sResourceManager);
 
     handler->mContext.valid = true;
 }

@@ -12,8 +12,9 @@ constexpr int ENGINE_CHANNEL = 0;
 
 // Keys to determine type of Events (0-1000 reserved)
 namespace event {
-    constexpr int INPUT  = 1;
-    constexpr int WINDOW = 2;
+    constexpr int INPUT        = 1;
+    constexpr int WINDOW       = 2;
+    constexpr int RENDER_DEBUG = 3;
 }
 
 class EventListener;
