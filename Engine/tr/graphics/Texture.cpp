@@ -5,8 +5,8 @@
 #include "glad/glad.h"
 #include "nlohmann/json.hpp"
 
-GLenum                   ScaleFilterToEnum(tr::Texture::ScaleFilter f);
-GLenum                   WrapModeToEnum(tr::Texture::WrapMode w);
+GLenum ScaleFilterToEnum(tr::Texture::ScaleFilter f);
+GLenum WrapModeToEnum(tr::Texture::WrapMode w);
 
 tr::Texture::Texture(const Image &im,
                      WrapMode     s,
@@ -68,7 +68,9 @@ tr::Resource *tr::Texture::Loader(ResourceManager::ResHandle handle,
         t                = static_cast<WrapMode>(jhandle["wrap_t"]);
         compression      = jhandle["compression"];
         generate_mipmaps = jhandle["generate_mipmaps"];
-        image_dep_handle = jhandle["dependencies"][0];
+        image_dep_handle = !jhandle["dependencies"][0].is_object()
+            ? jhandle["dependencies"][0].get<std::string>()
+            : jhandle["dependencies"][0]["id"].get<std::string>();
     } catch (json::out_of_range e) {
         rm->GetEngine().Logger().log(
             "Error Loading values from Texture Handle: "s + handle + " | "

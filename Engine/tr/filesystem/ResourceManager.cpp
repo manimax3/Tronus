@@ -144,11 +144,12 @@ void tr::ResourceManager::LoadResource(const std::string &identifier,
     try {
         auto a = jhandle.at("dependencies");
         for (const auto &dep : a) {
-            if (CheckIfLoaded(dep))
-                continue;
             const bool is_in_mem = dep.is_object();
             const auto dep_id = is_in_mem ? dep.dump() : dep.get<std::string>();
-            auto       future = LoadResourceAsync(dep_id, is_in_mem);
+            if (CheckIfLoaded(is_in_mem ? dep["id"].get<std::string>()
+                                        : dep_id))
+                continue;
+            auto future = LoadResourceAsync(dep_id, is_in_mem);
             mDepsLoaded.push_back(std::move(future));
         }
     } catch (json::out_of_range e) {

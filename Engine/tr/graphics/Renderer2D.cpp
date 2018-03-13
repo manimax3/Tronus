@@ -92,6 +92,7 @@ void tr::Renderer2D::StartFrame()
 {
     EASY_FUNCTION();
     Call(glBindVertexArray(mVao));
+    Call(glBindBuffer(GL_ARRAY_BUFFER, mVbo));
 
     mShader->Bind();
 
