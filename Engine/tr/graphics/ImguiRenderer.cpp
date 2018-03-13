@@ -218,6 +218,8 @@ void tr::ImguiRenderer::draw_data(ImDrawData *draw_data)
             idx_buffer_offset += pcmd->ElemCount;
         }
     }
+
+    Call(glBindVertexArray(0));
 }
 
 std::vector<int> tr::ImguiRenderer::SubscripeTo() const

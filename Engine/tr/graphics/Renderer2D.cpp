@@ -144,6 +144,10 @@ void tr::Renderer2D::EndFrame()
 
     Call(glUnmapBuffer(GL_ARRAY_BUFFER));
 
+    Call(glDisable(GL_SCISSOR_TEST));
+    Call(glDisable(GL_BLEND));
+
+    Call(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIbo));
     Call(glDrawElements(GL_TRIANGLES, mRenderCount * 6, GL_UNSIGNED_INT,
                         (void *)0));
 
