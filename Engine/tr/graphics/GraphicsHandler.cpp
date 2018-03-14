@@ -149,6 +149,9 @@ void tr::GraphicsHandler::OnEvent(const Event &e, int channel)
 
     const WindowEvent &we = static_cast<const WindowEvent &>(e);
 
+    if (we.type != WindowEvent::RESIZED)
+        return;
+
     Call(glViewport(0, 0, we.xSize, we.ySize));
 
     if (mWindowCmd) {
