@@ -24,6 +24,8 @@ Engine::~Engine()
     delete sProfiler;
     delete sEventSystem;
     delete sGraphicsHandler;
+
+    delete mDebugWindow;
 }
 
 void Engine::Start()
@@ -51,6 +53,7 @@ void Engine::Start()
 
     mRunning = true;
 
+    mDebugWindow = new DebugWindow(*this);
     sEventSystem->AddListener(this);
 
     // Start the tick loop

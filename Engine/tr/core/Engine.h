@@ -2,6 +2,7 @@
 
 #include "../event/EventSystem.h"
 #include "../filesystem/ResourceManager.h"
+#include "../graphics/DebugWindow.h"
 #include "../graphics/GraphicsHandler.h"
 #include "../profile/Profiler.h"
 #include "../util/Log.h"
@@ -28,6 +29,8 @@ private:
     int mFPS     = 0;
     int mLastFps = 0;
 
+    DebugWindow *mDebugWindow = nullptr;
+
 public:
     Engine();
     ~Engine();
@@ -40,6 +43,7 @@ public:
     std::vector<int> SubscripeTo() const override;
     void             OnEvent(const Event &e, int channel) override;
 
+    friend class DebugWindow;
 private:
     void Tick();
 };
