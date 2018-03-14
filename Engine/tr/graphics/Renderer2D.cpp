@@ -117,6 +117,12 @@ void tr::Renderer2D::Submit(const Renderable &r)
         return;
     }
 
+    if (mCurrenTexture != r.texture) {
+        EndFrame();
+        PushTexture(r.texture);
+        StartFrame();
+    }
+
     mBufferAccess[0].pos   = r.bottom_left;
     mBufferAccess[0].color = r.color;
     mBufferAccess[0].uv    = { r.uv.x, r.uv.w };

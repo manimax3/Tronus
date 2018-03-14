@@ -29,8 +29,9 @@ public:
         Vec2 bottom_left;
         Vec2 bottom_right;
 
-        Vec4 color = Vec4(1.f);
-        Vec4 uv    = { 0.f, 0.f, 1.f, 1.f };
+        Vec4     color = Vec4(1.f);
+        Vec4     uv    = { 0.f, 0.f, 1.f, 1.f };
+        Texture *texture = nullptr;
 
         friend class Renderer2D;
 

@@ -54,13 +54,13 @@ void tr::DebugWindow::renderer2d_enable_test_window(bool disable)
         auto *t
             = mEngine.sResourceManager->GetRes<Texture>("test_texture.json");
 
-        r2d.PushTexture(t);
         r->top_left     = { 0.f, 0.f };
         r->top_right    = { gfx->GetWindowSize().x, 0.f };
         r->bottom_left  = { 0.f, gfx->GetWindowSize().y };
         r->bottom_right = { gfx->GetWindowSize().x, gfx->GetWindowSize().y };
         r->color        = Vec4(1.f, 1.f, 1.f, 1.f);
         r->uv           = Vec4(0, 0, 1, 1);
+        r->texture      = t;
         r->visible      = true;
     } else if (r && disable) {
         r->visible = false;
