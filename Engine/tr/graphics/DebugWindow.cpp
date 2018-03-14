@@ -13,9 +13,15 @@ tr::DebugWindow::DebugWindow(const Engine &engine)
 
 void tr::DebugWindow::OnEvent(const Event &e, int channel)
 {
-    if (e.Identifier == event::RENDER_DEBUG) {
+    if (channel == RENDER_CHANNEL && e.Identifier == event::RENDER_DEBUG) {
         if (mShouldDraw)
             draw();
+    } else if (channel == RENDER_CHANNEL && e.Identifier == event::RENDER_2D
+               && render2d_test_open) {
+
+        renderer2d_enable_test_window(
+            static_cast<const Render2DEvent &>(e).renderer);
+
     } else if (e.Identifier == event::INPUT) {
         auto ie = static_cast<const InputEvent &>(e);
         if (ie.type == InputEvent::Keyboard && ie.Key == KEY_F3) {
@@ -36,35 +42,44 @@ void tr::DebugWindow::draw()
         ImGui::Text("msPF: %f", 1000.f / mEngine.mLastFps);
         if (ImGui::Button("Renderer2D Test")) {
             render2d_test_open = !render2d_test_open;
-            renderer2d_enable_test_window(!render2d_test_open);
         }
     }
     ImGui::End();
 }
 
-void tr::DebugWindow::renderer2d_enable_test_window(bool disable)
+tr::Vec4 rand_color()
 {
-    auto *gfx = mEngine.sGraphicsHandler;
-    auto &r2d = gfx->GetRenderer2D();
+    float r = (rand() % 255) / 255.f;
+    float g = (rand() % 255) / 255.f;
+    float b = (rand() % 255) / 255.f;
+    return { r, g, b, 1.f };
+}
 
-    static Renderer2D::Renderable *r = nullptr;
-    if (!r && !disable) {
-        r = r2d.GetNewRenderable();
-        mEngine.sResourceManager->LoadResource("test_texture.json");
-        auto *t
-            = mEngine.sResourceManager->GetRes<Texture>("test_texture.json");
+void tr::DebugWindow::renderer2d_enable_test_window(Renderer2D &renderer)
+{
 
-        r->top_left     = { 0.f, 0.f };
-        r->top_right    = { gfx->GetWindowSize().x, 0.f };
-        r->bottom_left  = { 0.f, gfx->GetWindowSize().y };
-        r->bottom_right = { gfx->GetWindowSize().x, gfx->GetWindowSize().y };
-        r->color        = Vec4(1.f, 1.f, 1.f, 1.f);
-        r->uv           = Vec4(0, 0, 1, 1);
-        r->texture      = t;
-        r->visible      = true;
-    } else if (r && disable) {
-        r->visible = false;
-    } else if (r && !disable) {
-        r->visible = true;
+    static std::vector<Renderer2D::Renderable> r_list;
+    static bool                                init = false;
+
+    if (!init) {
+        Renderer2D::Renderable r;
+        int                    c = 0;
+        for (float y = 0; y < mEngine.sGraphicsHandler->GetWindowSize().y;
+             y += 10)
+            for (float x = 0; x < mEngine.sGraphicsHandler->GetWindowSize().x;
+                 x += 10) {
+                r.top_left     = { x, y };
+                r.top_right    = { x + 10, y };
+                r.bottom_left  = { x, y + 10 };
+                r.bottom_right = { x + 10, y + 10 };
+                r.visible      = true;
+                r.color        = rand_color();
+
+                r_list.push_back(r);
+            }
+        init = true;
+    } else {
+        for (auto &r : r_list)
+            renderer.Submit(r);
     }
 }

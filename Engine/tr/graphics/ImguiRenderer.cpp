@@ -129,14 +129,14 @@ void tr::ImguiRenderer::Init(GraphicsHandler *gfx, ResourceManager *rm)
 
 void tr::ImguiRenderer::Render()
 {
-    EASY_FUNCTION();
+    EASY_BLOCK("ImguiRenderer Render");
     ImGui::Render();
     draw_data(ImGui::GetDrawData());
 }
 
 void tr::ImguiRenderer::StartDebugFrame()
 {
-    EASY_FUNCTION();
+    EASY_BLOCK("ImguiRenderer StartDebugFrame");
     auto &     im     = ImGui::GetIO();
     const auto w_size = mGfxHandler->GetWindowSize();
 
@@ -154,7 +154,7 @@ void tr::ImguiRenderer::StartDebugFrame()
 
     ImGui::NewFrame();
 
-    mGfxHandler->GetEngine().sEventSystem->DispatchEvent(RenderDebugEvent());
+    mGfxHandler->GetEngine().sEventSystem->DispatchEvent(RenderDebugEvent(), RENDER_CHANNEL);
 }
 
 void tr::ImguiRenderer::draw_data(ImDrawData *draw_data)

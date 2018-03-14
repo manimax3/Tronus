@@ -4,7 +4,15 @@
 namespace tr {
 struct InputEvent : public Event {
     enum Action { PRESS, RELEASE, REPEAT };
-    enum Type { Mouse, Keyboard, Char, CursorEntered, CursorLeave, MouseButton, Scroll };
+    enum Type {
+        Mouse,
+        Keyboard,
+        Char,
+        CursorEntered,
+        CursorLeave,
+        MouseButton,
+        Scroll
+    };
 
     InputEvent(int key, Action action)
         : Key(key)
@@ -81,11 +89,20 @@ struct WindowEvent : public Event {
     int xSize, ySize;
 };
 
-struct RenderDebugEvent : public Event{
+struct RenderDebugEvent : public Event {
     RenderDebugEvent()
         : Event(event::RENDER_DEBUG)
     {
     }
 };
 
+class Renderer2D;
+struct Render2DEvent : public Event {
+    Render2DEvent(Renderer2D &ren)
+        : Event(event::RENDER_2D)
+        , renderer(ren)
+    {
+    }
+    Renderer2D &renderer;
+};
 }

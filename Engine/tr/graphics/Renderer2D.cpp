@@ -74,18 +74,20 @@ void tr::Renderer2D::Tick() { EASY_BLOCK("Renderer2D Tick"); }
 void tr::Renderer2D::RenderRenderables()
 {
     PushTransform(Mat4::Identity(), true);
-    StartFrame();
     for (auto &r : mRenderables) {
         Submit(r);
     }
     PopTransform();
-    EndFrame();
 }
 
 void tr::Renderer2D::Render()
 {
     EASY_BLOCK("Renderer2D Render");
+    StartFrame();
     RenderRenderables();
+    mGfxHandler->GetEngine().sEventSystem->DispatchEvent(Render2DEvent(*this),
+                                                         RENDER_CHANNEL);
+    EndFrame();
 }
 
 void tr::Renderer2D::StartFrame()
