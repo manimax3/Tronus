@@ -47,6 +47,8 @@ public:
 
     Vec2 GetWindowSize() const;
 
+    inline Renderer2D &GetRenderer2D() { return mRenderer2D; }
+
     friend class CreateWindowCmd;
 
 private:
