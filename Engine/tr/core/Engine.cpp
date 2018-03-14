@@ -56,6 +56,13 @@ void Engine::Start()
     mDebugWindow = new DebugWindow(*this);
     sEventSystem->AddListener(this);
 
+    sEventSystem->AddListener(sLog);
+    sEventSystem->AddListener(sJobHandler);
+    sEventSystem->AddListener(sResourceManager);
+    sEventSystem->AddListener(sProfiler);
+    sEventSystem->AddListener(sEventSystem);
+    sEventSystem->AddListener(sGraphicsHandler);
+
     // Start the tick loop
 
     Timer       timer, sleep_timer;

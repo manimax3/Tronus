@@ -21,3 +21,8 @@ bool BaseSubsystem::Shutdown()
 {
     return false;
 }
+
+std::vector<int> tr::BaseSubsystem::SubscripeTo() const
+{
+    return { ENGINE_CHANNEL };
+}

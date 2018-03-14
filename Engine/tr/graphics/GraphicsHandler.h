@@ -19,8 +19,7 @@ struct RenderContext {
     bool  valid  = false;
 };
 
-class GraphicsHandler : public Subsystem<GraphicsHandler>,
-                        public EventListener {
+class GraphicsHandler : public Subsystem<GraphicsHandler> {
 public:
     bool               Initialize(Engine *e) override;
     void               PostInit() override;

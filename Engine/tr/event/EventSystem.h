@@ -1,5 +1,6 @@
 #pragma once
 #include "../core/Subsystem.h"
+#include "EventListener.h"
 #include <map>
 #include <shared_mutex>
 #include <tr.h>
@@ -17,9 +18,6 @@ namespace event {
     constexpr int RENDER_DEBUG = 3;
 }
 
-class EventListener;
-struct Event;
-
 class EventSystem : public Subsystem<EventSystem> {
 public:
     bool Initialize(Engine *e) override;
@@ -35,25 +33,4 @@ private:
     std::map<int, std::vector<EventListener *>> mListeners;
 };
 
-class EventListener {
-public:
-    virtual void             OnEvent(const Event &e, int channel) = 0;
-    virtual std::vector<int> SubscripeTo() const                  = 0;
-};
-
-struct Event {
-    Event(int id = -1)
-        : Identifier(id)
-    {
-    }
-
-    virtual ~Event() = default;
-
-    Event(const Event &) = default;
-    Event(Event &&)      = default;
-    Event &operator=(const Event &) = default;
-    Event &operator=(Event &&) = default;
-
-    int Identifier = -1;
-};
 }

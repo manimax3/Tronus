@@ -52,10 +52,7 @@ tr::Vec2 tr::GraphicsHandler::GetWindowSize() const
 
 double tr::GraphicsHandler::GetTime() const { return glfwGetTime(); }
 
-void tr::GraphicsHandler::PostInit()
-{
-    GetEngine().sEventSystem->AddListener(this);
-}
+void tr::GraphicsHandler::PostInit() {}
 
 bool tr::GraphicsHandler::Tick()
 {
