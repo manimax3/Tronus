@@ -58,7 +58,7 @@ struct InputEvent : public Event {
 };
 
 struct WindowEvent : public Event {
-    enum Type { CLOSED };
+    enum Type { CLOSED, RESIZED };
 
     WindowEvent(Type type)
         : type(type)
@@ -66,7 +66,19 @@ struct WindowEvent : public Event {
     {
     }
 
+    WindowEvent(int x, int y)
+        : type(RESIZED)
+        , Event(event::WINDOW)
+        , xSize(x)
+        , ySize(y)
+    {
+    }
+
     Type type;
+
+    // Window Resized
+    // Not Framebuffer not actual window size
+    int xSize, ySize;
 };
 
 struct RenderDebugEvent : public Event{

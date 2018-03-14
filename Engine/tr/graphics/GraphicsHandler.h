@@ -1,5 +1,6 @@
 #pragma once
 #include "../core/Subsystem.h"
+#include "../event/EventSystem.h"
 #include "../math/Math.h"
 #include "ImguiRenderer.h"
 #include "Renderer2D.h"
@@ -18,7 +19,8 @@ struct RenderContext {
     bool  valid  = false;
 };
 
-class GraphicsHandler : public Subsystem<GraphicsHandler> {
+class GraphicsHandler : public Subsystem<GraphicsHandler>,
+                        public EventListener {
 public:
     bool               Initialize(Engine *e) override;
     void               PostInit() override;
@@ -33,6 +35,9 @@ public:
     bool Valid() const;
 
     void Render();
+
+    std::vector<int> SubscripeTo() const override;
+    void             OnEvent(const Event &e, int channel) override;
 
     // Input functionality
     const char *GetClipboard() const;

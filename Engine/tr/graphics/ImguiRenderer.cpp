@@ -229,43 +229,50 @@ std::vector<int> tr::ImguiRenderer::SubscripeTo() const
 
 void tr::ImguiRenderer::OnEvent(const Event &e, int channel)
 {
-    if (e.Identifier != event::INPUT)
-        return;
+    if (e.Identifier == event::INPUT) {
 
-    const InputEvent &ie = static_cast<const InputEvent &>(e);
-    auto &            im = ImGui::GetIO();
+        const InputEvent &ie = static_cast<const InputEvent &>(e);
+        auto &            im = ImGui::GetIO();
 
-    if (ie.type == InputEvent::MouseButton) {
+        if (ie.type == InputEvent::MouseButton) {
 
-        if (ie.action == InputEvent::REPEAT)
-            return;
+            if (ie.action == InputEvent::REPEAT)
+                return;
 
-        if (ie.Key >= 0 && ie.Key < 3)
-            g_MouseJustPressed[ie.Key] = ie.action == InputEvent::PRESS;
+            if (ie.Key >= 0 && ie.Key < 3)
+                g_MouseJustPressed[ie.Key] = ie.action == InputEvent::PRESS;
 
-    } else if (ie.type == InputEvent::Scroll) {
+        } else if (ie.type == InputEvent::Scroll) {
 
-        /* im.MouseWheelH += ie.xoffset; */
-        im.MouseWheel += (float)ie.yoffset;
+            /* im.MouseWheelH += ie.xoffset; */
+            im.MouseWheel += (float)ie.yoffset;
 
-    } else if (ie.type == InputEvent::Keyboard) {
+        } else if (ie.type == InputEvent::Keyboard) {
 
-        if (ie.action == InputEvent::PRESS)
-            im.KeysDown[ie.Key] = true;
-        else if (ie.action == InputEvent::RELEASE)
-            im.KeysDown[ie.Key] = false;
+            if (ie.action == InputEvent::PRESS)
+                im.KeysDown[ie.Key] = true;
+            else if (ie.action == InputEvent::RELEASE)
+                im.KeysDown[ie.Key] = false;
 
-        im.KeyAlt   = ie.Alt;
-        im.KeyCtrl  = ie.Control;
-        im.KeyShift = ie.Shift;
-        im.KeySuper = ie.Super;
+            im.KeyAlt   = ie.Alt;
+            im.KeyCtrl  = ie.Control;
+            im.KeyShift = ie.Shift;
+            im.KeySuper = ie.Super;
 
-    } else if (ie.type == InputEvent::Char) {
+        } else if (ie.type == InputEvent::Char) {
 
-        if (ie.codepoint > 0 && ie.codepoint < 0x10000)
-            im.AddInputCharacter((unsigned short)ie.codepoint);
-    } else if (ie.type == InputEvent::Mouse) {
-        im.MousePos = ImVec2(ie.XPos, ie.YPos);
+            if (ie.codepoint > 0 && ie.codepoint < 0x10000)
+                im.AddInputCharacter((unsigned short)ie.codepoint);
+        } else if (ie.type == InputEvent::Mouse) {
+            im.MousePos = ImVec2(ie.XPos, ie.YPos);
+        }
+    } else if (e.Identifier == event::WINDOW) {
+        const WindowEvent &we = static_cast<const WindowEvent &>(e);
+
+        if (we.type == WindowEvent::RESIZED) {
+            mProjectionMatrix
+                = Mat4::Orthographic(0, we.xSize, we.ySize, 0, 1.f, -1.f);
+        }
     }
 }
 

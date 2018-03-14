@@ -34,6 +34,7 @@ void mouse_button_callback(GLFWwindow *window,
                            int         action,
                            int         mods);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
+void framebuffer_resized_callback(GLFWwindow *window, int width, int height);
 }
 
 bool tr::GraphicsHandler::Initialize(Engine *e)
@@ -51,7 +52,10 @@ tr::Vec2 tr::GraphicsHandler::GetWindowSize() const
 
 double tr::GraphicsHandler::GetTime() const { return glfwGetTime(); }
 
-void tr::GraphicsHandler::PostInit() {}
+void tr::GraphicsHandler::PostInit()
+{
+    GetEngine().sEventSystem->AddListener(this);
+}
 
 bool tr::GraphicsHandler::Tick()
 {
@@ -130,6 +134,29 @@ void tr::GraphicsHandler::SetClipboard(const std::string &c)
                            c.c_str());
 }
 
+std::vector<int> tr::GraphicsHandler::SubscripeTo() const
+{
+    return { ENGINE_CHANNEL };
+}
+
+void tr::GraphicsHandler::OnEvent(const Event &e, int channel)
+{
+    if (e.Identifier != event::WINDOW)
+        return;
+
+    if (!mContext.valid)
+        return;
+
+    const WindowEvent &we = static_cast<const WindowEvent &>(e);
+
+    Call(glViewport(0, 0, we.xSize, we.ySize));
+
+    if (mWindowCmd) {
+        mWindowCmd->Size.x = we.xSize;
+        mWindowCmd->Size.y = we.ySize;
+    }
+}
+
 void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
 {
     EASY_BLOCK("CreateWindowCmd");
@@ -170,6 +197,7 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
     glfwSetCursorEnterCallback(window, cursor_enter_callback);
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetScrollCallback(window, scroll_callback);
+    glfwSetFramebufferSizeCallback(window, framebuffer_resized_callback);
 
     glfwMakeContextCurrent(window);
 
@@ -195,6 +223,7 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
 
     glfwSwapInterval(VSync ? 1 : 0);
 
+    Call(glViewport(0, 0, Size.x, Size.y));
     Call(glClearColor(ClearColor.x, ClearColor.y, ClearColor.z, ClearColor.w));
 
     handler->mContext.window = static_cast<void *>(window);
@@ -351,4 +380,16 @@ void tr::scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
     event.yoffset = yoffset;
 
     handler->GetEngine().sEventSystem->DispatchEvent(event);
+}
+
+void tr::framebuffer_resized_callback(GLFWwindow *window, int width, int height)
+{
+    GraphicsHandler *handler
+        = static_cast<GraphicsHandler *>(glfwGetWindowUserPointer(window));
+
+    if (width == 0 || height == 0)
+        return;
+
+    handler->GetEngine().sEventSystem->DispatchEvent(
+        WindowEvent(width, height));
 }
