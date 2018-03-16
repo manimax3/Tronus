@@ -7,6 +7,7 @@
 using namespace tr;
 
 Engine::Engine()
+    : mWorld(this)
 {
     sLog             = new Log;
     sJobHandler      = new JobHandler;
@@ -63,6 +64,8 @@ void Engine::Start()
     sEventSystem->AddListener(sEventSystem);
     sEventSystem->AddListener(sGraphicsHandler);
 
+    mWorld.StartWorld();
+
     // Start the tick loop
 
     Timer       timer, sleep_timer;
@@ -101,10 +104,10 @@ void Engine::Stop()
 {
     mRunning = false;
     sProfiler->Shutdown();
-    sEventSystem->Shutdown();
     sGraphicsHandler->Shutdown();
     sResourceManager->Shutdown();
     sJobHandler->Shutdown();
+    sEventSystem->Shutdown();
     sLog->Shutdown();
     Logger().log("All subsystems have been stopped");
 }
@@ -119,6 +122,8 @@ void Engine::Tick()
     sProfiler->Tick();
     sEventSystem->Tick();
     sGraphicsHandler->Tick();
+
+    mWorld.DispatchTick();
 }
 
 std::vector<int> tr::Engine::SubscripeTo() const { return { ENGINE_CHANNEL }; }

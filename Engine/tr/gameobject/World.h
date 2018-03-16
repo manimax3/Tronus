@@ -12,7 +12,7 @@ public:
     void StartWorld();
 
     std::vector<int> SubscripeTo() const override;
-    void OnEvent(const Event &e, int channel) override;
+    void             OnEvent(const Event &e, int channel) override;
 
     template<
         typename G,
@@ -20,20 +20,21 @@ public:
             std::is_base_of_v<
                 GameObject,
                 G> && std::is_constructible_v<G, World *, const std::string &, Mat4>>>
-    G *SpawnGameObject(const std::string &name, Mat4 transform)
+    std::weak_ptr<G> SpawnGameObject(const std::string &name, Mat4 transform)
     {
         mGameObjects.emplace_back(new G(this, name, transform));
         return mGameObjects.back().get();
     }
 
+    void DispatchTick();
+
 protected:
     void DispatchDebugGuiEvent();
-    void DispatchTick();
 
     class Engine *mEngine = nullptr;
 
 private:
-    using GOPtr = std::unique_ptr<GameObject>;
+    using GOPtr = std::shared_ptr<GameObject>;
     std::vector<GOPtr> mGameObjects;
 };
 };

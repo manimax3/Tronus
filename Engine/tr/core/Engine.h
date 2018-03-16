@@ -6,6 +6,7 @@
 #include "../graphics/GraphicsHandler.h"
 #include "../profile/Profiler.h"
 #include "../util/Log.h"
+#include "../gameobject/World.h"
 #include "JobHandler.h"
 #include "tr.h"
 #include <map>
@@ -20,6 +21,8 @@ public:
     Profiler *       sProfiler        = nullptr;
     EventSystem *    sEventSystem     = nullptr;
     GraphicsHandler *sGraphicsHandler = nullptr;
+
+    World mWorld;
 
 private:
     bool mRunning = false;
