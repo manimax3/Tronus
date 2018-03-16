@@ -7,8 +7,13 @@ struct Event;
 
 class EventListener {
 public:
+    virtual ~EventListener(); 
     virtual void             OnEvent(const Event &e, int channel) = 0;
     virtual std::vector<int> SubscripeTo() const                  = 0;
+
+    friend class EventSystem;
+private:
+    class EventSystem *mEventSystem = nullptr;
 };
 
 struct Event {

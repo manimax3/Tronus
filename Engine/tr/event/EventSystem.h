@@ -23,6 +23,7 @@ namespace event {
 class EventSystem : public Subsystem<EventSystem> {
 public:
     bool Initialize(Engine *e) override;
+    bool Shutdown() override;
     inline std::string GetName() const override { return "EventSystem"; }
 
     void AddListener(EventListener *el);
