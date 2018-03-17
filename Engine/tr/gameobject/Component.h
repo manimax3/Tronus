@@ -1,4 +1,5 @@
 #pragma once
+#include "../event/CommonEvents.h"
 #include "../math/Math.h"
 #include <string>
 #include <tr.h>
@@ -21,6 +22,8 @@ public:
     void               WorldLeave();
     const std::string &GetName() const;
 
+    void HandleEvent(const Event &e);
+
     virtual void TickComponent(){};
 
 protected:
@@ -28,6 +31,7 @@ protected:
     virtual void OnChildRemove(SceneComponent *child){};
     virtual void OnWorldEnter(){};
     virtual void OnWorldLeave(){};
+    virtual void OnEvent(const Event &e) {}
 
 public:
     bool        mTickable = false;

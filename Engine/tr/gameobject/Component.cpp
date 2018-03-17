@@ -66,3 +66,10 @@ void tr::SceneComponent::WorldEnter()
 
     OnWorldEnter();
 }
+
+void tr::SceneComponent::HandleEvent(const Event &e)
+{
+    OnEvent(e);
+    for (auto child : mChilds)
+        child->HandleEvent(e);
+}
