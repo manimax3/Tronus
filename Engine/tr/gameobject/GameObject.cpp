@@ -27,6 +27,12 @@ void tr::GameObject::LeaveWorld()
     OnWorldLeave();
 }
 
+void tr::GameObject::HandleEvent(const Event &e)
+{
+    OnEvent(e);
+    this->cRootComponent->HandleEvent(e);
+}
+
 void tr::GameObject::TickGameObject(double delta)
 {
     mLastDelta = delta;

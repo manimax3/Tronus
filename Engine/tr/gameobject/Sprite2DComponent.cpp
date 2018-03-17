@@ -3,8 +3,8 @@
 #include "../event/CommonEvents.h"
 #include "../event/EventSystem.h"
 #include "../filesystem/ResourceManager.h"
-#include "../graphics/Texture.h"
 #include "../graphics/Renderer2D.h"
+#include "../graphics/Texture.h"
 #include "GameObject.h"
 #include "World.h"
 
@@ -15,12 +15,7 @@ tr::Sprite2DComponent::Sprite2DComponent(const std::string &name,
 {
 }
 
-std::vector<int> tr::Sprite2DComponent::SubscripeTo() const
-{
-    return { RENDER_CHANNEL };
-}
-
-void tr::Sprite2DComponent::OnEvent(const Event &e, int channel)
+void tr::Sprite2DComponent::OnEvent(const Event &e)
 {
     if (e.Identifier != event::RENDER_2D)
         return;
@@ -45,15 +40,9 @@ void tr::Sprite2DComponent::OnEvent(const Event &e, int channel)
     re.renderer.Submit(r);
 }
 
-void tr::Sprite2DComponent::OnWorldEnter()
-{
-    /* mOwner->Context.EvtHandler->AddListener(this); */
-}
+void tr::Sprite2DComponent::OnWorldEnter() {}
 
-void tr::Sprite2DComponent::OnWorldLeave()
-{
-    /* mOwner->Context.EvtHandler->RemoveListener(this); */
-}
+void tr::Sprite2DComponent::OnWorldLeave() {}
 
 void tr::Sprite2DComponent::SetDrawAndTextureBounds(const Rect &r)
 {

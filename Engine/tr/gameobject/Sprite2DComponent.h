@@ -6,14 +6,11 @@
 #include <tr.h>
 
 namespace tr {
-class Sprite2DComponent : public SceneComponent, public EventListener {
+class Sprite2DComponent : public SceneComponent{
 public:
     Sprite2DComponent(const std::string &name,
                       GameObject *       owner,
                       SceneComponent *   parent);
-
-    std::vector<int> SubscripeTo() const override;
-    void             OnEvent(const Event &e, int channel) override;
 
     void SetDrawAndTextureBounds(const Rect &r);
     void HandleTextureLoad(const std::string &resource);
@@ -22,6 +19,8 @@ public:
 protected:
     void OnWorldEnter() override;
     void OnWorldLeave() override;
+
+    void OnEvent(const Event &e) override;
 
 public:
     bool           mVisible = true;

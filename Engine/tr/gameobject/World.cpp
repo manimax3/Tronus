@@ -20,7 +20,7 @@ void tr::World::StopWorld()
 {
     mEngine->sEventSystem->RemoveListener(this);
 
-    for(auto go : mGameObjects) {
+    for (auto &go : mGameObjects) {
         go->LeaveWorld();
     }
 
@@ -34,6 +34,8 @@ std::vector<int> tr::World::SubscripeTo() const
 
 void tr::World::OnEvent(const Event &e, int channel)
 {
+    for (auto & go : mGameObjects)
+        go->HandleEvent(e);
 }
 
 void tr::World::RenderDebug()

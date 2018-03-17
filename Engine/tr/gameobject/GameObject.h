@@ -26,6 +26,7 @@ public:
     void LeaveWorld();
 
     void TickGameObject(double delta);
+    void HandleEvent(const Event &e);
 
     SceneComponent *cRootComponent = nullptr;
     bool            mTickable      = false;
@@ -38,6 +39,7 @@ protected:
     virtual void OnWorldEnter(){};
     virtual void OnWorldLeave(){};
     virtual void OnTick(){};
+    virtual void OnEvent(const Event &e) {}
 
     const std::string mName;
     double            mLastDelta = 0.0;
