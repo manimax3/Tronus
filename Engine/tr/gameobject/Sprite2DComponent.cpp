@@ -4,6 +4,7 @@
 #include "../event/EventSystem.h"
 #include "../filesystem/ResourceManager.h"
 #include "../graphics/Texture.h"
+#include "../graphics/Renderer2D.h"
 #include "GameObject.h"
 #include "World.h"
 

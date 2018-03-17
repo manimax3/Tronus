@@ -13,15 +13,27 @@ tr::World::World(Engine *engine)
 
 void tr::World::StartWorld()
 {
+    mEngine->sEventSystem->AddListener(this);
 }
 
 void tr::World::StopWorld()
 {
+    mEngine->sEventSystem->RemoveListener(this);
+
     for(auto go : mGameObjects) {
         go->LeaveWorld();
     }
 
     mGameObjects.clear();
+}
+
+std::vector<int> tr::World::SubscripeTo() const
+{
+    return { ENGINE_CHANNEL, RENDER_CHANNEL };
+}
+
+void tr::World::OnEvent(const Event &e, int channel)
+{
 }
 
 void tr::World::RenderDebug()

@@ -2,11 +2,14 @@
 #include "../core/Engine.h"
 #include "../event/CommonEvents.h"
 #include "../filesystem/ResourceManager.h"
+#include "../profile/Profiler.h"
 #include "../util/Keys.h"
 #include "GLCheck.h"
 #include "GraphicsHandler.h"
 #include "Image.h"
 #include "Texture.h"
+
+#include <algorithm>
 
 #include "glad/glad.h"
 

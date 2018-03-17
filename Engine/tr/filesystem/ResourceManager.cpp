@@ -5,6 +5,7 @@
 #include "../graphics/Image.h"
 #include "../graphics/Texture.h"
 #include "../profile/Profiler.h"
+#include "../core/JobHandler.h"
 #include "Filesystem.h"
 
 #include "nlohmann/json.hpp"

@@ -1,5 +1,6 @@
 #include "Subsystem.h"
 #include "Engine.h"
+#include "../event/EventSystem.h"
 
 using namespace tr;
 

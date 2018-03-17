@@ -1,13 +1,6 @@
 #pragma once
 
-#include "../event/EventSystem.h"
-#include "../filesystem/ResourceManager.h"
-#include "../gameobject/World.h"
-#include "../graphics/DebugWindow.h"
-#include "../graphics/GraphicsHandler.h"
-#include "../profile/Profiler.h"
 #include "../util/Log.h"
-#include "JobHandler.h"
 #include "tr.h"
 #include <map>
 #include <type_traits>
@@ -15,14 +8,14 @@
 namespace tr {
 class Engine : public EventListener {
 public:
-    Log *            sLog             = nullptr;
-    JobHandler *     sJobHandler      = nullptr;
-    ResourceManager *sResourceManager = nullptr;
-    Profiler *       sProfiler        = nullptr;
-    EventSystem *    sEventSystem     = nullptr;
-    GraphicsHandler *sGraphicsHandler = nullptr;
+    class Log *            sLog             = nullptr;
+    class JobHandler *     sJobHandler      = nullptr;
+    class ResourceManager *sResourceManager = nullptr;
+    class Profiler *       sProfiler        = nullptr;
+    class EventSystem *    sEventSystem     = nullptr;
+    class GraphicsHandler *sGraphicsHandler = nullptr;
 
-    World mWorld;
+    class World *mWorld = nullptr;
 
 private:
     bool mRunning = false;
@@ -32,7 +25,7 @@ private:
     int mFPS     = 0;
     int mLastFps = 0;
 
-    DebugWindow *mDebugWindow = nullptr;
+    class DebugWindow *mDebugWindow = nullptr;
     class Game * mGame        = nullptr;
 
 public:

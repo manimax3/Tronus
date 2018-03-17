@@ -1,5 +1,6 @@
 #include "catch.hpp"
 #include "tr/core/Engine.h"
+#include "tr/core/JobHandler.h"
 #include "tr/core/Subsystem.h"
 
 int i = 0;

@@ -2,6 +2,9 @@
 #include "../core/Engine.h"
 #include "../event/CommonEvents.h"
 #include "../util/Keys.h"
+#include "../gameobject/World.h"
+#include "Renderer2D.h"
+#include "GraphicsHandler.h"
 #include "Texture.h"
 #include "imgui.h"
 
@@ -48,7 +51,7 @@ void tr::DebugWindow::draw()
     ImGui::End();
 
     if (world_debug_open)
-        mEngine.mWorld.RenderDebug();
+        mEngine.mWorld->RenderDebug();
 }
 
 tr::Vec4 rand_color()

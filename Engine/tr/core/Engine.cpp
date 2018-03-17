@@ -1,15 +1,21 @@
 #include "Engine.h"
 #include "../event/CommonEvents.h"
+#include "../event/EventSystem.h"
+#include "../filesystem/ResourceManager.h"
 #include "../gameobject/Game.h"
+#include "../gameobject/World.h"
+#include "../graphics/DebugWindow.h"
+#include "../graphics/GraphicsHandler.h"
+#include "../profile/Profiler.h"
 #include "../util/Keys.h"
+#include "JobHandler.h"
 #include "util/Timer.h"
 #include <iostream>
 
 using namespace tr;
 
 Engine::Engine(Game *game)
-    : mWorld(this)
-    , mGame(game)
+    : mGame(game)
 {
     sLog             = new Log;
     sJobHandler      = new JobHandler;
@@ -17,6 +23,8 @@ Engine::Engine(Game *game)
     sProfiler        = new Profiler;
     sEventSystem     = new EventSystem;
     sGraphicsHandler = new GraphicsHandler;
+
+    mWorld = new World(this);
 }
 
 Engine::~Engine()
@@ -69,10 +77,10 @@ void Engine::Start()
     sEventSystem->AddListener(sEventSystem);
     sEventSystem->AddListener(sGraphicsHandler);
 
-    mWorld.StartWorld();
+    mWorld->StartWorld();
 
     if (mGame)
-        mGame->OnWorldLoad(mWorld);
+        mGame->OnWorldLoad(*mWorld);
 
     // Start the tick loop
 
@@ -113,7 +121,7 @@ void Engine::Stop()
     if (mGame)
         mGame->OnWorldShutdown();
 
-    mWorld.StopWorld();
+    mWorld->StopWorld();
 
     mRunning = false;
     sProfiler->Shutdown();
@@ -136,7 +144,7 @@ void Engine::Tick()
     sEventSystem->Tick();
     sGraphicsHandler->Tick();
 
-    mWorld.DispatchTick();
+    mWorld->DispatchTick();
 }
 
 std::vector<int> tr::Engine::SubscripeTo() const { return { ENGINE_CHANNEL }; }
