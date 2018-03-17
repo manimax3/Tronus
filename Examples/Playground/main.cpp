@@ -26,8 +26,7 @@ public:
 class MyGame : public tr::Game {
     void OnWorldLoad(tr::World &world) override
     {
-        auto go = world.SpawnGameObject<MyEntity>(std::string("Little Red Box"),
-                                                  tr::Mat4::Identity());
+        auto go = world.SpawnGameObject<MyEntity>(std::string("Little Red Box"));
     }
 };
 

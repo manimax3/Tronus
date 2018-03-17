@@ -1,9 +1,16 @@
 #include "GameObject.h"
+#include "World.h"
+#include "../core/Engine.h"
+#include "../event/EventSystem.h"
 
 tr::GameObject::GameObject(World *w, const std::string &name, Mat4 transform)
-    : mWorld(w)
-    , mName(name)
+    : mName(name)
 {
+    Context.Wrld       = w;
+    Context.Eng        = w->mEngine;
+    Context.ResManager = Context.Eng->sResourceManager;
+    Context.EvtHandler = Context.Eng->sEventSystem;
+
     cRootComponent = CreateComponent<SceneComponent>("RootComponent");
 }
 

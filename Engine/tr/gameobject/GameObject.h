@@ -8,6 +8,14 @@
 namespace tr {
 
 class World;
+
+struct GOContext {
+    class ResourceManager *ResManager = nullptr;
+    class EventSystem *    EvtHandler = nullptr;
+    class Engine *         Eng        = nullptr;
+    class World *          Wrld       = nullptr;
+};
+
 class GameObject {
 public:
     GameObject(World *w, const std::string &name, Mat4 transform);
@@ -20,7 +28,8 @@ public:
 
     SceneComponent *cRootComponent = nullptr;
     bool            mTickable      = false;
-    World *const    mWorld;
+
+    GOContext Context;
 
     friend class World;
 

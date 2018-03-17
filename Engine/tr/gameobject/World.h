@@ -20,7 +20,8 @@ public:
             std::is_base_of_v<
                 GameObject,
                 G> && std::is_constructible_v<G, World *, const std::string &, Mat4>>>
-    std::weak_ptr<G> SpawnGameObject(const std::string &name, Mat4 transform)
+    std::weak_ptr<G> SpawnGameObject(const std::string &name,
+                                     Mat4 transform = Mat4::Identity())
     {
         mGameObjects.emplace_back(new G(this, name, transform));
         mGameObjects.back()->EnterWorld();

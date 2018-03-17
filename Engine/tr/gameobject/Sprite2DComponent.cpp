@@ -46,12 +46,12 @@ void tr::Sprite2DComponent::OnEvent(const Event &e, int channel)
 
 void tr::Sprite2DComponent::OnWorldEnter()
 {
-    this->mOwner->mWorld->mEngine->sEventSystem->AddListener(this);
+    mOwner->Context.EvtHandler->AddListener(this);
 }
 
 void tr::Sprite2DComponent::OnWorldLeave()
 {
-    this->mOwner->mWorld->mEngine->sEventSystem->RemoveListener(this);
+    mOwner->Context.EvtHandler->RemoveListener(this);
 }
 
 void tr::Sprite2DComponent::SetDrawAndTextureBounds(const Rect &r)
@@ -64,11 +64,9 @@ void tr::Sprite2DComponent::SetColor(const Vec4 &col) { mColor = col; }
 
 void tr::Sprite2DComponent::HandleTextureLoad(const std::string &resource)
 {
-    if (mTexture
-        = mOwner->mWorld->mEngine->sResourceManager->GetRes<Texture>(resource);
+    if (mTexture = mOwner->Context.ResManager->GetRes<Texture>(resource);
         !mTexture) {
-        mOwner->mWorld->mEngine->sResourceManager->LoadResource(resource);
-        mTexture = mOwner->mWorld->mEngine->sResourceManager->GetRes<Texture>(
-            resource);
+        mOwner->Context.ResManager->LoadResource(resource);
+        mTexture = mOwner->Context.ResManager->GetRes<Texture>(resource);
     }
 }
