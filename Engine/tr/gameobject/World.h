@@ -5,14 +5,12 @@
 #include <vector>
 
 namespace tr {
-class World : public EventListener {
+class World{
 public:
     World(class Engine *engine);
 
     void StartWorld();
-
-    std::vector<int> SubscripeTo() const override;
-    void             OnEvent(const Event &e, int channel) override;
+    void StopWorld();
 
     template<
         typename G,
@@ -30,10 +28,9 @@ public:
     }
 
     void DispatchTick();
+    void RenderDebug();
 
 public:
-    void DispatchDebugGuiEvent();
-
     class Engine *mEngine = nullptr;
 
 private:

@@ -10,6 +10,7 @@ tr::GameObject::GameObject(World *w, const std::string &name, Mat4 transform)
     Context.Eng        = w->mEngine;
     Context.ResManager = Context.Eng->sResourceManager;
     Context.EvtHandler = Context.Eng->sEventSystem;
+    Context.GfxHandler = Context.Eng->sGraphicsHandler;
 
     cRootComponent = CreateComponent<SceneComponent>("RootComponent");
 }

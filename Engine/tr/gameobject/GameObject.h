@@ -12,6 +12,7 @@ class World;
 struct GOContext {
     class ResourceManager *ResManager = nullptr;
     class EventSystem *    EvtHandler = nullptr;
+    class GraphicsHandler *GfxHandler = nullptr;
     class Engine *         Eng        = nullptr;
     class World *          Wrld       = nullptr;
 };
@@ -37,7 +38,6 @@ protected:
     virtual void OnWorldEnter(){};
     virtual void OnWorldLeave(){};
     virtual void OnTick(){};
-    virtual void OnDebugGui(){};
 
     const std::string mName;
     double            mLastDelta = 0.0;

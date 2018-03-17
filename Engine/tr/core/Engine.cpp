@@ -113,6 +113,8 @@ void Engine::Stop()
     if (mGame)
         mGame->OnWorldShutdown();
 
+    mWorld.StopWorld();
+
     mRunning = false;
     sProfiler->Shutdown();
     sGraphicsHandler->Shutdown();

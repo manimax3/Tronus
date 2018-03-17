@@ -11,32 +11,25 @@ tr::World::World(Engine *engine)
 {
 }
 
-void tr::World::StartWorld() {
-    if(mEngine) {
-        mEngine->sEventSystem->AddListener(this);
-    }
+void tr::World::StartWorld()
+{
 }
 
-std::vector<int> tr::World::SubscripeTo() const
+void tr::World::StopWorld()
 {
-    return { ENGINE_CHANNEL, RENDER_CHANNEL };
+    for(auto go : mGameObjects) {
+        go->LeaveWorld();
+    }
+
+    mGameObjects.clear();
 }
 
-void tr::World::OnEvent(const Event &e, int channel)
+void tr::World::RenderDebug()
 {
-    if (channel == ENGINE_CHANNEL) {
-    } else if (channel == RENDER_CHANNEL) {
-        if (e.Identifier == event::RENDER_DEBUG) {
-            DispatchDebugGuiEvent();
-        }
+    if (ImGui::Begin("World Debug")) {
+        ImGui::Text("Count GameObjects: %li", mGameObjects.size());
     }
-}
-
-void tr::World::DispatchDebugGuiEvent()
-{
-    for (auto &go : mGameObjects) {
-        go->OnDebugGui();
-    }
+    ImGui::End();
 }
 
 void tr::World::DispatchTick()

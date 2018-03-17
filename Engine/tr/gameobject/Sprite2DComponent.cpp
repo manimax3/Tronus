@@ -46,12 +46,12 @@ void tr::Sprite2DComponent::OnEvent(const Event &e, int channel)
 
 void tr::Sprite2DComponent::OnWorldEnter()
 {
-    mOwner->Context.EvtHandler->AddListener(this);
+    /* mOwner->Context.EvtHandler->AddListener(this); */
 }
 
 void tr::Sprite2DComponent::OnWorldLeave()
 {
-    mOwner->Context.EvtHandler->RemoveListener(this);
+    /* mOwner->Context.EvtHandler->RemoveListener(this); */
 }
 
 void tr::Sprite2DComponent::SetDrawAndTextureBounds(const Rect &r)

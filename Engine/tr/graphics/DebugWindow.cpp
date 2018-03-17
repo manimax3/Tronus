@@ -5,7 +5,7 @@
 #include "Texture.h"
 #include "imgui.h"
 
-tr::DebugWindow::DebugWindow(const Engine &engine)
+tr::DebugWindow::DebugWindow(Engine &engine)
     : mEngine(engine)
 {
     engine.sEventSystem->AddListener(this);
@@ -43,8 +43,12 @@ void tr::DebugWindow::draw()
         if (ImGui::Button("Renderer2D Test")) {
             render2d_test_open = !render2d_test_open;
         }
+        ImGui::Checkbox("World Debug", &world_debug_open);
     }
     ImGui::End();
+
+    if (world_debug_open)
+        mEngine.mWorld.RenderDebug();
 }
 
 tr::Vec4 rand_color()

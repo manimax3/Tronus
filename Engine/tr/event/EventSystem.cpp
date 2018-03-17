@@ -36,6 +36,9 @@ void tr::EventSystem::AddListener(EventListener *el)
 
 void tr::EventSystem::RemoveListener(EventListener *el)
 {
+    if (!el->mEventSystem)
+        return;
+
     std::unique_lock<std::shared_mutex> lck(mListenersLock);
 
     el->mEventSystem = nullptr;

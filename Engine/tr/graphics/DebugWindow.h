@@ -6,7 +6,7 @@ namespace tr {
 class Engine;
 class DebugWindow : public EventListener {
 public:
-    DebugWindow(const Engine &engine);
+    DebugWindow(Engine &engine);
 
     std::vector<int> SubscripeTo() const override
     {
@@ -20,7 +20,9 @@ private:
     bool render2d_test_open = false;
     void renderer2d_enable_test_window(class Renderer2D &ren);
 
-    const Engine &mEngine;
+    bool world_debug_open = false;
+
+    Engine &mEngine;
     bool          mShouldDraw = false;
 };
 }
