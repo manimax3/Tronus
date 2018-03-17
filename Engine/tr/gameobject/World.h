@@ -23,12 +23,14 @@ public:
     std::weak_ptr<G> SpawnGameObject(const std::string &name, Mat4 transform)
     {
         mGameObjects.emplace_back(new G(this, name, transform));
-        return mGameObjects.back().get();
+        mGameObjects.back()->EnterWorld();
+        return std::weak_ptr<G>(
+            std::static_pointer_cast<G>(mGameObjects.back()));
     }
 
     void DispatchTick();
 
-protected:
+public:
     void DispatchDebugGuiEvent();
 
     class Engine *mEngine = nullptr;

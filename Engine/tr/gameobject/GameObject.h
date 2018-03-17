@@ -20,8 +20,10 @@ public:
 
     SceneComponent *cRootComponent = nullptr;
     bool            mTickable      = false;
+    World *const    mWorld;
 
     friend class World;
+
 protected:
     virtual void OnWorldEnter(){};
     virtual void OnWorldLeave(){};
@@ -29,7 +31,6 @@ protected:
     virtual void OnDebugGui(){};
 
     const std::string mName;
-    World *const      mWorld;
     double            mLastDelta = 0.0;
 
     template<
@@ -51,7 +52,7 @@ protected:
             parent->AddChild(mComponents.back().get());
         }
 
-        return mComponents.back().get();
+        return static_cast<C *>(mComponents.back().get());
     }
 
 private:

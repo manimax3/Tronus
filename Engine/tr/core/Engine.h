@@ -2,11 +2,11 @@
 
 #include "../event/EventSystem.h"
 #include "../filesystem/ResourceManager.h"
+#include "../gameobject/World.h"
 #include "../graphics/DebugWindow.h"
 #include "../graphics/GraphicsHandler.h"
 #include "../profile/Profiler.h"
 #include "../util/Log.h"
-#include "../gameobject/World.h"
 #include "JobHandler.h"
 #include "tr.h"
 #include <map>
@@ -33,9 +33,10 @@ private:
     int mLastFps = 0;
 
     DebugWindow *mDebugWindow = nullptr;
+    class Game * mGame        = nullptr;
 
 public:
-    Engine();
+    Engine(class Game *game = nullptr);
     ~Engine();
     void Start();
     void Stop();
@@ -47,6 +48,7 @@ public:
     void             OnEvent(const Event &e, int channel) override;
 
     friend class DebugWindow;
+
 private:
     void Tick();
 };

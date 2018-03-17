@@ -1,13 +1,15 @@
 #include "Engine.h"
 #include "../event/CommonEvents.h"
+#include "../gameobject/Game.h"
 #include "../util/Keys.h"
 #include "util/Timer.h"
 #include <iostream>
 
 using namespace tr;
 
-Engine::Engine()
+Engine::Engine(Game *game)
     : mWorld(this)
+    , mGame(game)
 {
     sLog             = new Log;
     sJobHandler      = new JobHandler;
@@ -52,6 +54,9 @@ void Engine::Start()
     sEventSystem->PostInit();
     sGraphicsHandler->PostInit();
 
+    if (mGame)
+        mGame->PreWorldStartUp(*this);
+
     mRunning = true;
 
     mDebugWindow = new DebugWindow(*this);
@@ -65,6 +70,9 @@ void Engine::Start()
     sEventSystem->AddListener(sGraphicsHandler);
 
     mWorld.StartWorld();
+
+    if (mGame)
+        mGame->OnWorldLoad(mWorld);
 
     // Start the tick loop
 
@@ -102,6 +110,9 @@ void Engine::Start()
 
 void Engine::Stop()
 {
+    if (mGame)
+        mGame->OnWorldShutdown();
+
     mRunning = false;
     sProfiler->Shutdown();
     sGraphicsHandler->Shutdown();

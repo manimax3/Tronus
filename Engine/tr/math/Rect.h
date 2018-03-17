@@ -18,12 +18,13 @@ struct Rect {
 
     Rect(const Vec4 &v)
         : pos(v.x, v.y)
-        , size(v.z, v.w);
+        , size(v.z, v.w)
     {
     }
 
-    Rect operator*(float scale) { return { pos, size * scale }; }
-    Rect& operator*=(float scale) {
+    Rect  operator*(float scale) { return { pos, size * scale }; }
+    Rect &operator*=(float scale)
+    {
         size *= scale;
         return *this;
     }
