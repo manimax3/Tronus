@@ -27,7 +27,7 @@ public:
     inline std::string GetName() const override { return "EventSystem"; }
 
     void AddListener(EventListener *el);
-    void RemoveListener(EventListener *el);
+    void RemoveListener(EventListener *el, bool soft = true);
     void DispatchEvent(const Event &event, int channel = ENGINE_CHANNEL);
     bool HasChannel(int channel);
 

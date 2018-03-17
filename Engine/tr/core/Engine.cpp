@@ -29,6 +29,8 @@ Engine::Engine(Game *game)
 
 Engine::~Engine()
 {
+    delete mWorld;
+
     delete sLog;
     delete sJobHandler;
     delete sResourceManager;

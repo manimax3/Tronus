@@ -34,14 +34,17 @@ void tr::EventSystem::AddListener(EventListener *el)
     }
 }
 
-void tr::EventSystem::RemoveListener(EventListener *el)
+void tr::EventSystem::RemoveListener(EventListener *el, bool soft)
 {
     if (!el->mEventSystem)
         return;
 
-    std::unique_lock<std::shared_mutex> lck(mListenersLock);
-
     el->mEventSystem = nullptr;
+
+    if (soft)
+        return;
+
+    std::unique_lock<std::shared_mutex> lck(mListenersLock);
 
     for (auto channel : el->SubscripeTo()) {
         if (auto it = mListeners.find(channel); it != mListeners.end())
@@ -57,8 +60,10 @@ void tr::EventSystem::DispatchEvent(const Event &event, int channel)
 
     std::shared_lock<std::shared_mutex> lck(mListenersLock);
 
-    for (auto listener : mListeners[channel])
-        listener->OnEvent(event, channel);
+    for (auto listener : mListeners[channel]){
+        if (listener->mEventSystem)
+            listener->OnEvent(event, channel);
+    }
 }
 
 bool tr::EventSystem::HasChannel(int channel)
