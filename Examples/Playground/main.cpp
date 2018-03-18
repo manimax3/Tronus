@@ -17,19 +17,30 @@ public:
         mTickable = true;
     }
 
-    void OnTick() override
+    void OnEvent(const tr::Event &e) override
     {
-        mSpriteComponent->mDrawBounds.pos += tr::Vec2(0.1f, 0.1f);
+        if (e.Identifier != tr::event::INPUT)
+            return;
+
+        const tr::InputEvent &ie = static_cast<const tr::InputEvent &>(e);
+
+        if (ie.type == tr::InputEvent::MouseButton
+            && ie.action == tr::InputEvent::PRESS) {
+            mSpriteComponent->mDrawBounds.pos
+                = LastMousePos - (mSpriteComponent->mDrawBounds.size * 0.5f);
+        } else if (ie.type == tr::InputEvent::Mouse) {
+            LastMousePos = tr::Vec2(ie.XPos, ie.YPos);
+        }
     }
 
     tr::Sprite2DComponent *mSpriteComponent = nullptr;
+    tr::Vec2               LastMousePos     = tr::Vec2(0.f);
 };
 
 class MyGame : public tr::Game {
     void OnWorldLoad(tr::World &world) override
     {
-        auto go
-            = world.SpawnGameObject<MyEntity>(std::string("Little Red Box"));
+        world.SpawnGameObject<MyEntity>(std::string("Little Red Box"));
     }
 };
 
