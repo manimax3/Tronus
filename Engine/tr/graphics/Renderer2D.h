@@ -29,8 +29,8 @@ public:
         Vec2 bottom_left;
         Vec2 bottom_right;
 
-        Vec4     color = Vec4(1.f);
-        Vec4     uv    = { 0.f, 0.f, 1.f, 1.f };
+        Vec4     color   = Vec4(1.f);
+        Vec4     uv      = { 0.f, 0.f, 1.f, 1.f };
         Texture *texture = nullptr;
 
         friend class Renderer2D;
@@ -67,13 +67,13 @@ public:
     void RenderRenderables();
 
 private:
-    GLSLShader *            mShader        = nullptr;
-    uint                    mVao           = 0;
-    uint                    mVbo           = 0;
-    uint                    mIbo           = 0;
-    uint                    mRenderCount   = 0;
-    uint64                  mIdCounter     = 0;
-    Camera                  mCamera        = Mat4::Identity();
+    GLSLShader *            mShader      = nullptr;
+    uint                    mVao         = 0;
+    uint                    mVbo         = 0;
+    uint                    mIbo         = 0;
+    uint                    mRenderCount = 0;
+    uint64                  mIdCounter   = 0;
+    Camera                  mCamera;
     GraphicsHandler *       mGfxHandler    = nullptr;
     ResourceManager *       mResManager    = nullptr;
     Vertex *                mBufferAccess  = nullptr;

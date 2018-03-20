@@ -7,6 +7,7 @@
 #include "GraphicsHandler.h"
 #include "Texture.h"
 #include "glad/glad.h"
+#include "glm/gtc/matrix_transform.hpp"
 #include "imgui.h"
 #include "nlohmann/json.hpp"
 
@@ -22,8 +23,7 @@ void tr::ImguiRenderer::Init(GraphicsHandler *gfx, ResourceManager *rm)
 
     const auto w_size = gfx->GetWindowSize();
 
-    mProjectionMatrix
-        = Mat4::Orthographic(0.f, w_size.x, w_size.y, 0.f, 1.f, -1.f);
+    mProjectionMatrix = glm::ortho(0.f, w_size.x, w_size.y, 0.f, 1.f, -1.f);
 
     ImGui::CreateContext();
     auto im = ImGui::GetIO();
@@ -154,7 +154,8 @@ void tr::ImguiRenderer::StartDebugFrame()
 
     ImGui::NewFrame();
 
-    mGfxHandler->GetEngine().sEventSystem->DispatchEvent(RenderDebugEvent(), RENDER_CHANNEL);
+    mGfxHandler->GetEngine().sEventSystem->DispatchEvent(RenderDebugEvent(),
+                                                         RENDER_CHANNEL);
 }
 
 void tr::ImguiRenderer::draw_data(ImDrawData *draw_data)
@@ -271,7 +272,7 @@ void tr::ImguiRenderer::OnEvent(const Event &e, int channel)
 
         if (we.type == WindowEvent::RESIZED) {
             mProjectionMatrix
-                = Mat4::Orthographic(0, we.xSize, we.ySize, 0, 1.f, -1.f);
+                = glm::ortho<float>(0.f, we.xSize, we.ySize, 0.f, 1.f, -1.f);
         }
     }
 }

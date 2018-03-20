@@ -22,7 +22,7 @@ public:
                 GameObject,
                 G> && std::is_constructible_v<G, World *, const std::string &, Mat4>>>
     G *SpawnGameObject(const std::string &name,
-                       Mat4               transform = Mat4::Identity())
+                       Mat4               transform = Mat4())
     {
         mGameObjects.emplace_back(new G(this, name, transform));
         mGameObjects.back()->EnterWorld();

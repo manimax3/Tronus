@@ -8,6 +8,7 @@
 #include "GraphicsHandler.h"
 #include "Image.h"
 #include "Texture.h"
+#include "glm/gtc/matrix_transform.hpp"
 
 #include <algorithm>
 
@@ -26,8 +27,8 @@ void tr::Renderer2D::Init(GraphicsHandler *gfx, ResourceManager *rm)
     mResManager->LoadResource(SHADER_ID);
     mShader = mResManager->GetRes<GLSLShader>(SHADER_ID);
 
-    mProjectionMatrix = Mat4::Orthographic(0, 1280, 720, 0, 1, -1);
-    mTransformation.push(Mat4::Identity());
+    mProjectionMatrix = glm::ortho<float>(0, 1280, 720, 0, 1, -1);
+    mTransformation.push(Mat4());
 
     // Generate the buffers
     Call(glGenBuffers(1, &mVbo));
@@ -76,7 +77,7 @@ void tr::Renderer2D::Tick() { EASY_BLOCK("Renderer2D Tick"); }
 
 void tr::Renderer2D::RenderRenderables()
 {
-    PushTransform(Mat4::Identity(), true);
+    PushTransform(Mat4(), true);
     for (auto &r : mRenderables) {
         Submit(r);
     }
@@ -130,19 +131,19 @@ void tr::Renderer2D::Submit(const Renderable &r)
 
     mBufferAccess[0].pos   = r.bottom_left;
     mBufferAccess[0].color = r.color;
-    mBufferAccess[0].uv    = { r.uv.x, r.uv.w };
+    mBufferAccess[0].uv    = Vec2(r.uv.x, r.uv.w);
 
     mBufferAccess[1].pos   = r.top_left;
     mBufferAccess[1].color = r.color;
-    mBufferAccess[1].uv    = { r.uv.x, r.uv.y };
+    mBufferAccess[1].uv    = Vec2(r.uv.x, r.uv.y);
 
     mBufferAccess[2].pos   = r.top_right;
     mBufferAccess[2].color = r.color;
-    mBufferAccess[2].uv    = { r.uv.z, r.uv.y };
+    mBufferAccess[2].uv    = Vec2(r.uv.z, r.uv.y);
 
     mBufferAccess[3].pos   = r.bottom_right;
     mBufferAccess[3].color = r.color;
-    mBufferAccess[3].uv    = { r.uv.z, r.uv.w };
+    mBufferAccess[3].uv    = Vec2(r.uv.z, r.uv.w);
 
     mBufferAccess += 4;
 

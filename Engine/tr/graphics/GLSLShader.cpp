@@ -156,8 +156,7 @@ void tr::GLSLShader::Set(const std::string &name, const Vec4 &value)
 }
 void tr::GLSLShader::Set(const std::string &name, const Mat4 &value)
 {
-    Call(glUniformMatrix4fv(GetUniformLocation(name), 1, GL_TRUE,
-                            value.m_Values));
+    Call(glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, &value[0][0]));
 }
 
 std::tuple<std::string, std::string>

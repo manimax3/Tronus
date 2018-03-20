@@ -36,7 +36,7 @@ protected:
 public:
     bool        mTickable = false;
     std::string mName;
-    Mat4        mRelTransform = Mat4::Identity();
+    Mat4        mRelTransform;
 
 protected:
     GameObject *                  mOwner           = nullptr;

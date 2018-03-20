@@ -7,7 +7,7 @@ FUNCTION(PREPEND var prefix)
 ENDFUNCTION(PREPEND)
 
 set(TRONUS_CORE_SRC JobHandler.cpp Subsystem.cpp Engine.cpp)
-set(TRONUS_MATH_SRC Vec3.cpp Vec4.cpp Mat4.cpp Quaternion.cpp)
+set(TRONUS_MATH_SRC)
 set(TRONUS_PROFILE_SRC Profiler.cpp)
 set(TRONUS_UTIL_SRC Timer.cpp Log.cpp stb_impl.cpp)
 set(TRONUS_EVENT_SRC EventSystem.cpp)
@@ -46,6 +46,7 @@ target_include_directories(Tronus PUBLIC "${CMAKE_SOURCE_DIR}/External/concurren
 target_include_directories(Tronus PRIVATE "${CMAKE_SOURCE_DIR}/External/rang/include")
 target_include_directories(Tronus PRIVATE "${CMAKE_SOURCE_DIR}/External/json/include")
 target_include_directories(Tronus PRIVATE "${CMAKE_SOURCE_DIR}/External/stb")
+target_include_directories(Tronus PUBLIC "${CMAKE_SOURCE_DIR}/External/glm")
 
 target_link_libraries(Tronus easy_profiler)
 target_link_libraries(Tronus Glad)

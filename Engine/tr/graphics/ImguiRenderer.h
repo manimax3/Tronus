@@ -26,12 +26,12 @@ private:
 
     void draw_data(ImDrawData *draw_data);
 
-    GraphicsHandler *mGfxHandler       = nullptr;
-    ResourceManager *mResManager       = nullptr;
-    GLSLShader *     mShader           = nullptr;
-    uint             mVao              = 0;
-    uint             mVbo              = 0;
-    uint             mIbo              = 0;
-    Mat4             mProjectionMatrix = Mat4::Identity();
+    GraphicsHandler *mGfxHandler = nullptr;
+    ResourceManager *mResManager = nullptr;
+    GLSLShader *     mShader     = nullptr;
+    uint             mVao        = 0;
+    uint             mVbo        = 0;
+    uint             mIbo        = 0;
+    Mat4             mProjectionMatrix;
 };
 }

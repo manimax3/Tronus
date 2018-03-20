@@ -1,6 +1,5 @@
 #pragma once
-#include "Vec2.h"
-#include "Vec4.h"
+#include "Math.h"
 
 namespace tr {
 struct Rect {
