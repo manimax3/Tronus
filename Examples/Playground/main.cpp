@@ -2,6 +2,8 @@
 #include "tr/gameobject/Game.h"
 #include "tr/gameobject/Sprite2DComponent.h"
 #include "tr/gameobject/World.h"
+#include "tr/util/Keys.h"
+#include "glm/gtc/matrix_transform.hpp"
 
 class MyEntity : public tr::GameObject {
 public:
@@ -26,10 +28,19 @@ public:
 
         if (ie.type == tr::InputEvent::MouseButton
             && ie.action == tr::InputEvent::PRESS) {
-            mSpriteComponent->mDrawBounds.pos
-                = LastMousePos - (mSpriteComponent->mDrawBounds.size * 0.5f);
+            cRootComponent->mRelTransform = glm::translate(
+                tr::Mat4(1.f),
+                tr::Vec3(LastMousePos
+                             - (mSpriteComponent->mDrawBounds.size * 0.5f),
+                         0.f));
+            mSpriteComponent->mDirty = true;
         } else if (ie.type == tr::InputEvent::Mouse) {
             LastMousePos = tr::Vec2(ie.XPos, ie.YPos);
+        } else if (ie.type == tr::InputEvent::Keyboard && ie.Key == tr::KEY_B
+                   && ie.action == tr::InputEvent::PRESS) {
+            mSpriteComponent->mRelTransform = glm::rotate(
+                mSpriteComponent->mRelTransform, glm::radians(45.f), tr::Vec3(0.f, 0.f, 1.f));
+            mSpriteComponent->mDirty = true;
         }
     }
 

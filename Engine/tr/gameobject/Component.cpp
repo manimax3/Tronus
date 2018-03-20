@@ -6,6 +6,7 @@ tr::SceneComponent::SceneComponent(const std::string &name,
     : mName(name)
     , mOwner(owner)
     , mParentComponent(parent)
+    , mRelTransform(1.f)
 {
 }
 

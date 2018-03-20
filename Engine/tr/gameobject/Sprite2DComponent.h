@@ -22,11 +22,18 @@ protected:
 
     void OnEvent(const Event &e) override;
 
+    void UpdateValues();
+
 public:
+    bool           mDirty   = true;
     bool           mVisible = true;
     class Texture *mTexture = nullptr;
     Rect           mDrawBounds;
-    Vec4           mUV = Vec4(0.f, 0.f, 1.f, 1.f);
+    Vec2           mOrigin = { 0.f, 0.f };
+    Vec4           mUV    = Vec4(0.f, 0.f, 1.f, 1.f);
     Vec4           mColor = Vec4(1.f);
+
+protected:
+    Vec2 mTopLeft, mTopRight, mBottomLeft, mBottomRight;
 };
 }
