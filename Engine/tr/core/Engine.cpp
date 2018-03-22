@@ -56,6 +56,8 @@ void Engine::Start()
     sEventSystem->Initialize(this);
     sGraphicsHandler->Initialize(this);
 
+    sGraphicsHandler->CreateWindow(CreateWindowInfo());
+
     Logger().log("Starting Subsystem Post Initialization...");
     sLog->PostInit();
     sJobHandler->PostInit();

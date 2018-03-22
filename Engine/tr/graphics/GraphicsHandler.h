@@ -11,12 +11,22 @@
 
 namespace tr {
 
-class GfxCommand;
 class Engine;
 
+struct CreateWindowInfo {
+    Vec2        Size          = { 1280, 720 };
+    std::string Name          = "Tronus Engine";
+    bool        Fullscreen    = false;
+    bool        Resizeable    = true;
+    bool        VSync         = false;
+    Vec4        ClearColor    = { 0.2f, 0.3f, 0.3f, 1.0f };
+    Vec2        OpenGLVersion = { 3, 3 };
+};
+
 struct RenderContext {
-    void *window = nullptr;
-    bool  valid  = false;
+    void *           window = nullptr;
+    bool             valid  = false;
+    CreateWindowInfo windowInfo;
 };
 
 class GraphicsHandler : public Subsystem<GraphicsHandler> {
@@ -27,11 +37,10 @@ public:
     bool               Shutdown() override;
     inline std::string GetName() const override { return "GraphicsHandler"; };
 
-    bool SubmitCommand(std::unique_ptr<GfxCommand> &&command);
+    void CreateWindow(const CreateWindowInfo &info);
 
     inline RenderContext &Context() { return mContext; }
-
-    bool Valid() const;
+    inline bool           Valid() const { return mContext.valid; }
 
     void Render();
 
@@ -48,44 +57,10 @@ public:
 
     inline Renderer2D &GetRenderer2D() { return mRenderer2D; }
 
-    friend class CreateWindowCmd;
-
 private:
-    std::queue<GfxCommand *> mGfxCommandBuffer;
-    class CreateWindowCmd *  mWindowCmd = nullptr;
-
     RenderContext    mContext;
     Simple2DRenderer mSimpleRenderer2D;
     Renderer2D       mRenderer2D;
     ImguiRenderer    mImguiRenderer;
-};
-
-struct GfxCommand {
-    explicit GfxCommand(bool delete_after_exec = true)
-        : DeleteAfterExecution(delete_after_exec)
-    {
-    }
-
-    virtual ~GfxCommand()          = default;
-    GfxCommand(const GfxCommand &) = default;
-    GfxCommand(GfxCommand &&)      = default;
-    GfxCommand &operator=(const GfxCommand &) = default;
-    GfxCommand &operator=(GfxCommand &&) = default;
-
-    virtual void Execute(GraphicsHandler *handler) = 0;
-
-    bool DeleteAfterExecution;
-};
-
-struct CreateWindowCmd : public GfxCommand {
-    void Execute(GraphicsHandler *handler) override;
-
-    Vec2        Size          = { 1280, 720 };
-    std::string Name          = "Tronus Engine";
-    bool        Fullscreen    = false;
-    bool        Resizeable    = true;
-    bool        VSync         = false;
-    Vec4        ClearColor    = { 0.2f, 0.3f, 0.3f, 1.0f };
-    Vec2        OpenGLVersion = { 3, 3 };
 };
 }

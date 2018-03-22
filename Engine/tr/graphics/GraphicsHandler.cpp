@@ -39,15 +39,12 @@ void framebuffer_resized_callback(GLFWwindow *window, int width, int height);
 
 bool tr::GraphicsHandler::Initialize(Engine *e)
 {
-    this->mWindowCmd                       = new CreateWindowCmd;
-    this->mWindowCmd->DeleteAfterExecution = false;
-    this->SubmitCommand(std::unique_ptr<GfxCommand>(mWindowCmd));
     return Subsystem::Initialize(e);
 }
 
 tr::Vec2 tr::GraphicsHandler::GetWindowSize() const
 {
-    return mWindowCmd ? mWindowCmd->Size : Vec2{ 0.f, 0.f };
+    return Valid() ? mContext.windowInfo.Size : Vec2{ 0.f, 0.f };
 }
 
 double tr::GraphicsHandler::GetTime() const { return glfwGetTime(); }
@@ -81,33 +78,9 @@ bool tr::GraphicsHandler::Shutdown()
     return true;
 }
 
-bool tr::GraphicsHandler::SubmitCommand(std::unique_ptr<GfxCommand> &&_cmd)
-{
-    GfxCommand *cmd = _cmd.release();
-
-    if (!cmd)
-        return false;
-
-    mGfxCommandBuffer.push(cmd);
-
-    return true;
-}
-
 void tr::GraphicsHandler::Render()
 {
     EASY_FUNCTION();
-
-    // Execute the commands in the command buffer
-    if (const auto size = mGfxCommandBuffer.size(); size > 0) {
-        EASY_BLOCK("Executing GfxCommands");
-
-        for (int i = 0; i < size; i++) {
-            mGfxCommandBuffer.front()->Execute(this);
-            if (mGfxCommandBuffer.front()->DeleteAfterExecution)
-                delete mGfxCommandBuffer.front();
-            mGfxCommandBuffer.pop();
-        }
-    }
 
     if (!mContext.valid)
         return; // We dont have a valid context
@@ -151,25 +124,25 @@ void tr::GraphicsHandler::OnEvent(const Event &e, int channel)
 
     Call(glViewport(0, 0, we.xSize, we.ySize));
 
-    if (mWindowCmd) {
-        mWindowCmd->Size.x = we.xSize;
-        mWindowCmd->Size.y = we.ySize;
+    if (Valid()) {
+        mContext.windowInfo.Size.x = we.xSize;
+        mContext.windowInfo.Size.y = we.ySize;
     }
 }
 
-void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
+void tr::GraphicsHandler::CreateWindow(const CreateWindowInfo &info)
 {
     EASY_BLOCK("CreateWindowCmd");
 
-    auto &Logger = handler->GetEngine().Logger();
+    auto &Logger = GetEngine().Logger();
 
     if (!glfwInit())
         Logger.log("Error Initializing GLFW!", LogLevel::ERROR);
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OpenGLVersion.x);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OpenGLVersion.y);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, info.OpenGLVersion.x);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, info.OpenGLVersion.y);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_RESIZABLE, Resizeable ? GL_TRUE : GL_FALSE);
+    glfwWindowHint(GLFW_RESIZABLE, info.Resizeable ? GL_TRUE : GL_FALSE);
 
 #ifdef TR_DEBUG
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
@@ -177,9 +150,9 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_FALSE);
 #endif
 
-    GLFWwindow *window
-        = glfwCreateWindow(Size.x, Size.y, Name.c_str(),
-                           Fullscreen ? glfwGetPrimaryMonitor() : NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(
+        info.Size.x, info.Size.y, info.Name.c_str(),
+        info.Fullscreen ? glfwGetPrimaryMonitor() : NULL, NULL);
 
     if (!window) {
         Logger.log("Error Creating a GLFW Window", LogLevel::ERROR);
@@ -187,7 +160,7 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
     }
 
     // Set the current GraphicsHandler as the user pointer
-    glfwSetWindowUserPointer(window, static_cast<void *>(handler));
+    glfwSetWindowUserPointer(window, static_cast<void *>(this));
 
     // Set the window callbacks
     glfwSetKeyCallback(window, key_callback);
@@ -209,7 +182,7 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
     // Enable the Debug Message Callback if available (>=GL4.3)
     if (glfwExtensionSupported("GL_ARB_debug_output") && GLVersion.major >= 4
         && GLVersion.minor >= 3)
-        glDebugMessageCallback((GLDEBUGPROC)gl_debug_callback, handler);
+        glDebugMessageCallback((GLDEBUGPROC)gl_debug_callback, this);
 #endif
 
     // Log the OpenGl version
@@ -221,20 +194,19 @@ void tr::CreateWindowCmd::Execute(GraphicsHandler *handler)
         const_cast<byte *>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
     Logger.log(version_info);
 
-    glfwSwapInterval(VSync ? 1 : 0);
+    glfwSwapInterval(info.VSync ? 1 : 0);
 
-    Call(glViewport(0, 0, Size.x, Size.y));
-    Call(glClearColor(ClearColor.x, ClearColor.y, ClearColor.z, ClearColor.w));
+    Call(glViewport(0, 0, info.Size.x, info.Size.y));
+    Call(glClearColor(info.ClearColor.r, info.ClearColor.g, info.ClearColor.b,
+                      info.ClearColor.z));
 
-    handler->mContext.window = static_cast<void *>(window);
+    mContext.window     = static_cast<void *>(window);
+    mContext.windowInfo = info;
+    mContext.valid      = true;
 
-    handler->mSimpleRenderer2D.Init(handler,
-                                    handler->GetEngine().sResourceManager);
-    handler->mRenderer2D.Init(handler, handler->GetEngine().sResourceManager);
-    handler->mImguiRenderer.Init(handler,
-                                 handler->GetEngine().sResourceManager);
-
-    handler->mContext.valid = true;
+    mSimpleRenderer2D.Init(this, GetEngine().sResourceManager);
+    mRenderer2D.Init(this, GetEngine().sResourceManager);
+    mImguiRenderer.Init(this, GetEngine().sResourceManager);
 }
 
 void tr::key_callback(GLFWwindow *window,
