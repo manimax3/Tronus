@@ -14,7 +14,8 @@ public:
             = CreateComponent<tr::Sprite2DComponent>("Sprite", cRootComponent);
         mSpriteComponent->mColor = tr::Vec4(1.f, 0.f, 0.f, 1.f);
         mSpriteComponent->mDrawBounds
-            = tr::Rect(tr::Vec2(10.f, 10.f), tr::Vec2(30.f));
+            = tr::Rect(tr::Vec2(0.f, 0.f), tr::Vec2(30.f, 30.f));
+        mSpriteComponent->mOrigin = tr::Vec2(15.f, 15.f);
 
         mTickable = true;
     }
@@ -28,11 +29,8 @@ public:
 
         if (ie.type == tr::InputEvent::MouseButton
             && ie.action == tr::InputEvent::PRESS) {
-            cRootComponent->mRelTransform = glm::translate(
-                tr::Mat4(1.f),
-                tr::Vec3(LastMousePos
-                             - (mSpriteComponent->mDrawBounds.size * 0.5f),
-                         0.f));
+            cRootComponent->mRelTransform
+                = glm::translate(tr::Mat4(1.f), tr::Vec3(LastMousePos, 0.f));
             mSpriteComponent->mDirty = true;
         } else if (ie.type == tr::InputEvent::Mouse) {
             LastMousePos = tr::Vec2(ie.XPos, ie.YPos);
