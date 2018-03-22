@@ -1,6 +1,7 @@
 #include "Texture.h"
 #include "../core/Engine.h"
 #include "GLCheck.h"
+#include "GraphicsHandler.h"
 #include "Image.h"
 #include "glad/glad.h"
 #include "nlohmann/json.hpp"
@@ -55,6 +56,13 @@ tr::Resource *tr::Texture::Loader(ResourceManager::ResHandle handle,
 {
     using json   = nlohmann::json;
     json jhandle = json::parse(handle);
+
+    if (!(rm->GetEngine().sGraphicsHandler->Valid())) {
+        rm->GetEngine().Logger().log(
+            "Tried to create a Texture without valid render Context",
+            LogLevel::ERROR);
+        return nullptr;
+    }
 
     std::string image_dep_handle;
     WrapMode    s, t;
