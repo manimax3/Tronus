@@ -27,6 +27,7 @@ struct RenderContext {
     void *           window = nullptr;
     bool             valid  = false;
     CreateWindowInfo windowInfo;
+    Vec2             lastMousePos;
 };
 
 class GraphicsHandler : public Subsystem<GraphicsHandler> {
@@ -54,6 +55,7 @@ public:
     double GetTime() const;
 
     Vec2 GetWindowSize() const;
+    Vec2 GetMousePos() const;
 
     inline Renderer2D &GetRenderer2D() { return mRenderer2D; }
 

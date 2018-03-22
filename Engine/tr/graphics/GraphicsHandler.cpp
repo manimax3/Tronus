@@ -47,6 +47,11 @@ tr::Vec2 tr::GraphicsHandler::GetWindowSize() const
     return Valid() ? mContext.windowInfo.Size : Vec2{ 0.f, 0.f };
 }
 
+tr::Vec2 tr::GraphicsHandler::GetMousePos() const
+{
+    return Valid() ? mContext.lastMousePos : Vec2(0.f);
+}
+
 double tr::GraphicsHandler::GetTime() const { return glfwGetTime(); }
 
 void tr::GraphicsHandler::PostInit() {}
@@ -111,22 +116,32 @@ std::vector<int> tr::GraphicsHandler::SubscripeTo() const
 
 void tr::GraphicsHandler::OnEvent(const Event &e, int channel)
 {
-    if (e.Identifier != event::WINDOW)
-        return;
+    if (e.Identifier == event::WINDOW) {
 
-    if (!mContext.valid)
-        return;
+        if (!mContext.valid)
+            return;
 
-    const WindowEvent &we = static_cast<const WindowEvent &>(e);
+        const WindowEvent &we = static_cast<const WindowEvent &>(e);
 
-    if (we.type != WindowEvent::RESIZED)
-        return;
+        if (we.type != WindowEvent::RESIZED)
+            return;
 
-    Call(glViewport(0, 0, we.xSize, we.ySize));
+        Call(glViewport(0, 0, we.xSize, we.ySize));
 
-    if (Valid()) {
-        mContext.windowInfo.Size.x = we.xSize;
-        mContext.windowInfo.Size.y = we.ySize;
+        if (Valid()) {
+            mContext.windowInfo.Size.x = we.xSize;
+            mContext.windowInfo.Size.y = we.ySize;
+        }
+    } else if (e.Identifier == event::INPUT) {
+        const InputEvent &ie = static_cast<const InputEvent &>(e);
+
+        if (ie.type != InputEvent::Mouse)
+            return;
+
+        if (!mContext.valid)
+            return;
+
+        mContext.lastMousePos = Vec2(ie.XPos, ie.YPos);
     }
 }
 
@@ -247,7 +262,6 @@ void tr::cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
         = static_cast<GraphicsHandler *>(glfwGetWindowUserPointer(window));
 
     InputEvent event(xpos, ypos);
-
     handler->GetEngine().sEventSystem->DispatchEvent(event);
 }
 

@@ -1,7 +1,9 @@
 #include "tr/core/Engine.h"
 #include "tr/gameobject/Game.h"
 #include "tr/gameobject/Sprite2DComponent.h"
+#include "tr/graphics/GraphicsHandler.h"
 #include "tr/gameobject/World.h"
+#include "tr/gameobject/GameObject.h"
 #include "tr/util/Keys.h"
 #include "glm/gtc/matrix_transform.hpp"
 
@@ -30,10 +32,8 @@ public:
         if (ie.type == tr::InputEvent::MouseButton
             && ie.action == tr::InputEvent::PRESS) {
             cRootComponent->mRelTransform
-                = glm::translate(tr::Mat4(1.f), tr::Vec3(LastMousePos, 0.f));
+                = glm::translate(tr::Mat4(1.f), tr::Vec3(Context.GfxHandler->GetMousePos(), 0.f));
             mSpriteComponent->mDirty = true;
-        } else if (ie.type == tr::InputEvent::Mouse) {
-            LastMousePos = tr::Vec2(ie.XPos, ie.YPos);
         } else if (ie.type == tr::InputEvent::Keyboard && ie.Key == tr::KEY_B
                    && ie.action == tr::InputEvent::PRESS) {
             mSpriteComponent->mRelTransform = glm::rotate(
@@ -43,7 +43,6 @@ public:
     }
 
     tr::Sprite2DComponent *mSpriteComponent = nullptr;
-    tr::Vec2               LastMousePos     = tr::Vec2(0.f);
 };
 
 class MyGame : public tr::Game {
