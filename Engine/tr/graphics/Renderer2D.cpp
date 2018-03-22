@@ -27,7 +27,8 @@ void tr::Renderer2D::Init(GraphicsHandler *gfx, ResourceManager *rm)
     mResManager->LoadResource(SHADER_ID);
     mShader = mResManager->GetRes<GLSLShader>(SHADER_ID);
 
-    mProjectionMatrix = glm::ortho<float>(0, 1280, 720, 0, 1, -1);
+    const Vec2 ws     = gfx->GetWindowSize();
+    mProjectionMatrix = glm::ortho<float>(0, ws.x, ws.y, 0, 1, -1);
     mTransformation.push(Mat4());
 
     // Generate the buffers
@@ -196,7 +197,18 @@ void tr::Renderer2D::DeleteRenderable(Renderable *r)
     r = nullptr;
 }
 
-void tr::Renderer2D::OnEvent(const Event &e, int channel) {}
+void tr::Renderer2D::OnEvent(const Event &e, int channel)
+{
+    if (e.Identifier != event::WINDOW)
+        return;
+
+    const WindowEvent &we = static_cast<const WindowEvent &>(e);
+
+    if (we.type != WindowEvent::RESIZED)
+        return;
+
+    mProjectionMatrix = glm::ortho<float>(0, we.xSize, we.ySize, 0, 1, -1);
+}
 
 std::vector<int> tr::Renderer2D::SubscripeTo() const
 {
