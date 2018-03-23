@@ -8,4 +8,6 @@ namespace tr {
     using Vec4 = glm::vec4;
 
     using Mat4 = glm::mat4;
+
+    namespace math = glm;
 }

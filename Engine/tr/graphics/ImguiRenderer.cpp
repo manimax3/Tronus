@@ -23,7 +23,7 @@ void tr::ImguiRenderer::Init(GraphicsHandler *gfx, ResourceManager *rm)
 
     const auto w_size = gfx->GetWindowSize();
 
-    mProjectionMatrix = glm::ortho(0.f, w_size.x, w_size.y, 0.f, 1.f, -1.f);
+    mProjectionMatrix = math::ortho(0.f, w_size.x, w_size.y, 0.f, 1.f, -1.f);
 
     ImGui::CreateContext();
     auto im = ImGui::GetIO();
@@ -272,7 +272,7 @@ void tr::ImguiRenderer::OnEvent(const Event &e, int channel)
 
         if (we.type == WindowEvent::RESIZED) {
             mProjectionMatrix
-                = glm::ortho<float>(0.f, we.xSize, we.ySize, 0.f, 1.f, -1.f);
+                = math::ortho<float>(0.f, we.xSize, we.ySize, 0.f, 1.f, -1.f);
         }
     }
 }
