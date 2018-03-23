@@ -1,11 +1,12 @@
 #include "ResourceManager.h"
 
 #include "../core/Engine.h"
+#include "../core/JobHandler.h"
+#include "../gameobject/Game.h"
 #include "../graphics/GLSLShader.h"
 #include "../graphics/Image.h"
 #include "../graphics/Texture.h"
 #include "../profile/Profiler.h"
-#include "../core/JobHandler.h"
 #include "Filesystem.h"
 
 #include "nlohmann/json.hpp"
@@ -40,8 +41,10 @@ bool tr::ResourceManager::Initialize(Engine *engine)
                                         "no file or string specified",
                                         LogLevel::WARNING);
 
-            if (load_file)
+            if (load_file){
                 file = fs::GetExecutablePath() + file;
+                file = rm->ResolvePath(file);
+            }
 
             if (load_file && !fs::FileExists(file))
                 if (Log::STATIC_LOGGER)
@@ -74,13 +77,33 @@ bool tr::ResourceManager::CheckIfLoaded(const std::string &identifier) const
     return mResourceList.find(identifier) != mResourceList.end();
 }
 
+std::string tr::ResourceManager::GetEngineAssetPath() const
+{
+    return fs::GetExecutablePath() + "/" + mEngine->GetGame().EngineAssetPrefix
+        + "/";
+}
+
+std::string tr::ResourceManager::ResolvePath(const std::string &path) const
+{
+
+    if (auto pos = path.find("$ENGINE/"); pos != path.npos) {
+
+        std::string new_path
+            = path.substr(pos + "$ENGINE/"s.length(), path.npos);
+
+        return GetEngineAssetPath() + new_path;
+    }
+
+    return path;
+}
+
 void tr::ResourceManager::LoadResource(const std::string &identifier,
                                        bool               from_memory)
 {
     EASY_FUNCTION();
 
     std::string id     = identifier;
-    std::string handle = from_memory ? id : fs::GetExecutablePath() + id;
+    std::string handle = from_memory ? id : GetEngineAssetPath() + id;
 
     if (!from_memory && !fs::FileExists(handle)) {
         mEngine->Logger().log("Couldnt resolve resource identifier: "s + id,

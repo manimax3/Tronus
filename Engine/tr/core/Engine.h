@@ -26,15 +26,16 @@ private:
     int mLastFps = 0;
 
     class DebugWindow *mDebugWindow = nullptr;
-    class Game * mGame        = nullptr;
+    class Game &       mGame;
 
 public:
-    Engine(class Game *game = nullptr);
+    Engine(class Game &game);
     ~Engine();
     void Start();
     void Stop();
 
-    inline Log &Logger() { return *sLog; }
+    inline Log &       Logger() { return *sLog; }
+    inline const Game &GetGame() const { return mGame; }
 
     // EventListener
     std::vector<int> SubscripeTo() const override;

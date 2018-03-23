@@ -10,8 +10,7 @@ using json = nlohmann::json;
 tr::Image::Image(const std::string &file)
 {
     int   x, y, n;
-    const std::string path = fs::GetExecutablePath() + file;
-    byte *data = stbi_load(path.c_str(), &x, &y, &n,
+    byte *data = stbi_load(file.c_str(), &x, &y, &n,
                            4); // We want always four channels
 
     if (data == NULL) {
@@ -70,7 +69,9 @@ tr::Resource *tr::Image::Loader(ResourceManager::ResHandle handle,
 
         if (!it->is_string())
             return nullptr;
-        return new Image(it->get<std::string>());
+        auto s = fs::GetExecutablePath() + it->get<std::string>();
+        s      = rm->ResolvePath(s);
+        return new Image(s);
 
     } else if (auto it = jhandle.find("memory"); it != jhandle.end()) {
 
@@ -88,7 +89,7 @@ tr::Resource *tr::Image::Loader(ResourceManager::ResHandle handle,
             return nullptr;
         }
 
-        uint32 *ptr = reinterpret_cast<uint32*>(it->get<uint64>());
+        uint32 *ptr = reinterpret_cast<uint32 *>(it->get<uint64>());
 
         return new Image(ptr, xSize, ySize);
 

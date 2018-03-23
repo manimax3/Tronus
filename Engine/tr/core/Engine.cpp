@@ -14,7 +14,7 @@
 
 using namespace tr;
 
-Engine::Engine(Game *game)
+Engine::Engine(Game &game)
     : mGame(game)
 {
     sLog             = new Log;
@@ -56,7 +56,8 @@ void Engine::Start()
     sEventSystem->Initialize(this);
     sGraphicsHandler->Initialize(this);
 
-    sGraphicsHandler->CreateWindow(CreateWindowInfo());
+    if (mGame.EngineCreateWindow)
+        sGraphicsHandler->CreateWindow(CreateWindowInfo());
 
     Logger().log("Starting Subsystem Post Initialization...");
     sLog->PostInit();
@@ -66,8 +67,7 @@ void Engine::Start()
     sEventSystem->PostInit();
     sGraphicsHandler->PostInit();
 
-    if (mGame)
-        mGame->PreWorldStartUp(*this);
+    mGame.PreWorldStartUp(*this);
 
     mRunning = true;
 
@@ -83,8 +83,7 @@ void Engine::Start()
 
     mWorld->StartWorld();
 
-    if (mGame)
-        mGame->OnWorldLoad(*mWorld);
+    mGame.OnWorldLoad(*mWorld);
 
     // Start the tick loop
 
@@ -122,8 +121,7 @@ void Engine::Start()
 
 void Engine::Stop()
 {
-    if (mGame)
-        mGame->OnWorldShutdown();
+    mGame.OnWorldShutdown();
 
     mWorld->StopWorld();
 

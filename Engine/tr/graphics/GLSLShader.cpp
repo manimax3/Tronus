@@ -76,6 +76,7 @@ tr::Resource *tr::GLSLShader::Loader(ResourceManager::ResHandle handle,
     }
 
     shader_file = fs::GetExecutablePath() + shader_file;
+    shader_file = rm->ResolvePath(shader_file);
 
     // Load the file
     if (fs::FileExists(shader_file)) {

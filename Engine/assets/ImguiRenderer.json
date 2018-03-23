@@ -1,6 +1,6 @@
 {
     "type" : "GLSLShader",
-    "shader_source" : "ImguiRenderer.glsl",
+    "shader_source" : "$ENGINE/ImguiRenderer.glsl",
     "vertex_seperator" : "#shader vertex",
     "fragment_seperator" : "#shader fragment"
 }

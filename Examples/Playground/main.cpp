@@ -55,7 +55,7 @@ class MyGame : public tr::Game {
 int main()
 {
     MyGame     game;
-    tr::Engine engine(&game);
+    tr::Engine engine(game);
     engine.Start();
     return 0;
 }

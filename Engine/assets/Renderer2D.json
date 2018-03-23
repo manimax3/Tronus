@@ -1,6 +1,6 @@
 {
     "type" : "GLSLShader",
-    "shader_source" : "Renderer2D.glsl",
+    "shader_source" : "$ENGINE/Renderer2D.glsl",
     "vertex_seperator" : "#shader vertex",
     "fragment_seperator" : "#shader fragment"
 }

@@ -40,7 +40,10 @@ public:
 
     bool DeleteResource(const std::string &identifier);
 
-    void AddLoader(const ResType &type, LoaderFunc func);
+    void        AddLoader(const ResType &type, LoaderFunc func);
+    std::string GetEngineAssetPath() const;
+    std::string ResolvePath(
+        const std::string &path) const; // Replaces $ENGINE with the asset path
 
 private:
     bool CheckIfLoaded(const std::string &identifier) const;
