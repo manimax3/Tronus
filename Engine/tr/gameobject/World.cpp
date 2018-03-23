@@ -11,10 +11,7 @@ tr::World::World(Engine *engine)
 {
 }
 
-void tr::World::StartWorld()
-{
-    mEngine->sEventSystem->AddListener(this);
-}
+void tr::World::StartWorld() { mEngine->sEventSystem->AddListener(this); }
 
 void tr::World::StopWorld()
 {
@@ -34,7 +31,7 @@ std::vector<int> tr::World::SubscripeTo() const
 
 void tr::World::OnEvent(const Event &e, int channel)
 {
-    for (auto & go : mGameObjects)
+    for (auto &go : mGameObjects)
         go->HandleEvent(e);
 }
 
@@ -42,6 +39,15 @@ void tr::World::RenderDebug()
 {
     if (ImGui::Begin("World Debug")) {
         ImGui::Text("Count GameObjects: %li", mGameObjects.size());
+
+        for (auto &go : mGameObjects) {
+            if (ImGui::TreeNode(go->GetName().c_str())) {
+                for (int i = 0; i < go->mComponents.size(); i++) {
+                    ImGui::Text("%s", go->mComponents[i]->GetName().c_str());
+                }
+                ImGui::TreePop();
+            }
+        }
     }
     ImGui::End();
 }

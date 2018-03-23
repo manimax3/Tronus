@@ -31,6 +31,8 @@ public:
     SceneComponent *cRootComponent = nullptr;
     bool            mTickable      = false;
 
+    const std::string &GetName() const { return mName; }
+
     GOContext Context;
 
     friend class World;
@@ -66,7 +68,7 @@ protected:
         return static_cast<C *>(mComponents.back().get());
     }
 
-private:
+public:
     using CompUPtr = std::unique_ptr<SceneComponent>;
     std::vector<CompUPtr> mComponents;
 };
