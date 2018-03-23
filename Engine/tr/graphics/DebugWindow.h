@@ -21,6 +21,8 @@ private:
     void renderer2d_enable_test_window(class Renderer2D &ren);
 
     bool world_debug_open = false;
+    bool rm_debug_open = false;
+    void rm_debug_window();
 
     Engine &mEngine;
     bool          mShouldDraw = false;

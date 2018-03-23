@@ -45,6 +45,7 @@ public:
     std::string ResolvePath(
         const std::string &path) const; // Replaces $ENGINE with the asset path
 
+    friend class DebugWindow;
 private:
     bool CheckIfLoaded(const std::string &identifier) const;
 

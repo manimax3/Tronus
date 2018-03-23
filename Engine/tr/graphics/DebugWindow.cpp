@@ -1,10 +1,10 @@
 #include "DebugWindow.h"
 #include "../core/Engine.h"
 #include "../event/CommonEvents.h"
-#include "../util/Keys.h"
 #include "../gameobject/World.h"
-#include "Renderer2D.h"
+#include "../util/Keys.h"
 #include "GraphicsHandler.h"
+#include "Renderer2D.h"
 #include "Texture.h"
 #include "imgui.h"
 
@@ -47,11 +47,15 @@ void tr::DebugWindow::draw()
             render2d_test_open = !render2d_test_open;
         }
         ImGui::Checkbox("World Debug", &world_debug_open);
+        ImGui::Checkbox("ResManager Debug", &rm_debug_open);
     }
     ImGui::End();
 
     if (world_debug_open)
         mEngine.mWorld->RenderDebug();
+
+    if (rm_debug_open)
+        rm_debug_window();
 }
 
 tr::Vec4 rand_color()
@@ -89,4 +93,14 @@ void tr::DebugWindow::renderer2d_enable_test_window(Renderer2D &renderer)
         for (auto &r : r_list)
             renderer.Submit(r);
     }
+}
+
+void tr::DebugWindow::rm_debug_window()
+{
+    if (ImGui::Begin("Resource Manager")) {
+        for (const auto &r : mEngine.sResourceManager->mResourceList) {
+            ImGui::Text("%s", r.first.c_str());
+        }
+    }
+    ImGui::End();
 }
