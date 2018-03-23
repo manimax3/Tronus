@@ -17,7 +17,7 @@ public:
     class Job {
     private:
         std::function<void()> mTask;
-        //std::atomic_bool mStatus;
+        // std::atomic_bool mStatus;
 
     public:
         template<typename Func>
@@ -31,10 +31,10 @@ public:
         Job(const Job &) = delete;
         Job &operator=(const Job &) = delete;
 
-        //operator bool() const;
+        // operator bool() const;
         inline void operator()() const { mTask(); }
 
-        //inline void SetStatus(const bool status) { mStatus = status; }
+        // inline void SetStatus(const bool status) { mStatus = status; }
     };
 
 private:
@@ -51,19 +51,19 @@ public:
     ~JobHandler();
 
     template<typename Func>
-    bool AddJob(Func &&function);
+    bool AddJob(Func &&function, bool bypass = false);
 
-    bool Initialize(Engine *engine) override;
-    bool Shutdown() override;
-    bool Tick() override;
+    bool               Initialize(Engine *engine) override;
+    bool               Shutdown() override;
+    bool               Tick() override;
     inline std::string GetName() const override { return "JobHandler"; }
 };
 
 template<typename Func>
-bool JobHandler::AddJob(Func &&function)
+bool JobHandler::AddJob(Func &&function, bool bypass)
 {
 
-    if (!mRunning)
+    if (!mRunning && !bypass)
         return false;
 
     Job  job(std::forward<Func>(function));

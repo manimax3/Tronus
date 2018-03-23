@@ -48,11 +48,19 @@ bool JobHandler::Shutdown()
     if (!mRunning)
         return true;
 
-    // Make sure that each thread leaves the while loop
-    for (int i = 0; i < std::thread::hardware_concurrency() + 4; i++)
-        AddJob([]() { std::this_thread::sleep_for(std::chrono::seconds(1)); });
-
     mRunning = false;
+
+    // Make sure that each thread leaves the while loop
+    while (mActiveThreads > 0) {
+        for (int i = 0; i < mThreadPool.size(); i++)
+            AddJob(
+                []() {
+                    std::this_thread::sleep_for(std::chrono::milliseconds(5));
+                },
+                true);
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    }
 
     for (auto &thread : mThreadPool) {
         thread->join();
