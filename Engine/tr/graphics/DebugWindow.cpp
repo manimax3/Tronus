@@ -98,6 +98,17 @@ void tr::DebugWindow::renderer2d_enable_test_window(Renderer2D &renderer)
 void tr::DebugWindow::rm_debug_window()
 {
     if (ImGui::Begin("Resource Manager")) {
+
+        ImGui::InputText(" ", &buffer[0], buffer.size());
+        const std::string id(buffer.data());
+
+        ImGui::SameLine();
+
+        if (ImGui::Button("Load")) {
+            mEngine.sResourceManager->LoadResource(id);
+            buffer = {0};
+        }
+
         for (const auto &r : mEngine.sResourceManager->mResourceList) {
             ImGui::Text("%s", r.first.c_str());
         }

@@ -26,5 +26,7 @@ private:
 
     Engine &mEngine;
     bool          mShouldDraw = false;
+
+    std::array<char, 512> buffer = {0};
 };
 }

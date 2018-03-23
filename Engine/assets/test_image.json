@@ -1,4 +1,4 @@
 {
     "type" : "Image",
-    "file" : "test_image.png"
+    "file" : "$ENGINE/test_image.png"
 }
