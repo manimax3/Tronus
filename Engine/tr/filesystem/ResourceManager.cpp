@@ -185,6 +185,26 @@ void tr::ResourceManager::LoadResource(const std::string &identifier,
         return;
     }
 
+    // Dependencies which are supposed to be loaded in sync with parent
+    try {
+        auto a = jhandle.at("sync_dependencies");
+        for (const auto &dep : a) {
+            const bool is_in_mem = dep.is_object();
+            const auto dep_id = is_in_mem ? dep.dump() : dep.get<std::string>();
+            if (CheckIfLoaded(is_in_mem ? dep["id"].get<std::string>()
+                                        : dep_id))
+                continue;
+            LoadResource(dep_id, is_in_mem);
+        }
+    } catch (json::out_of_range e) {
+        // Expected Error in case there are no dependencies
+    } catch (json::type_error e) {
+        mEngine->Logger().log("Error parsing json sync_dependencies of "s + id
+                                  + " | " + e.what(),
+                              LogLevel::ERROR);
+        return;
+    }
+
     if (mDepsLoaded.size() > 0)
         for (auto &fut : mDepsLoaded)
             fut.get();

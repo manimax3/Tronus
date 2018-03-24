@@ -1,0 +1,5 @@
+{
+    "type" : "SimpleString",
+    "string" : "Hallo Welt",
+    "sync_dependencies" : ["test_texture.json"]
+}
