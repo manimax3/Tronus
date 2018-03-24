@@ -41,7 +41,7 @@ bool tr::ResourceManager::Initialize(Engine *engine)
                                         "no file or string specified",
                                         LogLevel::WARNING);
 
-            if (load_file){
+            if (load_file) {
                 file = fs::GetExecutablePath() + file;
                 file = rm->ResolvePath(file);
             }
@@ -182,6 +182,7 @@ void tr::ResourceManager::LoadResource(const std::string &identifier,
         mEngine->Logger().log("Error parsing json dependencies of "s + id
                                   + " | " + e.what(),
                               LogLevel::ERROR);
+        return;
     }
 
     if (mDepsLoaded.size() > 0)
@@ -197,6 +198,7 @@ void tr::ResourceManager::LoadResource(const std::string &identifier,
     } catch (json::type_error e) {
         mEngine->Logger().log("Error determining the type of "s + id,
                               LogLevel::ERROR);
+        return;
     }
 
     Resource *_res = nullptr;
@@ -208,12 +210,14 @@ void tr::ResourceManager::LoadResource(const std::string &identifier,
             "Exception during running the Resource Loader for: "s + handle
                 + " | " + e.what(),
             LogLevel::ERROR);
+        return;
     }
 
     if (!_res) {
         GetEngine().Logger().log("The Resource Loader returned nullptr for: "s
                                      + handle,
                                  LogLevel::ERROR);
+        return;
     }
 
     std::unique_ptr<Resource> res(_res);
@@ -243,14 +247,26 @@ tr::ResourceManager::LoadResourceAsync(const std::string &identifier,
     return fut;
 }
 
-tr::Resource *tr::ResourceManager::GetResource(const std::string &identifier)
+std::shared_ptr<tr::Resource>
+tr::ResourceManager::GetResource(const std::string &identifier)
 {
     std::shared_lock<std::shared_mutex> lck(mResLock);
 
     if (auto res = mResourceList.find(identifier); res != mResourceList.end())
-        return res->second.get();
+        return res->second;
 
     return nullptr;
+}
+
+std::weak_ptr<tr::Resource>
+tr::ResourceManager::GetResourceWeak(const std::string &identifier)
+{
+    std::shared_lock<std::shared_mutex> lck(mResLock);
+
+    if (auto res = mResourceList.find(identifier); res != mResourceList.end())
+        return res->second;
+
+    return std::weak_ptr<Resource>();
 }
 
 bool tr::ResourceManager::DeleteResource(const std::string &identifier)

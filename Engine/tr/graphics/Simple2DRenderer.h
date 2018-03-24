@@ -1,9 +1,9 @@
 #pragma once
+#include "../filesystem/ResourceManager.h"
 #include <tr.h>
 
 namespace tr {
 class GraphicsHandler;
-class ResourceManager;
 class GLSLShader;
 
 class Simple2DRenderer {
@@ -13,9 +13,9 @@ public:
     void Shutdown();
 
 private:
-    GLSLShader *     mShader     = nullptr;
-    GraphicsHandler *mGfxHandler = nullptr;
-    ResourceManager *mResManager = nullptr;
-    uint             mVao        = 0;
+    ResHandle<GLSLShader> mShader     = nullptr;
+    GraphicsHandler *     mGfxHandler = nullptr;
+    ResourceManager *     mResManager = nullptr;
+    uint                  mVao        = 0;
 };
 }

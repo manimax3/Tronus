@@ -86,8 +86,8 @@ void tr::ImguiRenderer::Init(GraphicsHandler *gfx, ResourceManager *rm)
 
     mShader = mResManager->GetRes<GLSLShader>(SHADER_ID);
 
-    Texture *tex    = mResManager->GetRes<Texture>(TEXTURE_ID);
-    im.Fonts->TexID = reinterpret_cast<void *>(tex);
+    ResHandle<Texture> tex = mResManager->GetRes<Texture>(TEXTURE_ID);
+    im.Fonts->TexID = reinterpret_cast<void *>(tex.get());
 
     im.KeyMap[ImGuiKey_Tab]        = KEY_TAB;
     im.KeyMap[ImGuiKey_LeftArrow]  = KEY_LEFT;

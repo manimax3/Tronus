@@ -29,13 +29,21 @@ public:
                                         Callback           cb       = nullptr,
                                         void *             userdata = nullptr);
 
-    Resource *GetResource(const std::string &identifier);
+    std::weak_ptr<Resource> GetResourceWeak(const std::string &identifier);
+    std::shared_ptr<Resource> GetResource(const std::string &identifier);
 
     template<typename T,
              typename = std::enable_if_t<std::is_base_of_v<Resource, T>>>
-    T *GetRes(const std::string &identifier)
+    std::shared_ptr<T> GetRes(const std::string &identifier)
     {
-        return static_cast<T *>(GetResource(identifier));
+        return std::static_pointer_cast<T>(GetResource(identifier));
+    }
+
+    template<typename T,
+             typename = std::enable_if_t<std::is_base_of_v<Resource, T>>>
+    std::weak_ptr<T> GetResWeak(const std::string &identifier)
+    {
+        return std::static_pointer_cast<T>(GetResourceWeak(identifier).lock());
     }
 
     bool DeleteResource(const std::string &identifier);
@@ -50,7 +58,7 @@ private:
     bool CheckIfLoaded(const std::string &identifier) const;
 
     mutable std::shared_mutex                        mResLock;
-    std::map<std::string, std::unique_ptr<Resource>> mResourceList;
+    std::map<std::string, std::shared_ptr<Resource>> mResourceList;
 
     std::map<ResType, LoaderFunc> mLoaders;
 
@@ -65,4 +73,11 @@ struct Resource {
 struct StringResource : public Resource {
     std::string data;
 };
+
+template<typename R>
+using ResHandle = std::shared_ptr<R>;
+
+template<typename R>
+using ResHandleWeak = std::weak_ptr<R>;
+
 }

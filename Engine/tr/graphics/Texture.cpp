@@ -90,7 +90,7 @@ tr::Resource *tr::Texture::Loader(ResourceManager::ResHandle handle,
         return nullptr;
     }
 
-    Image *im = rm->GetRes<Image>(image_dep_handle);
+    ResHandle<Image> im = rm->GetRes<Image>(image_dep_handle);
 
     if (!im) {
         rm->GetEngine().Logger().log(

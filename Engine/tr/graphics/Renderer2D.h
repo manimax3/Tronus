@@ -67,7 +67,7 @@ public:
     void RenderRenderables();
 
 private:
-    GLSLShader *            mShader      = nullptr;
+    ResHandle<GLSLShader>   mShader      = nullptr;
     uint                    mVao         = 0;
     uint                    mVbo         = 0;
     uint                    mIbo         = 0;

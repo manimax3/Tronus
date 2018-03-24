@@ -2,7 +2,6 @@
 #include "../core/Engine.h"
 #include "../event/CommonEvents.h"
 #include "../event/EventSystem.h"
-#include "../filesystem/ResourceManager.h"
 #include "../graphics/Renderer2D.h"
 #include "../graphics/Texture.h"
 #include "GameObject.h"
@@ -37,7 +36,7 @@ void tr::Sprite2DComponent::OnEvent(const Event &e)
     r.bottom_right = mBottomRight;
 
     if (mTexture) {
-        r.texture = mTexture;
+        r.texture = mTexture.get();
         r.uv      = mUV;
     }
 
