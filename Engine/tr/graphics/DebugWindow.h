@@ -12,7 +12,7 @@ public:
     {
         return { ENGINE_CHANNEL, RENDER_CHANNEL };
     }
-    void             OnEvent(const Event &e, int channel) override;
+    void OnEvent(const Event &e, int channel) override;
 
 private:
     void draw();
@@ -20,13 +20,14 @@ private:
     bool render2d_test_open = false;
     void renderer2d_enable_test_window(class Renderer2D &ren);
 
+    bool im_demo_window   = false;
     bool world_debug_open = false;
-    bool rm_debug_open = false;
+    bool rm_debug_open    = false;
     void rm_debug_window();
 
     Engine &mEngine;
-    bool          mShouldDraw = false;
+    bool    mShouldDraw = false;
 
-    std::array<char, 512> buffer = {0};
+    std::array<char, 512> buffer = { 0 };
 };
 }

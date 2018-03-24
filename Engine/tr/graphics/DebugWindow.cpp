@@ -46,6 +46,7 @@ void tr::DebugWindow::draw()
         if (ImGui::Button("Renderer2D Test")) {
             render2d_test_open = !render2d_test_open;
         }
+        ImGui::Checkbox("ImGui Demo", &im_demo_window);
         ImGui::Checkbox("World Debug", &world_debug_open);
         ImGui::Checkbox("ResManager Debug", &rm_debug_open);
     }
@@ -56,6 +57,9 @@ void tr::DebugWindow::draw()
 
     if (rm_debug_open)
         rm_debug_window();
+
+    if (im_demo_window)
+        ImGui::ShowDemoWindow();
 }
 
 tr::Vec4 rand_color()
@@ -106,7 +110,7 @@ void tr::DebugWindow::rm_debug_window()
 
         if (ImGui::Button("Load")) {
             mEngine.sResourceManager->LoadResource(id);
-            buffer = {0};
+            buffer = { 0 };
         }
 
         for (const auto &r : mEngine.sResourceManager->mResourceList) {

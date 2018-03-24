@@ -26,7 +26,8 @@ void tr::ImguiRenderer::Init(GraphicsHandler *gfx, ResourceManager *rm)
     mProjectionMatrix = math::ortho(0.f, w_size.x, w_size.y, 0.f, 1.f, -1.f);
 
     ImGui::CreateContext();
-    auto im = ImGui::GetIO();
+    ImGui::StyleColorsDark();
+    auto &im = ImGui::GetIO();
 
     im.DisplaySize.x = w_size.x;
     im.DisplaySize.y = w_size.y;
@@ -97,18 +98,18 @@ void tr::ImguiRenderer::Init(GraphicsHandler *gfx, ResourceManager *rm)
     im.KeyMap[ImGuiKey_PageDown]   = KEY_PAGE_DOWN;
     im.KeyMap[ImGuiKey_Home]       = KEY_HOME;
     im.KeyMap[ImGuiKey_End]        = KEY_END;
-    /* im.KeyMap[ImGuiKey_Insert] = KEY_INSERT; */
-    im.KeyMap[ImGuiKey_Delete]    = KEY_DELETE;
-    im.KeyMap[ImGuiKey_Backspace] = KEY_BACKSPACE;
-    /* im.KeyMap[ImGuiKey_Space] = KEY_SPACE; */
-    im.KeyMap[ImGuiKey_Enter]  = KEY_ENTER;
-    im.KeyMap[ImGuiKey_Escape] = KEY_ESCAPE;
-    im.KeyMap[ImGuiKey_A]      = KEY_A;
-    im.KeyMap[ImGuiKey_C]      = KEY_C;
-    im.KeyMap[ImGuiKey_V]      = KEY_V;
-    im.KeyMap[ImGuiKey_X]      = KEY_X;
-    im.KeyMap[ImGuiKey_Y]      = KEY_Y;
-    im.KeyMap[ImGuiKey_Z]      = KEY_Z;
+    im.KeyMap[ImGuiKey_Insert]     = KEY_INSERT;
+    im.KeyMap[ImGuiKey_Delete]     = KEY_DELETE;
+    im.KeyMap[ImGuiKey_Backspace]  = KEY_BACKSPACE;
+    im.KeyMap[ImGuiKey_Space]      = KEY_SPACE;
+    im.KeyMap[ImGuiKey_Enter]      = KEY_ENTER;
+    im.KeyMap[ImGuiKey_Escape]     = KEY_ESCAPE;
+    im.KeyMap[ImGuiKey_A]          = KEY_A;
+    im.KeyMap[ImGuiKey_C]          = KEY_C;
+    im.KeyMap[ImGuiKey_V]          = KEY_V;
+    im.KeyMap[ImGuiKey_X]          = KEY_X;
+    im.KeyMap[ImGuiKey_Y]          = KEY_Y;
+    im.KeyMap[ImGuiKey_Z]          = KEY_Z;
 
     im.SetClipboardTextFn = [](void *ud, const char *txt) {
         auto *gfx = reinterpret_cast<GraphicsHandler *>(ud);
