@@ -103,15 +103,13 @@ void tr::DebugWindow::rm_debug_window()
 {
     if (ImGui::Begin("Resource Manager")) {
 
-        ImGui::InputText(" ", &buffer[0], buffer.size());
-        const std::string id(buffer.data());
+        if (ImGui::InputText(" ", &buffer[0], buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue)) {
+            mEngine.sResourceManager->LoadResource(buffer.data(), rm_load_from_mem);
+            std::memset(buffer.data(), 0, buffer.size());
+        }
 
         ImGui::SameLine();
-
-        if (ImGui::Button("Load")) {
-            mEngine.sResourceManager->LoadResource(id);
-            buffer = { 0 };
-        }
+        ImGui::Checkbox("Mem", &rm_load_from_mem);
 
         for (const auto &r : mEngine.sResourceManager->mResourceList) {
             ImGui::Text("%s", r.first.c_str());

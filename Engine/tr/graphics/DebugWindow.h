@@ -23,6 +23,7 @@ private:
     bool im_demo_window   = false;
     bool world_debug_open = false;
     bool rm_debug_open    = false;
+    bool rm_load_from_mem = false;
     void rm_debug_window();
 
     Engine &mEngine;
