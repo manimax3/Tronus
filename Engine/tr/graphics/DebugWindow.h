@@ -24,6 +24,7 @@ private:
     bool world_debug_open = false;
     bool rm_debug_open    = false;
     bool rm_load_from_mem = false;
+    bool rm_load_async    = false;
     void rm_debug_window();
 
     Engine &mEngine;

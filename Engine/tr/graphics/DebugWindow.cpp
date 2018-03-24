@@ -103,13 +103,22 @@ void tr::DebugWindow::rm_debug_window()
 {
     if (ImGui::Begin("Resource Manager")) {
 
-        if (ImGui::InputText(" ", &buffer[0], buffer.size(), ImGuiInputTextFlags_EnterReturnsTrue)) {
-            mEngine.sResourceManager->LoadResource(buffer.data(), rm_load_from_mem);
+        if (ImGui::InputText("Load", &buffer[0], buffer.size(),
+                             ImGuiInputTextFlags_EnterReturnsTrue)) {
+
+            if (!rm_load_async)
+                mEngine.sResourceManager->LoadResource(buffer.data(),
+                                                       rm_load_from_mem);
+            else
+                mEngine.sResourceManager->LoadResourceAsync(buffer.data(),
+                                                            rm_load_from_mem);
+
             std::memset(buffer.data(), 0, buffer.size());
         }
 
-        ImGui::SameLine();
         ImGui::Checkbox("Mem", &rm_load_from_mem);
+        ImGui::SameLine();
+        ImGui::Checkbox("Async", &rm_load_async);
 
         for (const auto &r : mEngine.sResourceManager->mResourceList) {
             ImGui::Text("%s", r.first.c_str());
