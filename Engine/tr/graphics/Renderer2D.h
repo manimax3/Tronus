@@ -1,6 +1,7 @@
 #pragma once
 #include "../event/EventSystem.h"
 #include "../math/Math.h"
+#include "../util/MakeID.h"
 #include "GLSLShader.h"
 #include <stack>
 #include <tr.h>
@@ -36,8 +37,10 @@ public:
         friend class Renderer2D;
 
     private:
-        uint64 id;
+        uint id;
     };
+
+    Renderer2D();
 
     // How many rectangles get allocated when running out of vram
     static constexpr uint RENDERABLE_SIZE = 60000;
@@ -50,8 +53,9 @@ public:
     void Render();
     void Shutdown();
 
-    Renderable *GetNewRenderable();
-    void        DeleteRenderable(Renderable *r);
+    uint      SubmitRenderable(const Renderable &r);
+    void        DeleteRenderable(uint renderable);
+    Renderable *ModifyRenderable(uint r);
 
     void             OnEvent(const Event &e, int channel) override;
     std::vector<int> SubscripeTo() const override;
@@ -60,8 +64,6 @@ public:
     void Submit(const Renderable &r);
     void EndFrame();
 
-    void PushTransform(const Mat4 &transform, bool over = false);
-    void PopTransform();
     void PushTexture(Texture *const tex);
 
     void RenderRenderables();
@@ -79,7 +81,7 @@ private:
     Vertex *                mBufferAccess  = nullptr;
     Texture *               mCurrenTexture = nullptr;
     Mat4                    mProjectionMatrix;
-    std::stack<Mat4>        mTransformation;
     std::vector<Renderable> mRenderables;
+    MakeID                  mIDGenerator;
 };
 }

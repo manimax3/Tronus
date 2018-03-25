@@ -1,11 +1,11 @@
+#include "glm/gtc/matrix_transform.hpp"
 #include "tr/core/Engine.h"
 #include "tr/gameobject/Game.h"
-#include "tr/gameobject/Sprite2DComponent.h"
-#include "tr/graphics/GraphicsHandler.h"
-#include "tr/gameobject/World.h"
 #include "tr/gameobject/GameObject.h"
+#include "tr/gameobject/Sprite2DComponent.h"
+#include "tr/gameobject/World.h"
+#include "tr/graphics/GraphicsHandler.h"
 #include "tr/util/Keys.h"
-#include "glm/gtc/matrix_transform.hpp"
 
 class MyEntity : public tr::GameObject {
 public:
@@ -31,14 +31,16 @@ public:
 
         if (ie.type == tr::InputEvent::MouseButton
             && ie.action == tr::InputEvent::PRESS) {
-            cRootComponent->mRelTransform
-                = glm::translate(tr::Mat4(1.f), tr::Vec3(Context.GfxHandler->GetMousePos(), 0.f));
-            mSpriteComponent->mDirty = true;
+            cRootComponent->mRelTransform = glm::translate(
+                tr::Mat4(1.f),
+                tr::Vec3(Context.GfxHandler->GetMousePos(), 0.f));
+            mSpriteComponent->MarkDirty();
         } else if (ie.type == tr::InputEvent::Keyboard && ie.Key == tr::KEY_B
                    && ie.action == tr::InputEvent::PRESS) {
-            mSpriteComponent->mRelTransform = glm::rotate(
-                mSpriteComponent->mRelTransform, glm::radians(45.f), tr::Vec3(0.f, 0.f, 1.f));
-            mSpriteComponent->mDirty = true;
+            mSpriteComponent->mRelTransform
+                = glm::rotate(mSpriteComponent->mRelTransform,
+                              glm::radians(45.f), tr::Vec3(0.f, 0.f, 1.f));
+            mSpriteComponent->MarkDirty();
         }
     }
 

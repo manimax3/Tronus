@@ -16,6 +16,11 @@
 
 #include "imgui.h"
 
+tr::Renderer2D::Renderer2D()
+    : mIDGenerator(RENDERABLE_SIZE)
+{
+}
+
 void tr::Renderer2D::Init(GraphicsHandler *gfx, ResourceManager *rm)
 {
     rm->GetEngine().sEventSystem->AddListener(this);
@@ -29,7 +34,6 @@ void tr::Renderer2D::Init(GraphicsHandler *gfx, ResourceManager *rm)
 
     const Vec2 ws     = gfx->GetWindowSize();
     mProjectionMatrix = math::ortho<float>(0, ws.x, ws.y, 0, 1, -1);
-    mTransformation.push(Mat4());
 
     // Generate the buffers
     Call(glGenBuffers(1, &mVbo));
@@ -78,11 +82,9 @@ void tr::Renderer2D::Tick() { EASY_BLOCK("Renderer2D Tick"); }
 
 void tr::Renderer2D::RenderRenderables()
 {
-    PushTransform(Mat4(), true);
     for (auto &r : mRenderables) {
         Submit(r);
     }
-    PopTransform();
 }
 
 void tr::Renderer2D::Render()
@@ -164,37 +166,53 @@ void tr::Renderer2D::EndFrame()
     Call(glBindVertexArray(0));
 }
 
-void tr::Renderer2D::PushTransform(const Mat4 &transform, bool over)
-{
-    if (over)
-        mTransformation.push(transform);
-    else
-        mTransformation.push(mTransformation.top() * transform);
-}
-
-void tr::Renderer2D::PopTransform() { mTransformation.pop(); }
-
 void tr::Renderer2D::PushTexture(Texture *const tex) { mCurrenTexture = tex; }
 
 void tr::Renderer2D::Shutdown() { mResManager->DeleteResource(SHADER_ID); }
 
-tr::Renderer2D::Renderable *tr::Renderer2D::GetNewRenderable()
+tr::uint tr::Renderer2D::SubmitRenderable(const Renderable &r)
 {
-    mRenderables.emplace_back();
-    mRenderables.back().id = mIdCounter++;
-    return &mRenderables.back();
+    uint id;
+    mIDGenerator.CreateID(id);
+    mRenderables.push_back(r);
+    mRenderables.back().id = id;
+    return id;
 }
 
-void tr::Renderer2D::DeleteRenderable(Renderable *r)
+void tr::Renderer2D::DeleteRenderable(uint renderable)
 {
-    if (!r)
+
+    if (!mIDGenerator.IsID(renderable)) {
         return;
+    }
 
-    mRenderables.erase(
-        std::remove_if(std::begin(mRenderables), std::end(mRenderables),
-                       [&](const auto &_r) { return r->id == _r.id; }));
+    const auto &r = std::remove_if(
+        std::begin(mRenderables), std::end(mRenderables),
+        [&](const Renderable &r) { return r.id == renderable; });
 
-    r = nullptr;
+    if (r != std::end(mRenderables)) {
+        mRenderables.erase(r);
+    }
+
+    mIDGenerator.DestroyID(renderable);
+}
+
+tr::Renderer2D::Renderable *tr::Renderer2D::ModifyRenderable(uint r)
+{
+
+    if (!mIDGenerator.IsID(r)) {
+        return nullptr;
+    }
+
+    const auto &it
+        = std::find_if(std::begin(mRenderables), std::end(mRenderables),
+                       [&](const Renderable &_r) { return r == _r.id; });
+
+    if (it != std::end(mRenderables)) {
+        return &(*it);
+    }
+
+    return nullptr;
 }
 
 void tr::Renderer2D::OnEvent(const Event &e, int channel)

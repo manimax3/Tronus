@@ -2,11 +2,11 @@
 #include "../core/Engine.h"
 #include "../event/CommonEvents.h"
 #include "../event/EventSystem.h"
+#include "../graphics/GraphicsHandler.h"
 #include "../graphics/Renderer2D.h"
 #include "../graphics/Texture.h"
 #include "GameObject.h"
 #include "World.h"
-
 
 tr::Sprite2DComponent::Sprite2DComponent(const std::string &name,
                                          GameObject *       owner,
@@ -15,19 +15,13 @@ tr::Sprite2DComponent::Sprite2DComponent(const std::string &name,
 {
 }
 
-void tr::Sprite2DComponent::OnEvent(const Event &e)
+void tr::Sprite2DComponent::OnEvent(const Event &e) {}
+
+void tr::Sprite2DComponent::OnWorldEnter()
 {
-    if (e.Identifier != event::RENDER_2D) {
-        return;
-    }
+    UpdateValues();
 
-    if (!mVisible)
-        return;
-
-    if (mDirty)
-        UpdateValues();
-
-    const Render2DEvent &  re = static_cast<const Render2DEvent &>(e);
+    auto &renderer = mOwner->Context.GfxHandler->GetRenderer2D();
     Renderer2D::Renderable r;
 
     r.top_left     = mTopLeft;
@@ -42,12 +36,14 @@ void tr::Sprite2DComponent::OnEvent(const Event &e)
 
     r.color = mColor;
 
-    re.renderer.Submit(r);
+    mRenderable = renderer.SubmitRenderable(r);
 }
 
-void tr::Sprite2DComponent::OnWorldEnter() {}
-
-void tr::Sprite2DComponent::OnWorldLeave() {}
+void tr::Sprite2DComponent::OnWorldLeave()
+{
+    auto &renderer = mOwner->Context.GfxHandler->GetRenderer2D();
+    renderer.DeleteRenderable(mRenderable);
+}
 
 void tr::Sprite2DComponent::UpdateValues()
 {
@@ -79,12 +75,35 @@ void tr::Sprite2DComponent::UpdateValues()
     mBottomLeft  = Vec2(bl.x, bl.y);
     mBottomRight = Vec2(br.x, br.y);
 
+    auto &renderer = mOwner->Context.GfxHandler->GetRenderer2D();
+    auto *rab      = renderer.ModifyRenderable(mRenderable);
+
+    if (rab) {
+        rab->top_left     = mTopLeft;
+        rab->top_right    = mTopRight;
+        rab->bottom_left  = mBottomLeft;
+        rab->bottom_right = mBottomRight;
+
+        if (mTexture) {
+            rab->texture = mTexture.get();
+            rab->uv      = mUV;
+        }
+
+        rab->color = mColor;
+    }
+
     mDirty = false;
+}
+
+void tr::Sprite2DComponent::MarkDirty()
+{
+    mDirty = true;
+    UpdateValues();
 }
 
 void tr::Sprite2DComponent::SetDrawAndTextureBounds(const Rect &r)
 {
-    mDirty = true;
+    mDirty      = true;
     mDrawBounds = r;
     mUV = Vec4(r.pos.x, r.pos.y, r.pos.x + r.size.x, r.pos.y + r.size.y);
 }
