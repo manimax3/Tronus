@@ -1,4 +1,4 @@
-set(TEST_SOURCES main.cpp jobhandler_test.cpp engine_test.cpp filesystem_test.cpp log_test.cpp)
+set(TEST_SOURCES main.cpp jobhandler_test.cpp engine_test.cpp filesystem_test.cpp log_test.cpp gameobject_test.cpp)
 
 add_executable(Tests "${TEST_SOURCES}")
 target_include_directories(Tests PRIVATE "${CMAKE_SOURCE_DIR}/External/Catch/single_include")

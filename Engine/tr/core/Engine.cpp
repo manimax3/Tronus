@@ -23,8 +23,6 @@ Engine::Engine(Game &game)
     sProfiler        = new Profiler;
     sEventSystem     = new EventSystem;
     sGraphicsHandler = new GraphicsHandler;
-
-    mWorld = new World(this);
 }
 
 Engine::~Engine()
@@ -67,6 +65,7 @@ void Engine::Start()
     sEventSystem->PostInit();
     sGraphicsHandler->PostInit();
 
+    mWorld = new World(sEventSystem);
     mGame.PreWorldStartUp(*this);
 
     mRunning = true;
@@ -81,7 +80,7 @@ void Engine::Start()
     sEventSystem->AddListener(sEventSystem);
     sEventSystem->AddListener(sGraphicsHandler);
 
-    mWorld->StartWorld();
+    /* mWorld->StartWorld(); */
 
     mGame.OnWorldLoad(*mWorld);
 
@@ -123,7 +122,7 @@ void Engine::Stop()
 {
     mGame.OnWorldShutdown();
 
-    mWorld->StopWorld();
+    /* mWorld->StopWorld(); */
 
     mRunning = false;
     sProfiler->Shutdown();
@@ -146,7 +145,7 @@ void Engine::Tick()
     sEventSystem->Tick();
     sGraphicsHandler->Tick();
 
-    mWorld->DispatchTick();
+    /* mWorld->DispatchTick(); */
 }
 
 std::vector<int> tr::Engine::SubscripeTo() const { return { ENGINE_CHANNEL }; }

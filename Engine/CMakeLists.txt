@@ -13,7 +13,7 @@ set(TRONUS_UTIL_SRC Timer.cpp Log.cpp stb_impl.cpp MakeID.cpp)
 set(TRONUS_EVENT_SRC EventSystem.cpp)
 set(TRONUS_FILESYSTEM_SRC StreamBuffer.cpp ResourceManager.cpp Filesystem.cpp)
 set(TRONUS_GRAPHICS_SRC GraphicsHandler.cpp GLCheck.cpp GLSLShader.cpp Simple2DRenderer.cpp Renderer2D.cpp Image.cpp Texture.cpp ImguiRenderer.cpp DebugWindow.cpp)
-set(TRONUS_GAMEOBJECT_SRC Component.cpp GameObject.cpp World.cpp Sprite2DComponent.cpp)
+set(TRONUS_GAMEOBJECT_SRC World.cpp Sprite2DComponent.cpp)
 
 PREPEND(TRONUS_CORE_SRC tr/core ${TRONUS_CORE_SRC})
 PREPEND(TRONUS_MATH_SRC tr/math ${TRONUS_MATH_SRC})

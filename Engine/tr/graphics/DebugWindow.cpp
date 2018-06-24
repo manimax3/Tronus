@@ -52,8 +52,8 @@ void tr::DebugWindow::draw()
     }
     ImGui::End();
 
-    if (world_debug_open)
-        mEngine.mWorld->RenderDebug();
+    /* if (world_debug_open) */
+    /*     mEngine.mWorld->RenderDebug(); */
 
     if (rm_debug_open)
         rm_debug_window();

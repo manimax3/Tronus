@@ -1,64 +1,66 @@
 #include "World.h"
+
 #include "../core/Engine.h"
-#include "../event/CommonEvents.h"
 #include "../event/EventSystem.h"
-#include "../profile/Profiler.h"
+#include "Sprite2DComponent.h"
 
-#include "imgui.h"
+tr::ComponentTypeID tr::detail::ecs::component_type_counter = 0;
 
-tr::World::World(Engine *engine)
-    : mEngine(engine)
+tr::GameObject tr::GameObject::INVALID = GameObject();
+
+tr::World::World(BaseSubsystem *s) noexcept
+    : mGameObjectsGenerator(0xFFFFFFFF)
+    , mEngine(s ? &s->GetEngine() : nullptr)
 {
+    uint i;
+    mGameObjectsGenerator.CreateID(i);
+    AttachSystem<SpriteRenderSystem>();
+};
+
+void tr::World::Update()
+{
+    for (auto &system : mSystems) {
+        system->OnUpdate();
+    }
 }
 
-void tr::World::StartWorld() { mEngine->sEventSystem->AddListener(this); }
-
-void tr::World::StopWorld()
+void tr::World::DestroyGameObject(GameObjectHandle handle)
 {
-    mEngine->sEventSystem->RemoveListener(this);
 
-    for (auto &go : mGameObjects) {
-        go->LeaveWorld();
+    for (auto &system : mSystems) {
+        system->HandleGameObjectRemove(handle);
     }
 
-    mGameObjects.clear();
+    mGameObjects.erase(handle);
+    mGameObjectsGenerator.DestroyID(handle);
 }
 
-std::vector<int> tr::World::SubscripeTo() const
+void tr::World::UpdateGameObject(GameObjectHandle handle)
 {
-    return { ENGINE_CHANNEL, RENDER_CHANNEL };
-}
-
-void tr::World::OnEvent(const Event &e, int channel)
-{
-    for (auto &go : mGameObjects)
-        go->HandleEvent(e);
-}
-
-void tr::World::RenderDebug()
-{
-    if (ImGui::Begin("World Debug")) {
-        ImGui::Text("Count GameObjects: %li", mGameObjects.size());
-
-        for (auto &go : mGameObjects) {
-            if (ImGui::TreeNode(go->GetName().c_str())) {
-                for (int i = 0; i < go->mComponents.size(); i++) {
-                    ImGui::Text("%s", go->mComponents[i]->GetName().c_str());
-                }
-                ImGui::TreePop();
-            }
-        }
+    for (auto &system : mSystems) {
+        system->HandleGameObjectComponentUpdate(handle);
     }
-    ImGui::End();
 }
 
-void tr::World::DispatchTick()
+void tr::World::SetupSystemInternal(BaseSystem *s)
 {
-    EASY_BLOCK("World Tick");
+    if (!mEngine)
+        return;
 
-    for (auto &go : mGameObjects) {
-        if (go->mTickable) {
-            go->OnTick();
-        }
+    mEngine->sEventSystem->AddListener(s);
+}
+
+tr::GameObject &tr::World::GetGameObject(GameObjectHandle handle)
+{
+    if (const auto &go = mGameObjects.find(handle);
+        go != std::end(mGameObjects)) {
+        return std::get<1>(*go);
     }
+
+    if (mEngine)
+        mEngine->sLog->log("Could not find gameobject with handle: "s
+                               + std::to_string(handle),
+                           LogLevel::ERROR);
+
+    return GameObject::INVALID;
 }

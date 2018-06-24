@@ -1,120 +1,80 @@
 #include "Sprite2DComponent.h"
 #include "../core/Engine.h"
-#include "../event/CommonEvents.h"
-#include "../event/EventSystem.h"
 #include "../graphics/GraphicsHandler.h"
 #include "../graphics/Renderer2D.h"
-#include "../graphics/Texture.h"
-#include "GameObject.h"
-#include "World.h"
 
-tr::Sprite2DComponent::Sprite2DComponent(const std::string &name,
-                                         GameObject *       owner,
-                                         SceneComponent *   parent)
-    : SceneComponent(name, owner, parent)
+namespace {
+void ApplyToRenderable(const tr::SpriteRenderSystem::ComponentTuple &tuple,
+                       tr::Renderer2D::Renderable &                  r)
 {
+
+    const auto [scene_comp, sprite_comp] = tuple;
+
+    r.visible = sprite_comp->visible;
+    r.uv      = sprite_comp->uv;
+    r.color   = sprite_comp->color;
+
+    tr::Vec3 tl = scene_comp->position;
+    tr::Vec3 tr = scene_comp->position + tr::Vec3(sprite_comp->size.x, 0, 0);
+    tr::Vec3 bl = scene_comp->position + tr::Vec3(0, sprite_comp->size.y, 0);
+    tr::Vec3 br = scene_comp->position
+        + tr::Vec3(sprite_comp->size.x, sprite_comp->size.y, 0);
+
+    tl = scene_comp->transform * tl;
+    tr = scene_comp->transform * tr;
+    br = scene_comp->transform * br;
+    bl = scene_comp->transform * bl;
+
+    r.top_left     = { tl.x, tl.y };
+    r.top_right    = { tr.x, tr.y };
+    r.bottom_left  = { bl.x, bl.y };
+    r.bottom_right = { br.x, br.y };
+
+    r.texture = sprite_comp->texture;
+}
 }
 
-void tr::Sprite2DComponent::OnEvent(const Event &e) {}
-
-void tr::Sprite2DComponent::OnWorldEnter()
+void tr::SpriteRenderSystem::OnGameObjectAdd(GameObjectHandle handle)
 {
-    UpdateValues();
-
-    auto &renderer = mOwner->Context.GfxHandler->GetRenderer2D();
+    auto &                 comps = mRegisteredGameObjects[handle];
     Renderer2D::Renderable r;
 
-    r.top_left     = mTopLeft;
-    r.top_right    = mTopRight;
-    r.bottom_left  = mBottomLeft;
-    r.bottom_right = mBottomRight;
+    ApplyToRenderable(comps, r);
 
-    if (mTexture) {
-        r.texture = mTexture.get();
-        r.uv      = mUV;
-    }
+    if (!mWorld.mEngine)
+        return;
 
-    r.color = mColor;
+    const auto id
+        = mWorld.mEngine->sGraphicsHandler->GetRenderer2D().SubmitRenderable(r);
 
-    mRenderable = renderer.SubmitRenderable(r);
+    std::get<Sprite2DComponent *>(comps)->renderable_id = id;
 }
 
-void tr::Sprite2DComponent::OnWorldLeave()
+void tr::SpriteRenderSystem::OnGameObjectRemove(GameObjectHandle handle)
 {
-    auto &renderer = mOwner->Context.GfxHandler->GetRenderer2D();
-    renderer.DeleteRenderable(mRenderable);
+    auto comp = std::get<Sprite2DComponent *>(mRegisteredGameObjects[handle]);
+
+    if (!mWorld.mEngine)
+        return;
+
+    mWorld.mEngine->sGraphicsHandler->GetRenderer2D().DeleteRenderable(
+        comp->renderable_id);
+
+    comp->renderable_id = 0;
 }
 
-void tr::Sprite2DComponent::UpdateValues()
+void tr::SpriteRenderSystem::OnUpdate()
 {
-    Vec3 tl = Vec3(mDrawBounds.pos.x, mDrawBounds.pos.y, 0.f);
-    Vec3 tr = Vec3(mDrawBounds.pos.x, mDrawBounds.pos.y, 0.f);
-    Vec3 bl = Vec3(mDrawBounds.pos.x, mDrawBounds.pos.y, 0.f);
-    Vec3 br = Vec3(mDrawBounds.pos.x, mDrawBounds.pos.y, 0.f);
+    ForEachTuple([&](ComponentTuple &tuple) {
+        auto &sprite_comp = std::get<Sprite2DComponent *>(tuple);
 
-    br += Vec3(mDrawBounds.size.x, mDrawBounds.size.y, 0.f);
-    tr += Vec3(mDrawBounds.size.x, 0.f, 0.f);
-    bl += Vec3(0.f, mDrawBounds.size.y, 0.f);
-
-    const Vec3 origin3 = Vec3(mOrigin.x, mOrigin.y, 0.f);
-
-    tl -= origin3;
-    tr -= origin3;
-    br -= origin3;
-    bl -= origin3;
-
-    const Mat4 transform = GetFinalTransform();
-
-    tl = transform * Vec4(tl, 1.f);
-    tr = transform * Vec4(tr, 1.f);
-    bl = transform * Vec4(bl, 1.f);
-    br = transform * Vec4(br, 1.f);
-
-    mTopLeft     = Vec2(tl.x, tl.y);
-    mTopRight    = Vec2(tr.x, tr.y);
-    mBottomLeft  = Vec2(bl.x, bl.y);
-    mBottomRight = Vec2(br.x, br.y);
-
-    auto &renderer = mOwner->Context.GfxHandler->GetRenderer2D();
-    auto *rab      = renderer.ModifyRenderable(mRenderable);
-
-    if (rab) {
-        rab->top_left     = mTopLeft;
-        rab->top_right    = mTopRight;
-        rab->bottom_left  = mBottomLeft;
-        rab->bottom_right = mBottomRight;
-
-        if (mTexture) {
-            rab->texture = mTexture.get();
-            rab->uv      = mUV;
+        if (sprite_comp->dirty) {
+            auto &r = *mWorld.mEngine->sGraphicsHandler->GetRenderer2D()
+                           .ModifyRenderable(sprite_comp->renderable_id);
+            ApplyToRenderable(tuple, r);
+            sprite_comp->dirty = false;
         }
 
-        rab->color = mColor;
-    }
-
-    mDirty = false;
-}
-
-void tr::Sprite2DComponent::MarkDirty()
-{
-    mDirty = true;
-    UpdateValues();
-}
-
-void tr::Sprite2DComponent::SetDrawAndTextureBounds(const Rect &r)
-{
-    mDirty      = true;
-    mDrawBounds = r;
-    mUV = Vec4(r.pos.x, r.pos.y, r.pos.x + r.size.x, r.pos.y + r.size.y);
-}
-
-void tr::Sprite2DComponent::SetColor(const Vec4 &col) { mColor = col; }
-
-void tr::Sprite2DComponent::HandleTextureLoad(const std::string &resource)
-{
-    if (mTexture = mOwner->Context.ResManager->GetRes<Texture>(resource);
-        !mTexture) {
-        mOwner->Context.ResManager->LoadResource(resource);
-        mTexture = mOwner->Context.ResManager->GetRes<Texture>(resource);
-    }
+        return true;
+    });
 }

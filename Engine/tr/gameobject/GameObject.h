@@ -1,75 +1,117 @@
 #pragma once
-#include "../math/Math.h"
-#include "Component.h"
-#include <memory>
-#include <string>
 #include <tr.h>
+
+#include "Component.h"
+
+#include <assert.h>
+#include <unordered_map>
 
 namespace tr {
 
-class World;
-
-struct GOContext {
-    class ResourceManager *ResManager = nullptr;
-    class EventSystem *    EvtHandler = nullptr;
-    class GraphicsHandler *GfxHandler = nullptr;
-    class Engine *         Eng        = nullptr;
-    class World *          Wrld       = nullptr;
-};
-
 class GameObject {
+
+    // Invariants:
+    // 1. GameObjects "own" their components
+    // 2. For every component their is a deleter
+    // 3. Never more than one component of the same type
+
 public:
-    GameObject(World *w, const std::string &name, Mat4 transform);
-    virtual ~GameObject() = default;
+    using Handle = uint32;
 
-    void EnterWorld();
-    void LeaveWorld();
+    static GameObject INVALID; 
 
-    void TickGameObject(double delta);
-    void HandleEvent(const Event &e);
-
-    SceneComponent *cRootComponent = nullptr;
-    bool            mTickable      = false;
-
-    const std::string &GetName() const { return mName; }
-
-    GOContext Context;
-
-    friend class World;
-
-protected:
-    virtual void OnWorldEnter(){};
-    virtual void OnWorldLeave(){};
-    virtual void OnTick(){};
-    virtual void OnEvent(const Event &e) {}
-
-    const std::string mName;
-    double            mLastDelta = 0.0;
-
-    template<
-        typename C,
-        typename = std::enable_if_t<
-            (std::is_base_of_v<SceneComponent,
-                               C> || std::is_same_v<C, SceneComponent>)&&std::
-                is_constructible_v<C,
-                                   const std::string &,
-                                   GameObject *,
-                                   SceneComponent *>>>
-    C *CreateComponent(const std::string &name,
-                       SceneComponent *   parent = nullptr)
+    explicit GameObject(Handle handle = 0) noexcept
+        : mHandle(handle)
     {
-        CompUPtr c(new C(name, this, parent));
-        mComponents.push_back(std::move(c));
-
-        if (parent) {
-            parent->AddChild(mComponents.back().get());
-        }
-
-        return static_cast<C *>(mComponents.back().get());
     }
 
-public:
-    using CompUPtr = std::unique_ptr<SceneComponent>;
-    std::vector<CompUPtr> mComponents;
+    GameObject(const GameObject &) = delete;
+    GameObject &operator=(const GameObject &) = delete;
+
+    GameObject(GameObject &&other)
+        : mHandle(other.mHandle)
+        , mComponents(std::move(other.mComponents))
+        , mComponentDeleters(std::move(other.mComponentDeleters))
+    {
+        other.mHandle = 0;
+    }
+
+    GameObject &operator=(GameObject &&other)
+    {
+        mHandle            = other.mHandle;
+        other.mHandle      = 0;
+        mComponents        = std::move(other.mComponents);
+        mComponentDeleters = std::move(other.mComponentDeleters);
+        return *this;
+    }
+
+    ~GameObject()
+    {
+        if (mHandle == 0)
+            return;
+
+        for (auto [id, ptr] : mComponents) {
+            auto *delter = mComponentDeleters[id];
+            delter(ptr);
+        }
+    }
+
+    template<typename C>
+    bool HasComponent() noexcept
+    {
+        assert(mHandle);
+        return mComponents.find(CompIDResolver<C>) != std::end(mComponents);
+    }
+
+    template<typename C>
+    C *GetComponent() noexcept
+    {
+        assert(mHandle);
+
+        return static_cast<C *>(
+            HasComponent<C>() ? mComponents[CompIDResolver<C>] : nullptr);
+    }
+
+    template<typename C, typename... Args>
+    C *AttachComponent(Args &&... args)
+    {
+        assert(mHandle);
+
+        if (HasComponent<C>())
+            return GetComponent<C>();
+
+        C *comp = ComponentTag<C>::New(std::forward<Args>(args)...);
+
+        mComponents[CompIDResolver<C>] = comp;
+        mComponentDeleters[CompIDResolver<C>]
+            = [](void *c) { ComponentTag<C>::Delete(static_cast<C *>(c)); };
+
+        return comp;
+    }
+
+    template<typename C>
+    void RemoveComponent() noexcept
+    {
+        assert(mHandle);
+
+        auto *comp = GetComponent<C>();
+
+        if (!comp)
+            return;
+
+        // Delete the component
+        mComponentDeleters[CompIDResolver<C>](comp);
+
+        mComponentDeleters.erase(mComponentDeleters.find(CompIDResolver<C>));
+        mComponents.erase(mComponents.find(CompIDResolver<C>));
+    }
+
+private:
+    Handle mHandle;
+
+    std::unordered_map<ComponentTypeID, void *>           mComponents;
+    std::unordered_map<ComponentTypeID, void (*)(void *)> mComponentDeleters;
 };
-};
+
+using GameObjectHandle = GameObject::Handle;
+}

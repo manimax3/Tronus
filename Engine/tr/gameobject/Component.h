@@ -1,46 +1,39 @@
 #pragma once
-#include "../event/CommonEvents.h"
-#include "../math/Math.h"
-#include <string>
 #include <tr.h>
-#include <vector>
+
+#include <memory>
 
 namespace tr {
-class GameObject;
 
-class SceneComponent {
-public:
-    SceneComponent(const std::string &name,
-                   GameObject *       owner,
-                   SceneComponent *   parent = nullptr);
-    virtual ~SceneComponent() = default;
+using ComponentTypeID = uint;
 
-    Mat4               GetFinalTransform() const;
-    void               AddChild(SceneComponent *child);
-    void               RemoveChild(SceneComponent *child);
-    void               WorldEnter();
-    void               WorldLeave();
-    const std::string &GetName() const;
+namespace detail::ecs {
+    extern ComponentTypeID component_type_counter;
+}
 
-    void HandleEvent(const Event &e);
+template<typename T>
+inline const auto CompIDResolver = ++detail::ecs::component_type_counter;
 
-    virtual void TickComponent(){};
+template<typename T, typename Allocator = std::allocator<T>>
+struct ComponentTag {
 
-protected:
-    virtual void OnChildAdd(SceneComponent *child){};
-    virtual void OnChildRemove(SceneComponent *child){};
-    virtual void OnWorldEnter(){};
-    virtual void OnWorldLeave(){};
-    virtual void OnEvent(const Event &e) {}
+    template<typename... Args>
+    static T *New(Args &&... args)
+    {
+        auto *comp = allocator.allocate(1);
+        new (comp) T(std::forward<Args>(args)...);
+        return comp;
+    }
 
-public:
-    bool        mTickable = false;
-    std::string mName;
-    Mat4        mRelTransform;
+    static void Delete(T *comp)
+    {
+        comp->~T();
+        allocator.deallocate(comp, 1);
+    }
 
-protected:
-    GameObject *                  mOwner           = nullptr;
-    SceneComponent *              mParentComponent = nullptr;
-    std::vector<SceneComponent *> mChilds;
+    static Allocator allocator;
 };
+
+template<typename T, typename Allocator>
+Allocator ComponentTag<T, Allocator>::allocator;
 }
