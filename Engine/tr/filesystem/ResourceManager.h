@@ -1,83 +1,99 @@
 #pragma once
+#include <tr.h>
+
 #include "../core/Subsystem.h"
+#include "../util/MakeID.h"
+#include "ResourceLoader.h"
+
 #include <future>
 #include <map>
 #include <memory>
 #include <optional>
 #include <shared_mutex>
-#include <tr.h>
+#include <string_view>
 
 namespace tr {
 
-class Resource;
+struct ResourceNotLoadedError : public std::runtime_error {
+    explicit ResourceNotLoadedError(const std::string &w
+                                    = "Couldnt load resource")
+        : std::runtime_error(w)
+    {
+    }
+};
 
 class ResourceManager : public Subsystem<ResourceManager> {
 public:
+    explicit ResourceManager() noexcept
+        : mResourceIDGenerator(0xFFFFFFFF)
+    {
+    }
+
     bool               Initialize(Engine *engine) override;
     inline std::string GetName() const override { return "ResourceManager"; }
 
-    using ResHandle = const std::string &;
-    using ResType   = std::string;
+    ResourcePtr<> LoadResource(std::string_view            file,
+                               std::optional<ResourceName> namehint = {});
 
-    using LoaderFunc = Resource *(*)(ResHandle handle, ResourceManager *);
-    using Callback   = void (*)(const std::string &, void *);
+    ResourcePtr<> LoadResource(ResourceLoadingInformation  info,
+                               std::optional<ResourceName> namehint = {});
 
-    void LoadResource(const std::string &identifier, bool from_memory = false);
+    ResourcePtr<> LoadResource(std::istream &              in,
+                               std::optional<ResourceName> namehint = {});
 
-    std::future<void> LoadResourceAsync(const std::string &identifier,
-                                        bool               from_memory = false,
-                                        Callback           cb       = nullptr,
-                                        void *             userdata = nullptr);
+    std::future<ResourceID> LoadResourceAsync(const std::string &file);
+    std::future<ResourceID> LoadResourceAsync(ResourceLoadingInformation info);
 
-    std::weak_ptr<Resource> GetResourceWeak(const std::string &identifier);
-    std::shared_ptr<Resource> GetResource(const std::string &identifier);
+    ResourcePtr<> GetResource(std::string_view name);
+    ResourcePtr<> GetResource(ResourceID id);
 
-    template<typename T,
-             typename = std::enable_if_t<std::is_base_of_v<Resource, T>>>
-    std::shared_ptr<T> GetRes(const std::string &identifier)
+    ResourceWeakPtr<> GetResourceWeak(std::string_view name);
+    ResourceWeakPtr<> GetResourceWeak(ResourceID id);
+
+    void DeleteResource(std::string_view name);
+    void DeleteResource(ResourceID id);
+
+    ResourceID GetResourceID(std::string_view name);
+    ResourceID GetResourceID(const ResourcePtr<> &res);
+
+    ResourceName GetResourceName(const ResourceLoadHandler &       loader,
+                                 const ResourceLoadingInformation &info);
+    ResourceName GetResourceName(ResourceID id);
+
+    bool IsResourceLoaded(std::string_view name);
+    bool IsResourceLoaded(ResourceID id);
+
+    template<typename T, typename... Args>
+    void AddLoader(Args &&... args)
     {
-        return std::static_pointer_cast<T>(GetResource(identifier));
+        static_assert(std::is_base_of_v<ResourceLoadHandler, T>);
+        auto handler = std::make_shared<T>(std::forward<Args>(args)...);
+        for (const auto &type : handler->GetSupportedTypes()) {
+            mResourceLoaders[type] = handler;
+        }
     }
 
-    template<typename T,
-             typename = std::enable_if_t<std::is_base_of_v<Resource, T>>>
-    std::weak_ptr<T> GetResWeak(const std::string &identifier)
-    {
-        return std::static_pointer_cast<T>(GetResourceWeak(identifier).lock());
-    }
-
-    bool DeleteResource(const std::string &identifier);
-
-    void        AddLoader(const ResType &type, LoaderFunc func);
     std::string GetEngineAssetPath() const;
     std::string ResolvePath(
-        const std::string &path) const; // Replaces $ENGINE with the asset path
+        std::string_view path) const; // Replaces $ENGINE with the asset path
 
     friend class DebugWindow;
+
 private:
-    bool CheckIfLoaded(const std::string &identifier) const;
+    std::optional<std::string>
+    InvalidInfoCheck(const ResourceLoadingInformation &info) const;
 
-    mutable std::shared_mutex                        mResLock;
-    std::map<std::string, std::shared_ptr<Resource>> mResourceList;
+    void LoadDependecies(ResourceLoadingInformation &info,
+                         ResourceLoadingContext &    context);
 
-    std::map<ResType, LoaderFunc> mLoaders;
+    std::unordered_map<ResourceID, ResourcePtr<>>   mResources;
+    std::map<ResourceName, ResourceID, std::less<>> mResourceIDLookup;
+
+    MakeID mResourceIDGenerator;
+
+    std::map<ResourceType, std::shared_ptr<ResourceLoadHandler>>
+        mResourceLoaders;
 
     class JobHandler *mJHandler = nullptr;
 };
-
-struct Resource {
-    Resource()          = default;
-    virtual ~Resource() = default;
-};
-
-struct StringResource : public Resource {
-    std::string data;
-};
-
-template<typename R>
-using ResHandle = std::shared_ptr<R>;
-
-template<typename R>
-using ResHandleWeak = std::weak_ptr<R>;
-
 }

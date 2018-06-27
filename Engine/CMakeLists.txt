@@ -39,12 +39,16 @@ target_include_directories(Tronus INTERFACE .)
 
 ## Dependencies: Link and include
 
+find_package(Boost 1.54 REQUIRED COMPONENTS filesystem)
+target_include_directories(Tronus PRIVATE ${Boost_INCLUDE_DIRS})
+target_link_libraries(Tronus ${Boost_LIBRARIES})
+
 target_link_libraries(Tronus glfw)
 target_include_directories(Tronus PUBLIC "${CMAKE_SOURCE_DIR}/External/glfw/include")
 
 target_include_directories(Tronus PUBLIC "${CMAKE_SOURCE_DIR}/External/concurrentqueue")
 target_include_directories(Tronus PRIVATE "${CMAKE_SOURCE_DIR}/External/rang/include")
-target_include_directories(Tronus PRIVATE "${CMAKE_SOURCE_DIR}/External/json/include")
+target_include_directories(Tronus PUBLIC "${CMAKE_SOURCE_DIR}/External/json/include")
 target_include_directories(Tronus PRIVATE "${CMAKE_SOURCE_DIR}/External/stb")
 target_include_directories(Tronus PUBLIC "${CMAKE_SOURCE_DIR}/External/glm")
 

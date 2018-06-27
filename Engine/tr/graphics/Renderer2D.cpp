@@ -29,8 +29,7 @@ void tr::Renderer2D::Init(GraphicsHandler *gfx, ResourceManager *rm)
 
     mRenderables.reserve(RENDERABLE_SIZE);
 
-    mResManager->LoadResource(SHADER_ID);
-    mShader = mResManager->GetRes<GLSLShader>(SHADER_ID);
+    mShader = ResCast<GLSLShader>(mResManager->LoadResource(SHADER_ID));
 
     const Vec2 ws     = gfx->GetWindowSize();
     mProjectionMatrix = math::ortho<float>(0, ws.x, ws.y, 0, 1, -1);

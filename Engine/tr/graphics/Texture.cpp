@@ -1,5 +1,6 @@
 #include "Texture.h"
 #include "../core/Engine.h"
+#include "../filesystem/ResourceManager.h"
 #include "GLCheck.h"
 #include "GraphicsHandler.h"
 #include "Image.h"
@@ -51,55 +52,76 @@ void tr::Texture::Bind(int slot)
     Call(glBindTexture(GL_TEXTURE_2D, mTextureHandle));
 }
 
-tr::Resource *tr::Texture::Loader(ResourceManager::ResHandle handle,
-                                  ResourceManager *          rm)
+tr::ResourcePtr<>
+tr::TextureLoader::LoadResource(ResourceLoadingInformation info,
+                                const ResourceType &       type,
+                                ResourceManager &          rm,
+                                ResourceLoadingContext     context)
 {
-    using json   = nlohmann::json;
-    json jhandle = json::parse(handle);
+    using json    = nlohmann::json;
+    json &jhandle = *info;
 
-    if (!(rm->GetEngine().sGraphicsHandler->Valid())) {
-        rm->GetEngine().Logger().log(
+    if (!(rm.GetEngine().sGraphicsHandler->Valid())) {
+        rm.GetEngine().Logger().log(
             "Tried to create a Texture without valid render Context",
             LogLevel::ERROR);
         return nullptr;
     }
 
-    std::string image_dep_handle;
-    WrapMode    s, t;
-    ScaleFilter mag, min;
-    bool        compression, generate_mipmaps;
+    /* std::string image_dep_handle; */
+    Texture::WrapMode    s, t;
+    Texture::ScaleFilter mag, min;
+    bool                 compression, generate_mipmaps;
 
     try {
-        mag              = static_cast<ScaleFilter>(jhandle["mag_filter"]);
-        min              = static_cast<ScaleFilter>(jhandle["min_filter"]);
-        s                = static_cast<WrapMode>(jhandle["wrap_s"]);
-        t                = static_cast<WrapMode>(jhandle["wrap_t"]);
-        compression      = jhandle["compression"];
+        mag         = static_cast<Texture::ScaleFilter>(jhandle["mag_filter"]);
+        min         = static_cast<Texture::ScaleFilter>(jhandle["min_filter"]);
+        s           = static_cast<Texture::WrapMode>(jhandle["wrap_s"]);
+        t           = static_cast<Texture::WrapMode>(jhandle["wrap_t"]);
+        compression = jhandle["compression"];
         generate_mipmaps = jhandle["generate_mipmaps"];
-        image_dep_handle = !jhandle["dependencies"][0].is_object()
-            ? jhandle["dependencies"][0].get<std::string>()
-            : jhandle["dependencies"][0]["id"].get<std::string>();
+        /* image_dep_handle = !jhandle["dependencies"][0].is_object() */
+        /*     ? jhandle["dependencies"][0].get<std::string>() */
+        /*     : jhandle["dependencies"][0]["id"].get<std::string>(); */
     } catch (json::out_of_range e) {
-        rm->GetEngine().Logger().log(
-            "Error Loading values from Texture Handle: "s + handle + " | "
-                + e.what(),
+        rm.GetEngine().Logger().log(
+            "Error Loading values from Texture Handle: "s
+                + "<IMPLEMNT TEXTTURE NAME RESOLVING>" + " | " + e.what(),
             LogLevel::WARNING);
         return nullptr;
     } catch (...) {
-        rm->GetEngine().Logger().log("See the doctor!", LogLevel::ERROR);
+        rm.GetEngine().Logger().log("See the doctor!", LogLevel::ERROR);
         return nullptr;
     }
 
-    ResHandle<Image> im = rm->GetRes<Image>(image_dep_handle);
+    /* ResHandle<Image> im = rm->GetRes<Image>(image_dep_handle); */
+    auto beg = context.dependencies.begin();
 
-    if (!im) {
-        rm->GetEngine().Logger().log(
-            "Couldnt find corresponding image to load Texture",
-            LogLevel::WARNING);
+    if (beg == std::end(context.dependencies)) {
+        rm.GetEngine().Logger().log("No dependency image was specified",
+                                    LogLevel::WARNING);
         return nullptr;
     }
 
-    return new Texture(*im, s, t, mag, min, generate_mipmaps, compression);
+    auto name = std::get<0>(*beg);
+    auto tup  = std::get<1>(*beg);
+
+    if (std::get<0>(tup) == ResourceLoadingContext::NotFound) {
+        rm.GetEngine().Logger().log("Couldnt find corresponding image to load "
+                                    "Texture with provided name: "
+                                        + name,
+                                    LogLevel::WARNING);
+        return nullptr;
+    }
+
+    auto image = ResCast<Image>(std::get<1>(tup).value().lock());
+
+    if (!image) {
+        return nullptr;
+    }
+
+    return ResourcePtr<>(
+        new Texture(*image, s, t, mag, min, generate_mipmaps, compression));
 }
 
 GLenum ScaleFilterToEnum(tr::Texture::ScaleFilter f)

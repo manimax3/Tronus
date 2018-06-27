@@ -3,6 +3,7 @@
 #include <array>
 #include <dirent.h>
 #include <unistd.h>
+#include <boost/filesystem.hpp>
 
 using namespace tr;
 
@@ -48,3 +49,14 @@ std::vector<std::string> fs::FilesIn(const std::string &name) { return {}; }
 
 std::vector<std::string> fs::DirsIn(const std::string &name) { return {}; }
 
+std::string tr::fs::FileName(std::string_view path) {
+    boost::filesystem::path p(path.begin(), path.end());
+    auto fn = p.filename();
+    return fn.generic_string<std::string>();
+}
+
+std::string tr::fs::Extension(std::string_view file) {
+    boost::filesystem::path p(file.begin(), file.end());
+    auto fn = p.extension();
+    return fn.generic_string<std::string>();
+}

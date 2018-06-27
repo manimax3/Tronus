@@ -1,6 +1,7 @@
 #include "GLSLShader.h"
 #include "../core/Engine.h"
 #include "../filesystem/Filesystem.h"
+#include "../filesystem/ResourceManager.h"
 #include "GLCheck.h"
 #include "glad/glad.h"
 #include "nlohmann/json.hpp"
@@ -57,11 +58,14 @@ tr::uint tr::GLSLShader::CompileShader(const std::string &vertex,
     return static_cast<uint>(program);
 }
 
-tr::Resource *tr::GLSLShader::Loader(ResourceManager::ResHandle handle,
-                                     ResourceManager *          rm)
+tr::ResourcePtr<>
+tr::GLSLShaderLoader::LoadResource(ResourceLoadingInformation info,
+                                   const ResourceType &       type,
+                                   ResourceManager &          rm,
+                                   ResourceLoadingContext     context)
 {
-    uint64     program;
-    const json jhandle = json::parse(handle);
+    uint64      program;
+    const json &jhandle = *info;
 
     std::string shader_file, vertex_sep, fragment_sep;
 
@@ -70,13 +74,13 @@ tr::Resource *tr::GLSLShader::Loader(ResourceManager::ResHandle handle,
         vertex_sep   = jhandle.at("vertex_seperator");
         fragment_sep = jhandle.at("fragment_seperator");
     } catch (json::out_of_range e) {
-        rm->GetEngine().Logger().log(
-            "Loading shader: "s + handle + " | " + e.what(), LogLevel::ERROR);
+        rm.GetEngine().Logger().log("Loading shader"s + " | " + e.what(),
+                                    LogLevel::ERROR);
         return nullptr;
     }
 
     shader_file = fs::GetExecutablePath() + shader_file;
-    shader_file = rm->ResolvePath(shader_file);
+    shader_file = rm.ResolvePath(shader_file);
 
     // Load the file
     if (fs::FileExists(shader_file)) {
@@ -85,21 +89,22 @@ tr::Resource *tr::GLSLShader::Loader(ResourceManager::ResHandle handle,
         ss << ifs.rdbuf();
         shader_file = ss.str();
     } else {
-        rm->GetEngine().Logger().log("Could not open file: "s + shader_file,
-                                     LogLevel::WARNING);
+        rm.GetEngine().Logger().log("Could not open file: "s + shader_file,
+                                    LogLevel::WARNING);
         return nullptr;
     }
 
     try {
-        auto[vertex, fragment]
+        auto [vertex, fragment]
             = detail::SplitShaders(shader_file, vertex_sep, fragment_sep);
-        program = CompileShader(vertex, fragment, rm->GetEngine().Logger());
+        program = GLSLShader::CompileShader(vertex, fragment,
+                                            rm.GetEngine().Logger());
     } catch (std::runtime_error e) {
-        rm->GetEngine().Logger().log("Shader parsing: "s + e.what(),
-                                     LogLevel::ERROR);
+        rm.GetEngine().Logger().log("Shader parsing: "s + e.what(),
+                                    LogLevel::ERROR);
     }
 
-    return program ? new GLSLShader(program) : nullptr;
+    return ResourcePtr<>(program ? new GLSLShader(program) : nullptr);
 }
 
 tr::GLSLShader::GLSLShader(uint program)
@@ -157,7 +162,8 @@ void tr::GLSLShader::Set(const std::string &name, const Vec4 &value)
 }
 void tr::GLSLShader::Set(const std::string &name, const Mat4 &value)
 {
-    Call(glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE, &value[0][0]));
+    Call(glUniformMatrix4fv(GetUniformLocation(name), 1, GL_FALSE,
+                            &value[0][0]));
 }
 
 std::tuple<std::string, std::string>

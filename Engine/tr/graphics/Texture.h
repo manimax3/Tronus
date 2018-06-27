@@ -1,5 +1,5 @@
 #pragma once
-#include "../filesystem/ResourceManager.h"
+#include "../filesystem/ResourceLoader.h"
 #include <tr.h>
 
 namespace tr {
@@ -8,10 +8,6 @@ class Image;
 
 class Texture : public Resource {
 public:
-    static constexpr const char *GetType() { return "Texture"; }
-    static Resource *            Loader(ResourceManager::ResHandle handle,
-                                        ResourceManager *          rm);
-
     enum WrapMode {
         REPEAT          = 1,
         MIRRORED_REPEAT = 2,
@@ -42,5 +38,21 @@ public:
 
 private:
     uint mTextureHandle = 0;
+};
+
+class TextureLoader : public ResourceLoadHandler {
+public:
+    ResourcePtr<> LoadResource(ResourceLoadingInformation info,
+                               const ResourceType &       type,
+                               ResourceManager &          rm,
+                               ResourceLoadingContext     context) override;
+    // TODO: Implement this
+    /* std::string */
+    /* ResourceName(const ResourceLoadingInformation &info) const override; */
+
+    inline std::list<ResourceType> GetSupportedTypes() const override
+    {
+        return { "Texture" };
+    }
 };
 }

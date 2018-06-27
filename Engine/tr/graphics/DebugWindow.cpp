@@ -55,8 +55,8 @@ void tr::DebugWindow::draw()
     /* if (world_debug_open) */
     /*     mEngine.mWorld->RenderDebug(); */
 
-    if (rm_debug_open)
-        rm_debug_window();
+    /* if (rm_debug_open) */
+    /*     rm_debug_window(); */
 
     if (im_demo_window)
         ImGui::ShowDemoWindow();
@@ -99,30 +99,30 @@ void tr::DebugWindow::renderer2d_enable_test_window(Renderer2D &renderer)
     }
 }
 
-void tr::DebugWindow::rm_debug_window()
-{
-    if (ImGui::Begin("Resource Manager")) {
+/* void tr::DebugWindow::rm_debug_window() */
+/* { */
+/*     if (ImGui::Begin("Resource Manager")) { */
 
-        if (ImGui::InputText("Load", &buffer[0], buffer.size(),
-                             ImGuiInputTextFlags_EnterReturnsTrue)) {
+/*         if (ImGui::InputText("Load", &buffer[0], buffer.size(), */
+/*                              ImGuiInputTextFlags_EnterReturnsTrue)) { */
 
-            if (!rm_load_async)
-                mEngine.sResourceManager->LoadResource(buffer.data(),
-                                                       rm_load_from_mem);
-            else
-                mEngine.sResourceManager->LoadResourceAsync(buffer.data(),
-                                                            rm_load_from_mem);
+/*             if (!rm_load_async) */
+/*                 mEngine.sResourceManager->LoadResource(buffer.data(), */
+/*                                                        rm_load_from_mem); */
+/*             else */
+/*                 mEngine.sResourceManager->LoadResourceAsync(buffer.data(), */
+/*                                                             rm_load_from_mem); */
 
-            std::memset(buffer.data(), 0, buffer.size());
-        }
+/*             std::memset(buffer.data(), 0, buffer.size()); */
+/*         } */
 
-        ImGui::Checkbox("Mem", &rm_load_from_mem);
-        ImGui::SameLine();
-        ImGui::Checkbox("Async", &rm_load_async);
+/*         ImGui::Checkbox("Mem", &rm_load_from_mem); */
+/*         ImGui::SameLine(); */
+/*         ImGui::Checkbox("Async", &rm_load_async); */
 
-        for (const auto &r : mEngine.sResourceManager->mResourceList) {
-            ImGui::Text("%s", r.first.c_str());
-        }
-    }
-    ImGui::End();
-}
+/*         for (const auto &r : mEngine.sResourceManager->mResourceList) { */
+/*             ImGui::Text("%s", r.first.c_str()); */
+/*         } */
+/*     } */
+/*     ImGui::End(); */
+/* } */

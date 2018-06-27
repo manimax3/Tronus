@@ -1,7 +1,7 @@
 #pragma once
 #include <tr.h>
 
-#include "../filesystem/ResourceManager.h"
+#include "../filesystem/ResourceLoader.h"
 #include "../math/Math.h"
 
 namespace tr {
@@ -11,11 +11,6 @@ public:
     static uint CompileShader(const std::string &vertex,
                               const std::string &fragment,
                               Log &              log);
-
-    static Resource *Loader(ResourceManager::ResHandle handle,
-                            ResourceManager *          rm);
-
-    inline static ResourceManager::ResType GetType() { return "GLSLShader"; }
 
     explicit GLSLShader(uint program);
     ~GLSLShader();
@@ -38,5 +33,21 @@ private:
 
     uint                       mShader;
     std::map<std::string, int> mUnifoms;
+};
+
+class GLSLShaderLoader : public ResourceLoadHandler {
+public:
+    ResourcePtr<> LoadResource(ResourceLoadingInformation info,
+                               const ResourceType &       type,
+                               ResourceManager &          rm,
+                               ResourceLoadingContext     context) override;
+    // TODO: Implement this
+    /* std::string */
+    /* ResourceName(const ResourceLoadingInformation &info) const override; */
+
+    inline std::list<ResourceType> GetSupportedTypes() const override
+    {
+        return { "GLSLShader" };
+    }
 };
 }

@@ -4,8 +4,6 @@
 #include "../event/EventSystem.h"
 #include "Sprite2DComponent.h"
 
-tr::ComponentTypeID tr::detail::ecs::component_type_counter = 0;
-
 tr::GameObject tr::GameObject::INVALID = GameObject();
 
 tr::World::World(BaseSubsystem *s) noexcept

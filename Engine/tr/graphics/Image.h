@@ -1,7 +1,7 @@
 #pragma once
 #include <tr.h>
 
-#include "../filesystem/ResourceManager.h"
+#include "../filesystem/ResourceLoader.h"
 #include "../math/Math.h"
 #include <vector>
 
@@ -28,10 +28,6 @@ Handle Example:
 
 class Image : public Resource {
 public:
-    static constexpr const char *GetType() { return "Image"; }
-    static Resource *            Loader(ResourceManager::ResHandle handle,
-                                        ResourceManager *          rm);
-
     Image(const std::string &file);
     Image(const uint32 *pixels, int sizeX, int sizeY);
     Image(uint32 color, int sizeX, int sizeY);
@@ -41,7 +37,7 @@ public:
     void FlipH();
     void FlipV();
 
-    uint32 GetPixelAt(int x, int y) const;
+    uint32     GetPixelAt(int x, int y) const;
     inline int GetSizeX() const { return mSizeX; }
     inline int GetSizeY() const { return mSizeY; }
 
@@ -49,5 +45,21 @@ private:
     std::vector<uint32> mPixels;
     int                 mSizeX;
     int                 mSizeY;
+};
+
+class ImageLoader : public ResourceLoadHandler {
+public:
+    ResourcePtr<> LoadResource(ResourceLoadingInformation info,
+                               const ResourceType &       type,
+                               ResourceManager &          rm,
+                               ResourceLoadingContext     context) override;
+    // TODO: Implement this
+    /* std::string */
+    /* ResourceName(const ResourceLoadingInformation &info) const override; */
+
+    inline std::list<ResourceType> GetSupportedTypes() const override
+    {
+        return { "Image" };
+    }
 };
 }

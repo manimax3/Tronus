@@ -81,12 +81,13 @@ void tr::ImguiRenderer::Init(GraphicsHandler *gfx, ResourceManager *rm)
                { "ySize", height } };
     texture_handle["dependencies"][0]  = o;
 
-    mResManager->LoadResource(texture_handle.dump(), true);
-    mResManager->LoadResource(SHADER_ID);
+    mResManager->LoadResource(
+        ResourceLoadingInformation(new json(std::move(texture_handle))),
+        std::string(TEXTURE_ID));
+    mShader = ResCast<GLSLShader>(mResManager->LoadResource(SHADER_ID));
 
-    mShader = mResManager->GetRes<GLSLShader>(SHADER_ID);
-
-    ResHandle<Texture> tex = mResManager->GetRes<Texture>(TEXTURE_ID);
+    ResourcePtr<Texture> tex
+        = ResCast<Texture>(mResManager->GetResource(TEXTURE_ID));
     im.Fonts->TexID = reinterpret_cast<void *>(tex.get());
 
     im.KeyMap[ImGuiKey_Tab]        = KEY_TAB;

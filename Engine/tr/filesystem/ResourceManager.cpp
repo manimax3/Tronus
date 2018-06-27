@@ -6,7 +6,6 @@
 #include "../graphics/GLSLShader.h"
 #include "../graphics/Image.h"
 #include "../graphics/Texture.h"
-#include "../profile/Profiler.h"
 #include "Filesystem.h"
 
 #include "nlohmann/json.hpp"
@@ -18,63 +17,308 @@ using json = nlohmann::json;
 bool tr::ResourceManager::Initialize(Engine *engine)
 {
     mJHandler = engine->sJobHandler;
+
     if (mJHandler == nullptr)
         return false;
 
-    AddLoader(
-        "SimpleString",
-        [](ResHandle handle, ResourceManager *rm) -> Resource * {
-            json jhandle   = json::parse(handle);
-            bool load_file = true;
-
-            std::string file;
-
-            if (auto loc = jhandle.find("file"); loc != jhandle.end()) {
-                // There is a file specified to load the string from
-                file = *loc;
-            } else if (auto loc = jhandle.find("string");
-                       loc != jhandle.end()) {
-                load_file = false;
-                file      = *loc; // We store the string data in the file string
-            } else if (Log::STATIC_LOGGER)
-                Log::STATIC_LOGGER->log("Tried to load resource with "
-                                        "no file or string specified",
-                                        LogLevel::WARNING);
-
-            if (load_file) {
-                file = fs::GetExecutablePath() + file;
-                file = rm->ResolvePath(file);
-            }
-
-            if (load_file && !fs::FileExists(file))
-                if (Log::STATIC_LOGGER)
-                    Log::STATIC_LOGGER->log("Could not find file: "s + file);
-
-            StringResource *res = new StringResource;
-
-            if (load_file) {
-                std::ifstream     ifs(file, std::ios::in);
-                std::stringstream str;
-                str << ifs.rdbuf();
-                res->data = str.str();
-            } else {
-                res->data = file;
-            }
-
-            return res;
-        });
-
-    AddLoader(GLSLShader::GetType(), GLSLShader::Loader);
-    AddLoader(Image::GetType(), Image::Loader);
-    AddLoader(Texture::GetType(), Texture::Loader);
+    AddLoader<GLSLShaderLoader>();
+    AddLoader<ImageLoader>();
+    AddLoader<TextureLoader>();
 
     return Subsystem::Initialize(engine);
 }
 
-bool tr::ResourceManager::CheckIfLoaded(const std::string &identifier) const
+std::optional<std::string> tr::ResourceManager::InvalidInfoCheck(
+    const ResourceLoadingInformation &info) const
 {
-    std::shared_lock<std::shared_mutex> lck(mResLock);
-    return mResourceList.find(identifier) != mResourceList.end();
+    if (!info)
+        return "ResourceLoadingInformation was nullptr";
+
+    const json &res_info = *info;
+
+    if (!res_info.is_object())
+        return "The ResourceLoadingInformation isnt a json object";
+
+    try {
+        if (!res_info.at("type").is_string())
+            return "type in Resource info not of type string";
+    } catch (const json::out_of_range &e) {
+        return "in the info is no type specified | JsonException: "s + e.what();
+    }
+
+    return {};
+}
+
+tr::ResourcePtr<>
+tr::ResourceManager::LoadResource(ResourceLoadingInformation  info,
+                                  std::optional<ResourceName> namehint)
+{
+    auto &logger = mEngine->Logger();
+
+    if (const auto &opt = InvalidInfoCheck(info); opt) {
+
+        logger.log(
+            "ResourceLoading aborted because of invalid Loading information"s
+                + opt.value(),
+            LogLevel::WARNING);
+        throw ResourceNotLoadedError("Invalid ResourceLoadingInformation: \n"s
+                                     + opt.value());
+    }
+
+    json &res_info = *info;
+
+    const std::string &type
+        = res_info.at("type").get_ref<const std::string &>();
+
+    ResourceLoadingContext context;
+    LoadDependecies(info, context);
+
+    const auto loader_iter = mResourceLoaders.find(type);
+    if (loader_iter == std::end(mResourceLoaders)) {
+        logger.log("No resource loader found for type: "s + type,
+                   LogLevel::WARNING);
+        throw ResourceNotLoadedError("No loader found");
+    }
+
+    auto &loader_ptr = std::get<1>(*loader_iter);
+    auto  res_ptr    = loader_ptr->LoadResource(std::move(info), type, *this,
+                                            std::move(context));
+
+    if (!res_ptr) {
+        logger.log(
+            "ResourceLoadHandler returned nullptr while loadint a resource of type: "s
+                + type,
+            LogLevel::WARNING);
+        throw ResourceNotLoadedError("ResourceLoadHandler returned nullptr");
+    }
+
+    ResourceID   id;
+    ResourceName name;
+    if (namehint.has_value()) {
+        id   = GetResourceID(namehint.value());
+        name = namehint.value();
+    } else {
+        name = loader_ptr->ResourceName(info);
+        id   = GetResourceID(name);
+    }
+
+    if (id == RESOURCE_ID_INVALID) {
+        mResourceIDGenerator.CreateID(id);
+    }
+
+    mResources[id]          = res_ptr;
+    mResourceIDLookup[name] = id;
+
+    return res_ptr;
+}
+
+tr::ResourcePtr<>
+tr::ResourceManager::LoadResource(std::string_view            file,
+                                  std::optional<ResourceName> namehint)
+{
+    std::string f(file.data(), file.size());
+    f = GetEngineAssetPath() + f;
+
+    if (!fs::FileExists(f)) {
+        mEngine->Logger().log("Couldnt find file: "s + f, LogLevel::WARNING);
+        throw ResourceNotLoadedError("File not found: "s + f);
+    }
+
+    std::ifstream in(f);
+    if (!namehint.has_value())
+        namehint = std::string(file.data(), file.size());
+
+    try {
+        return LoadResource(in, std::move(namehint));
+    } catch (const ResourceNotLoadedError &e) {
+        mEngine->Logger().log("Error in loading resource from file: "s + f,
+                              LogLevel::WARNING);
+        throw;
+    }
+}
+tr::ResourcePtr<>
+tr::ResourceManager::LoadResource(std::istream &              in,
+                                  std::optional<ResourceName> namehint)
+{
+    json j;
+    try {
+        in >> j;
+    } catch (const json::parse_error &e) {
+        mEngine->Logger().log("Could not parse json object from stream | "s
+                              + e.what());
+        throw ResourceNotLoadedError("Parsing from Stream");
+    }
+
+    auto info = std::make_shared<json>(std::move(j));
+    return LoadResource(std::move(info), std::move(namehint));
+}
+
+tr::ResourcePtr<> tr::ResourceManager::GetResource(std::string_view name)
+{
+    const auto id = mResourceIDLookup.find(name);
+    return GetResource(std::get<1>(*id));
+}
+
+tr::ResourcePtr<> tr::ResourceManager::GetResource(ResourceID id)
+{
+    return mResources[id];
+}
+
+tr::ResourceWeakPtr<>
+tr::ResourceManager::GetResourceWeak(std::string_view name)
+{
+    return GetResource(name);
+}
+
+tr::ResourceWeakPtr<> tr::ResourceManager::GetResourceWeak(ResourceID id)
+{
+    return GetResource(id);
+}
+
+void tr::ResourceManager::DeleteResource(std::string_view name)
+{
+    auto id = mResourceIDLookup.find(name);
+
+    DeleteResource(std::get<1>(*id));
+
+    if (id != std::end(mResourceIDLookup)) {
+        mResourceIDLookup.erase(id);
+        mResourceIDGenerator.DestroyID(std::get<1>(*id));
+    }
+}
+
+void tr::ResourceManager::DeleteResource(ResourceID id)
+{
+    if (auto res = mResources.find(id); res != std::end(mResources)) {
+        mResources.erase(res);
+    }
+
+    for (auto &[name, _id] : mResourceIDLookup) {
+        if (_id != id)
+            continue;
+        else {
+            mResourceIDLookup.erase(mResourceIDLookup.find(name));
+            break;
+        }
+    }
+}
+
+tr::ResourceID tr::ResourceManager::GetResourceID(std::string_view name)
+{
+    for (auto &[res_name, id] : mResourceIDLookup) {
+        if (res_name == name) {
+            return id;
+        }
+    }
+    return RESOURCE_ID_INVALID;
+}
+
+tr::ResourceID tr::ResourceManager::GetResourceID(const ResourcePtr<> &res)
+{
+    for (auto &[id, ptr] : mResources) {
+        if (ptr == res)
+            return id;
+    }
+
+    return RESOURCE_ID_INVALID;
+}
+
+bool tr::ResourceManager::IsResourceLoaded(std::string_view name)
+{
+    const auto id = mResourceIDLookup.find(name);
+
+    if (id == std::end(mResourceIDLookup))
+        return false;
+
+    return IsResourceLoaded(std::get<1>(*id));
+}
+
+bool tr::ResourceManager::IsResourceLoaded(ResourceID id)
+{
+    return mResources.find(id) != std::end(mResources);
+}
+
+tr::ResourceName
+tr::ResourceManager::GetResourceName(const ResourceLoadHandler &       loader,
+                                     const ResourceLoadingInformation &info)
+{
+    return loader.ResourceName(info);
+}
+
+tr::ResourceName tr::ResourceManager::GetResourceName(ResourceID id)
+{
+    for (auto &[name, _id] : mResourceIDLookup) {
+        if (_id == id)
+            return name;
+    }
+
+    // TODO: Make this a better exception
+    throw std::runtime_error("Couldnt find a resource for specified id");
+}
+
+void tr::ResourceManager::LoadDependecies(ResourceLoadingInformation &info,
+                                          ResourceLoadingContext &    context)
+{
+    assert(!InvalidInfoCheck(info));
+    const json &res_info     = *info;
+    const auto &dependencies = res_info.find("dependencies");
+    auto &      logger       = mEngine->Logger();
+
+    if (dependencies == res_info.end())
+        return; // No deps specified
+
+    for (const auto &dep : *dependencies) {
+        if (dep.is_string()) {
+
+            const auto &name = dep.get_ref<const std::string &>();
+            if (IsResourceLoaded(name)) {
+                context.dependencies[name]
+                    = { ResourceLoadingContext::Loaded, GetResourceWeak(name) };
+            } else {
+                // We need to try loading this dependency
+                // assuming it is a file
+                // Path resolving is done by the LoadResource function
+                try {
+                    auto ptr = LoadResource(name);
+                    context.dependencies[name]
+                        = { ResourceLoadingContext::Loaded, ptr };
+                } catch (const ResourceNotLoadedError &e) {
+                    logger.log("Could not load dependency: "s + name + " | "
+                                   + e.what(),
+                               LogLevel::WARNING);
+                    context.dependencies[name]
+                        = { ResourceLoadingContext::NotFound, {} };
+                }
+            }
+
+        } else if (dep.is_object()) {
+            // Apparently we have a "in memory" resource description so we just
+            // create a ResourceLoadingInformation
+            try {
+
+                const auto                  id_iter = dep.find("id");
+                std::optional<ResourceName> hint;
+                if (id_iter != dep.end() && id_iter->is_string()) {
+                    hint = id_iter->get<std::string>();
+                }
+
+                auto       info = std::make_shared<json>(dep);
+                const auto ptr  = LoadResource(std::move(info), hint);
+                const auto id   = GetResourceID(ptr);
+                const auto name = GetResourceName(id);
+
+                context.dependencies[name]
+                    = { ResourceLoadingContext::Loaded, ptr };
+
+            } catch (const ResourceNotLoadedError &e) {
+                logger.log("Couldnt load dependency: "s + dep.dump() + " | "
+                               + e.what()
+                               + "\n There couldnt be added a NotFound entry "
+                                 "into the Loading Context",
+                           LogLevel::WARNING);
+            }
+        }
+    }
 }
 
 std::string tr::ResourceManager::GetEngineAssetPath() const
@@ -83,220 +327,17 @@ std::string tr::ResourceManager::GetEngineAssetPath() const
         + "/";
 }
 
-std::string tr::ResourceManager::ResolvePath(const std::string &path) const
+std::string tr::ResourceManager::ResolvePath(std::string_view path) const
 {
 
     if (auto pos = path.find("$ENGINE/"); pos != path.npos) {
 
-        std::string new_path
-            = path.substr(pos + "$ENGINE/"s.length(), path.npos);
+        auto new_path = path.substr(pos + "$ENGINE/"s.length(), path.npos);
 
-        return GetEngineAssetPath() + new_path;
+        return GetEngineAssetPath()
+            + std::string(new_path.data(), new_path.size());
     }
 
-    return path;
+    return std::string(path.data(), path.size());
 }
 
-void tr::ResourceManager::LoadResource(const std::string &identifier,
-                                       bool               from_memory)
-{
-    EASY_FUNCTION();
-
-    std::string id     = identifier;
-    std::string handle = from_memory ? id : GetEngineAssetPath() + id;
-
-    if (!from_memory && !fs::FileExists(handle)) {
-        mEngine->Logger().log("Couldnt resolve resource identifier: "s + id,
-                              LogLevel::WARNING);
-        return;
-    }
-
-    // Cant check for from_memory handles yet because we dont know the actual id
-    // yet
-    if (!from_memory && CheckIfLoaded(id)) {
-        mEngine->Logger().log("Tried to load resource twice: "s + id,
-                              LogLevel::WARNING);
-        return;
-    }
-
-    // Load the json Handle
-    json jhandle;
-
-    if (from_memory) {
-        try {
-            jhandle = json::parse(handle);
-            id      = jhandle.at("id").get<std::string>();
-        } catch (json::parse_error e) {
-            mEngine->Logger().log(
-                "Error parsing in memory resource identifier: "s + id + " | "
-                    + e.what(),
-                LogLevel::WARNING);
-
-            return;
-        } catch (json::out_of_range e) {
-            mEngine->Logger().log(
-                "In Memory Resource Identifier doesnt have an id specified: "s
-                    + handle + " | " + e.what(),
-                LogLevel::WARNING);
-
-            return;
-        }
-
-        // Now we can do the check for in memory handles
-        if (CheckIfLoaded(id)) {
-            mEngine->Logger().log("Tried to load resource twice: "s + id,
-                                  LogLevel::WARNING);
-            return;
-        }
-
-    } else {
-        std::ifstream ifs(handle, std::ios::in);
-        try {
-            ifs >> jhandle;
-        } catch (json::parse_error e) {
-            mEngine->Logger().log("Error parsing resource identifier: "s + id
-                                      + " | " + e.what(),
-                                  LogLevel::WARNING);
-            return;
-        }
-    }
-
-    // Those futures are used to block this thread until all dependencies are
-    // fully loaded
-    std::vector<std::future<void>> mDepsLoaded;
-
-    try {
-        auto a = jhandle.at("dependencies");
-        for (const auto &dep : a) {
-            const bool is_in_mem = dep.is_object();
-            const auto dep_id = is_in_mem ? dep.dump() : dep.get<std::string>();
-            if (CheckIfLoaded(is_in_mem ? dep["id"].get<std::string>()
-                                        : dep_id))
-                continue;
-            auto future = LoadResourceAsync(dep_id, is_in_mem);
-            mDepsLoaded.push_back(std::move(future));
-        }
-    } catch (json::out_of_range e) {
-        // Expected Error in case there are no dependencies
-    } catch (json::type_error e) {
-        mEngine->Logger().log("Error parsing json dependencies of "s + id
-                                  + " | " + e.what(),
-                              LogLevel::ERROR);
-        return;
-    }
-
-    // Dependencies which are supposed to be loaded in sync with parent
-    try {
-        auto a = jhandle.at("sync_dependencies");
-        for (const auto &dep : a) {
-            const bool is_in_mem = dep.is_object();
-            const auto dep_id = is_in_mem ? dep.dump() : dep.get<std::string>();
-            if (CheckIfLoaded(is_in_mem ? dep["id"].get<std::string>()
-                                        : dep_id))
-                continue;
-            LoadResource(dep_id, is_in_mem);
-        }
-    } catch (json::out_of_range e) {
-        // Expected Error in case there are no dependencies
-    } catch (json::type_error e) {
-        mEngine->Logger().log("Error parsing json sync_dependencies of "s + id
-                                  + " | " + e.what(),
-                              LogLevel::ERROR);
-        return;
-    }
-
-    if (mDepsLoaded.size() > 0)
-        for (auto &fut : mDepsLoaded)
-            fut.get();
-
-    // All dependencies have been laoded
-    // So we can call the Loader for this resource
-
-    ResType type;
-    try {
-        type = jhandle["type"].get<ResType>();
-    } catch (json::type_error e) {
-        mEngine->Logger().log("Error determining the type of "s + id,
-                              LogLevel::ERROR);
-        return;
-    }
-
-    Resource *_res = nullptr;
-
-    try {
-        _res = mLoaders[type](jhandle.dump(), this);
-    } catch (std::exception e) {
-        GetEngine().Logger().log(
-            "Exception during running the Resource Loader for: "s + handle
-                + " | " + e.what(),
-            LogLevel::ERROR);
-        return;
-    }
-
-    if (!_res) {
-        GetEngine().Logger().log("The Resource Loader returned nullptr for: "s
-                                     + handle,
-                                 LogLevel::ERROR);
-        return;
-    }
-
-    std::unique_ptr<Resource> res(_res);
-
-    std::unique_lock<std::shared_mutex> lck(mResLock);
-    mResourceList[id] = std::move(res);
-
-    mEngine->Logger().log("Loaded resource: "s + id);
-}
-
-std::future<void>
-tr::ResourceManager::LoadResourceAsync(const std::string &identifier,
-                                       bool               from_memory,
-                                       Callback           cb,
-                                       void *             userdata)
-{
-    auto prom = std::make_shared<std::promise<void>>();
-    auto fut  = prom->get_future();
-
-    mJHandler->AddJob([=]() mutable {
-        this->LoadResource(identifier, from_memory);
-        if (cb)
-            cb(identifier, userdata);
-        prom->set_value();
-    });
-
-    return fut;
-}
-
-std::shared_ptr<tr::Resource>
-tr::ResourceManager::GetResource(const std::string &identifier)
-{
-    std::shared_lock<std::shared_mutex> lck(mResLock);
-
-    if (auto res = mResourceList.find(identifier); res != mResourceList.end())
-        return res->second;
-
-    return nullptr;
-}
-
-std::weak_ptr<tr::Resource>
-tr::ResourceManager::GetResourceWeak(const std::string &identifier)
-{
-    std::shared_lock<std::shared_mutex> lck(mResLock);
-
-    if (auto res = mResourceList.find(identifier); res != mResourceList.end())
-        return res->second;
-
-    return std::weak_ptr<Resource>();
-}
-
-bool tr::ResourceManager::DeleteResource(const std::string &identifier)
-{
-    std::unique_lock<std::shared_mutex> lck(mResLock);
-    const auto amount = mResourceList.erase(identifier);
-    return amount == 1;
-}
-
-void tr::ResourceManager::AddLoader(const ResType &type, LoaderFunc func)
-{
-    mLoaders[type] = func;
-}

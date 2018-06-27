@@ -2,6 +2,7 @@
 
 #include "../core/Engine.h"
 #include "../filesystem/Filesystem.h"
+#include "../filesystem/ResourceManager.h"
 #include "nlohmann/json.hpp"
 #include "stb_image.h"
 
@@ -60,18 +61,20 @@ tr::uint32 tr::Image::GetPixelAt(int x, int y) const
     return mPixels[mSizeX * y + x];
 }
 
-tr::Resource *tr::Image::Loader(ResourceManager::ResHandle handle,
-                                ResourceManager *          rm)
+tr::ResourcePtr<> tr::ImageLoader::LoadResource(ResourceLoadingInformation info,
+                                                const ResourceType &       type,
+                                                ResourceManager &          rm,
+                                                ResourceLoadingContext context)
 {
-    json jhandle = json::parse(handle);
+    json &jhandle = *info;
 
     if (auto it = jhandle.find("file"); it != jhandle.end()) {
 
         if (!it->is_string())
             return nullptr;
         auto s = fs::GetExecutablePath() + it->get<std::string>();
-        s      = rm->ResolvePath(s);
-        return new Image(s);
+        s      = rm.ResolvePath(s);
+        return ResourcePtr<>(new Image(s));
 
     } else if (auto it = jhandle.find("memory"); it != jhandle.end()) {
 
@@ -84,14 +87,14 @@ tr::Resource *tr::Image::Loader(ResourceManager::ResHandle handle,
             xSize = jhandle["xSize"];
             ySize = jhandle["ySize"];
         } catch (json::out_of_range e) {
-            rm->GetEngine().Logger().log("Not size specified in: "s + handle,
+            rm.GetEngine().Logger().log("Not size specified in: "s + jhandle.dump(),
                                          LogLevel::WARNING);
             return nullptr;
         }
 
         uint32 *ptr = reinterpret_cast<uint32 *>(it->get<uint64>());
 
-        return new Image(ptr, xSize, ySize);
+        return ResourcePtr<>(new Image(ptr, xSize, ySize));
 
     } else if (auto it = jhandle.find("color"); it != jhandle.end()) {
 
@@ -103,13 +106,13 @@ tr::Resource *tr::Image::Loader(ResourceManager::ResHandle handle,
             xSize = jhandle["xSize"];
             ySize = jhandle["ySize"];
         } catch (json::out_of_range e) {
-            rm->GetEngine().Logger().log("Invalid handle to load from color: "s
-                                             + handle,
+            rm.GetEngine().Logger().log("Invalid handle to load from color: "s
+                                             + jhandle.dump(),
                                          LogLevel::WARNING);
             return nullptr;
         }
 
-        return new Image(color, xSize, ySize);
+        return ResourcePtr<>(new Image(color, xSize, ySize));
     }
 
     return nullptr;

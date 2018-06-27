@@ -1,18 +1,18 @@
 #pragma once
 #include <tr.h>
 
+#include "../util/ClassID.h"
+
 #include <memory>
 
 namespace tr {
 
-using ComponentTypeID = uint;
+    struct ClassID_ComponentTag {};
 
-namespace detail::ecs {
-    extern ComponentTypeID component_type_counter;
-}
+using ComponentTypeID = int64;
 
 template<typename T>
-inline const auto CompIDResolver = ++detail::ecs::component_type_counter;
+inline const auto CompIDResolver = ClassID<T, ClassID_ComponentTag>;
 
 template<typename T, typename Allocator = std::allocator<T>>
 struct ComponentTag {
