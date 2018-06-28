@@ -3,7 +3,7 @@
 
 #include "Component.h"
 
-#include <assert.h>
+#include <cassert>
 #include <unordered_map>
 
 namespace tr {

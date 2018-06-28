@@ -14,7 +14,7 @@ tr::Image::Image(const std::string &file)
     byte *data = stbi_load(file.c_str(), &x, &y, &n,
                            4); // We want always four channels
 
-    if (data == NULL) {
+    if (data == nullptr) {
         throw std::runtime_error("Could not load image from: " + file
                                  + " | Reason: " + stbi_failure_reason());
     }
@@ -92,7 +92,7 @@ tr::ResourcePtr<> tr::ImageLoader::LoadResource(ResourceLoadingInformation info,
             return nullptr;
         }
 
-        uint32 *ptr = reinterpret_cast<uint32 *>(it->get<uint64>());
+        auto *ptr = reinterpret_cast<uint32 *>(it->get<uint64>());
 
         return ResourcePtr<>(new Image(ptr, xSize, ySize));
 

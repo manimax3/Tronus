@@ -1,4 +1,6 @@
 #include "ImguiRenderer.h"
+
+#include <memory>
 #include "../core/Engine.h"
 #include "../event/CommonEvents.h"
 #include "../profile/Profiler.h"
@@ -82,7 +84,7 @@ void tr::ImguiRenderer::Init(GraphicsHandler *gfx, ResourceManager *rm)
     texture_handle["dependencies"][0]  = o;
 
     mResManager->LoadResource(
-        ResourceLoadingInformation(new json(std::move(texture_handle))),
+        std::make_shared<json>(std::move(texture_handle)),
         std::string(TEXTURE_ID));
     mShader = ResCast<GLSLShader>(mResManager->LoadResource(SHADER_ID));
 
@@ -164,8 +166,8 @@ void tr::ImguiRenderer::draw_data(ImDrawData *draw_data)
 {
     auto &im = ImGui::GetIO();
 
-    int fb_width  = (int)(im.DisplaySize.x * im.DisplayFramebufferScale.x);
-    int fb_height = (int)(im.DisplaySize.y * im.DisplayFramebufferScale.y);
+    auto fb_width  = (int)(im.DisplaySize.x * im.DisplayFramebufferScale.x);
+    auto fb_height = (int)(im.DisplaySize.y * im.DisplayFramebufferScale.y);
     if (fb_width == 0 || fb_height == 0)
         return;
 
@@ -191,7 +193,7 @@ void tr::ImguiRenderer::draw_data(ImDrawData *draw_data)
 
     for (int n = 0; n < draw_data->CmdListsCount; n++) {
         const ImDrawList *cmd_list          = draw_data->CmdLists[n];
-        const ImDrawIdx * idx_buffer_offset = 0;
+        const ImDrawIdx * idx_buffer_offset = nullptr;
 
         Call(glBufferData(
             GL_ARRAY_BUFFER,
@@ -234,7 +236,7 @@ void tr::ImguiRenderer::OnEvent(const Event &e, int channel)
 {
     if (e.Identifier == event::INPUT) {
 
-        const InputEvent &ie = static_cast<const InputEvent &>(e);
+        const auto &ie = static_cast<const InputEvent &>(e);
         auto &            im = ImGui::GetIO();
 
         if (ie.type == InputEvent::MouseButton) {
@@ -270,7 +272,7 @@ void tr::ImguiRenderer::OnEvent(const Event &e, int channel)
             im.MousePos = ImVec2(ie.XPos, ie.YPos);
         }
     } else if (e.Identifier == event::WINDOW) {
-        const WindowEvent &we = static_cast<const WindowEvent &>(e);
+        const auto &we = static_cast<const WindowEvent &>(e);
 
         if (we.type == WindowEvent::RESIZED) {
             mProjectionMatrix

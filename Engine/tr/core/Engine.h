@@ -30,7 +30,7 @@ private:
 
 public:
     Engine(class Game &game);
-    ~Engine();
+    ~Engine() override;
     void Start();
     void Stop();
 

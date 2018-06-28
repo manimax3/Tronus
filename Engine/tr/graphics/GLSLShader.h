@@ -13,7 +13,7 @@ public:
                               Log &              log);
 
     explicit GLSLShader(uint program);
-    ~GLSLShader();
+    ~GLSLShader() override;
 
     void Bind() const;
 

@@ -33,7 +33,7 @@ class FileBuffer : public StreamBuffer {
     public:
         explicit FileBuffer(const std::string &path, int32 flags);
         explicit FileBuffer() = default;
-        ~FileBuffer();
+        ~FileBuffer() override;
 
         void Open(const std::string &path, int32 flags);
         void Close();

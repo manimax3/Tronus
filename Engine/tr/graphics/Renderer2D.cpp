@@ -42,13 +42,13 @@ void tr::Renderer2D::Init(GraphicsHandler *gfx, ResourceManager *rm)
     Call(glBindVertexArray(mVao));
 
     Call(glBindBuffer(GL_ARRAY_BUFFER, mVbo));
-    Call(glBufferData(GL_ARRAY_BUFFER, V_BUF_SIZE, NULL, GL_DYNAMIC_DRAW));
+    Call(glBufferData(GL_ARRAY_BUFFER, V_BUF_SIZE, nullptr, GL_DYNAMIC_DRAW));
 
     Call(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIbo));
-    Call(glBufferData(GL_ELEMENT_ARRAY_BUFFER, I_BUF_SIZE * sizeof(uint), NULL,
+    Call(glBufferData(GL_ELEMENT_ARRAY_BUFFER, I_BUF_SIZE * sizeof(uint), nullptr,
                       GL_STATIC_DRAW));
 
-    Call(uint *indices = reinterpret_cast<uint *>(
+    Call(auto *indices = reinterpret_cast<uint *>(
              glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY)));
 
     for (uint i = 0; i < I_BUF_SIZE; i += 6) {
@@ -64,7 +64,7 @@ void tr::Renderer2D::Init(GraphicsHandler *gfx, ResourceManager *rm)
     Call(glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER));
 
     Call(glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                               (void *)0));
+                               (void *)nullptr));
     Call(glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex),
                                (void *)sizeof(Vec2)));
     Call(glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
@@ -160,7 +160,7 @@ void tr::Renderer2D::EndFrame()
 
     Call(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIbo));
     Call(glDrawElements(GL_TRIANGLES, mRenderCount * 6, GL_UNSIGNED_INT,
-                        (void *)0));
+                        (void *)nullptr));
 
     Call(glBindVertexArray(0));
 }
@@ -219,7 +219,7 @@ void tr::Renderer2D::OnEvent(const Event &e, int channel)
     if (e.Identifier != event::WINDOW)
         return;
 
-    const WindowEvent &we = static_cast<const WindowEvent &>(e);
+    const auto &we = static_cast<const WindowEvent &>(e);
 
     if (we.type != WindowEvent::RESIZED)
         return;

@@ -18,8 +18,8 @@ public:
     inline bool    IsInitialized() const { return mInitialized; }
     inline Engine &GetEngine() { return *mEngine; }
 
-    virtual std::vector<int> SubscripeTo() const override;
-    virtual void             OnEvent(const Event &e, int channel) override {}
+    std::vector<int> SubscripeTo() const override;
+    void             OnEvent(const Event &e, int channel) override {}
 
 protected:
     bool    mInitialized = false;

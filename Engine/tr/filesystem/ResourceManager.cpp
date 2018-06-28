@@ -67,7 +67,7 @@ tr::ResourceManager::LoadResource(ResourceLoadingInformation  info,
 
     json &res_info = *info;
 
-    const std::string &type
+    const auto &type
         = res_info.at("type").get_ref<const std::string &>();
 
     ResourceLoadingContext context;

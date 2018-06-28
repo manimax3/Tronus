@@ -21,12 +21,12 @@ public:
 
     explicit BaseSystem(World &world) noexcept
         : mWorld(world){};
-    virtual ~BaseSystem() = default;
+    ~BaseSystem() override = default;
 
     virtual void OnUpdate(){};
 
-    virtual void             OnEvent(const Event &, int channel) override{};
-    virtual std::vector<int> SubscripeTo() const override { return {}; };
+    void             OnEvent(const Event &, int channel) override{};
+    std::vector<int> SubscripeTo() const override { return {}; };
 
 protected:
     virtual void HandleGameObjectAdd(GameObjectHandle go)             = 0;

@@ -56,7 +56,7 @@ void tr::FileBuffer::Open(const std::string &path, int32 flags)
 void tr::FileBuffer::Close()
 {
     if (mHandle) {
-        FILE *file = reinterpret_cast<FILE *>(mHandle);
+        auto *file = reinterpret_cast<FILE *>(mHandle);
         fclose(file);
     }
 }
@@ -64,7 +64,7 @@ void tr::FileBuffer::Close()
 std::streamsize tr::FileBuffer::Write(
     const char *src, std::streamsize n) noexcept
 {
-    FILE *      file    = reinterpret_cast<FILE *>(mHandle);
+    auto *      file    = reinterpret_cast<FILE *>(mHandle);
     std::size_t written = fwrite(src, sizeof(char), n, file);
 
     return written;
@@ -72,7 +72,7 @@ std::streamsize tr::FileBuffer::Write(
 
 std::streamsize tr::FileBuffer::Read(char *dest, std::streamsize n) noexcept
 {
-    FILE *      file = reinterpret_cast<FILE *>(mHandle);
+    auto *      file = reinterpret_cast<FILE *>(mHandle);
     std::size_t read = fread(dest, sizeof(char), n, file);
 
     return read;
@@ -80,6 +80,6 @@ std::streamsize tr::FileBuffer::Read(char *dest, std::streamsize n) noexcept
 
 bool tr::FileBuffer::flush() noexcept
 {
-    FILE *file = reinterpret_cast<FILE *>(mHandle);
+    auto *file = reinterpret_cast<FILE *>(mHandle);
     return !fflush(file);
 }

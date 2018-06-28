@@ -33,7 +33,7 @@ void tr::Simple2DRenderer::Init(GraphicsHandler *gfx, ResourceManager *rm)
                       GL_STATIC_DRAW));
 
     Call(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat),
-                               (GLvoid *)0));
+                               (GLvoid *)nullptr));
 
     Call(glEnableVertexAttribArray(0));
     Call(glBindVertexArray(0));

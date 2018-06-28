@@ -210,14 +210,14 @@ void tr::detail::checkCompileErrors(uint               shader,
     if (type != "PROGRAM") {
         glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
         if (!success) {
-            glGetShaderInfoLog(shader, 1024, NULL, infoLog);
+            glGetShaderInfoLog(shader, 1024, nullptr, infoLog);
             log.log("Error Compiling a "s + type + " Shader | " + infoLog,
                     LogLevel::ERROR);
         }
     } else {
         glGetProgramiv(shader, GL_LINK_STATUS, &success);
         if (!success) {
-            glGetProgramInfoLog(shader, 1024, NULL, infoLog);
+            glGetProgramInfoLog(shader, 1024, nullptr, infoLog);
             log.log("Error Linking a "s + type + " Shader | " + infoLog,
                     LogLevel::ERROR);
         }

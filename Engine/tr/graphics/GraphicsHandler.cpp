@@ -121,7 +121,7 @@ void tr::GraphicsHandler::OnEvent(const Event &e, int channel)
         if (!mContext.valid)
             return;
 
-        const WindowEvent &we = static_cast<const WindowEvent &>(e);
+        const auto &we = static_cast<const WindowEvent &>(e);
 
         if (we.type != WindowEvent::RESIZED)
             return;
@@ -133,7 +133,7 @@ void tr::GraphicsHandler::OnEvent(const Event &e, int channel)
             mContext.windowInfo.Size.y = we.ySize;
         }
     } else if (e.Identifier == event::INPUT) {
-        const InputEvent &ie = static_cast<const InputEvent &>(e);
+        const auto &ie = static_cast<const InputEvent &>(e);
 
         if (ie.type != InputEvent::Mouse)
             return;
@@ -167,7 +167,7 @@ void tr::GraphicsHandler::CreateWindow(const CreateWindowInfo &info)
 
     GLFWwindow *window = glfwCreateWindow(
         info.Size.x, info.Size.y, info.Name.c_str(),
-        info.Fullscreen ? glfwGetPrimaryMonitor() : NULL, NULL);
+        info.Fullscreen ? glfwGetPrimaryMonitor() : nullptr, nullptr);
 
     if (!window) {
         Logger.log("Error Creating a GLFW Window", LogLevel::ERROR);
@@ -230,7 +230,7 @@ void tr::key_callback(GLFWwindow *window,
                       int         action,
                       int         mods)
 {
-    GraphicsHandler *handler
+    auto *handler
         = static_cast<GraphicsHandler *>(glfwGetWindowUserPointer(window));
 
     InputEvent::Action a;
@@ -258,7 +258,7 @@ void tr::key_callback(GLFWwindow *window,
 
 void tr::cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
 {
-    GraphicsHandler *handler
+    auto *handler
         = static_cast<GraphicsHandler *>(glfwGetWindowUserPointer(window));
 
     InputEvent event(xpos, ypos);
@@ -267,7 +267,7 @@ void tr::cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
 
 void tr::close_callback(GLFWwindow *window)
 {
-    GraphicsHandler *handler
+    auto *handler
         = static_cast<GraphicsHandler *>(glfwGetWindowUserPointer(window));
 
     handler->GetEngine().sEventSystem->DispatchEvent(
@@ -294,7 +294,7 @@ void tr::gl_debug_callback(GLenum        source,
           || severity == GL_DEBUG_SEVERITY_MEDIUM))
         return;
 
-    GraphicsHandler *handler = static_cast<GraphicsHandler *>(userParam);
+    auto *handler = static_cast<GraphicsHandler *>(userParam);
 
     std::string m("OpenGL: ");
     if (length == -1)
@@ -309,7 +309,7 @@ void tr::gl_debug_callback(GLenum        source,
 
 void tr::character_callback(GLFWwindow *window, uint codepoint)
 {
-    GraphicsHandler *handler
+    auto *handler
         = static_cast<GraphicsHandler *>(glfwGetWindowUserPointer(window));
 
     handler->GetEngine().sEventSystem->DispatchEvent(InputEvent(codepoint));
@@ -317,7 +317,7 @@ void tr::character_callback(GLFWwindow *window, uint codepoint)
 
 void tr::cursor_enter_callback(GLFWwindow *window, int entered)
 {
-    GraphicsHandler *handler
+    auto *handler
         = static_cast<GraphicsHandler *>(glfwGetWindowUserPointer(window));
 
     handler->GetEngine().sEventSystem->DispatchEvent(InputEvent(
@@ -329,7 +329,7 @@ void tr::mouse_button_callback(GLFWwindow *window,
                                int         action,
                                int         mods)
 {
-    GraphicsHandler *handler
+    auto *handler
         = static_cast<GraphicsHandler *>(glfwGetWindowUserPointer(window));
 
     InputEvent::Action a;
@@ -358,7 +358,7 @@ void tr::mouse_button_callback(GLFWwindow *window,
 
 void tr::scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
-    GraphicsHandler *handler
+    auto *handler
         = static_cast<GraphicsHandler *>(glfwGetWindowUserPointer(window));
 
     InputEvent event(InputEvent::Scroll);
@@ -370,7 +370,7 @@ void tr::scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 
 void tr::framebuffer_resized_callback(GLFWwindow *window, int width, int height)
 {
-    GraphicsHandler *handler
+    auto *handler
         = static_cast<GraphicsHandler *>(glfwGetWindowUserPointer(window));
 
     if (width == 0 || height == 0)

@@ -4,6 +4,7 @@
 #include "../math/Math.h"
 
 #include <string>
+#include <utility>
 
 namespace tr {
 struct SceneComponent {
@@ -20,8 +21,8 @@ struct SceneComponent {
 };
 
 struct NameComponent {
-    explicit NameComponent(const std::string &name = "NONAME")
-        : name(name)
+    explicit NameComponent(std::string name = "NONAME")
+        : name(std::move(name))
     {
     }
 
