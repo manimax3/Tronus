@@ -8,6 +8,8 @@
 #include "Texture.h"
 #include "imgui.h"
 
+#include <sstream>
+
 tr::DebugWindow::DebugWindow(Engine &engine)
     : mEngine(engine)
 {
@@ -55,8 +57,8 @@ void tr::DebugWindow::draw()
     /* if (world_debug_open) */
     /*     mEngine.mWorld->RenderDebug(); */
 
-    /* if (rm_debug_open) */
-    /*     rm_debug_window(); */
+    if (rm_debug_open)
+        rm_debug_window();
 
     if (im_demo_window)
         ImGui::ShowDemoWindow();
@@ -78,7 +80,7 @@ void tr::DebugWindow::renderer2d_enable_test_window(Renderer2D &renderer)
 
     if (!init) {
         Renderer2D::Renderable r;
-        int                    c = 0;
+        /* int                    c = 0; */
         for (float y = 0; y < mEngine.sGraphicsHandler->GetWindowSize().y;
              y += 10)
             for (float x = 0; x < mEngine.sGraphicsHandler->GetWindowSize().x;
@@ -99,30 +101,31 @@ void tr::DebugWindow::renderer2d_enable_test_window(Renderer2D &renderer)
     }
 }
 
-/* void tr::DebugWindow::rm_debug_window() */
-/* { */
-/*     if (ImGui::Begin("Resource Manager")) { */
+void tr::DebugWindow::rm_debug_window()
+{
+    if (ImGui::Begin("Resource Manager")) {
 
-/*         if (ImGui::InputText("Load", &buffer[0], buffer.size(), */
-/*                              ImGuiInputTextFlags_EnterReturnsTrue)) { */
+        if (ImGui::InputText("Load", &buffer[0], buffer.size(),
+                             ImGuiInputTextFlags_EnterReturnsTrue)) {
 
-/*             if (!rm_load_async) */
-/*                 mEngine.sResourceManager->LoadResource(buffer.data(), */
-/*                                                        rm_load_from_mem); */
-/*             else */
-/*                 mEngine.sResourceManager->LoadResourceAsync(buffer.data(), */
-/*                                                             rm_load_from_mem); */
+            std::stringstream stream;
+            stream.write(buffer.data(), strlen(buffer.data()));
+            try {
+                if (rm_load_from_mem)
+                    mEngine.sResourceManager->LoadResource(stream);
+                else
+                    mEngine.sResourceManager->LoadResource(stream.str());
+            } catch (const ResourceNotLoadedError &e) {
+            }
+            std::memset(buffer.data(), 0, buffer.size());
+        }
 
-/*             std::memset(buffer.data(), 0, buffer.size()); */
-/*         } */
+        ImGui::Checkbox("Mem", &rm_load_from_mem);
 
-/*         ImGui::Checkbox("Mem", &rm_load_from_mem); */
-/*         ImGui::SameLine(); */
-/*         ImGui::Checkbox("Async", &rm_load_async); */
-
-/*         for (const auto &r : mEngine.sResourceManager->mResourceList) { */
-/*             ImGui::Text("%s", r.first.c_str()); */
-/*         } */
-/*     } */
-/*     ImGui::End(); */
-/* } */
+        for (const auto &[name, id] :
+             mEngine.sResourceManager->mResourceIDLookup) {
+            ImGui::Text("%s", name.c_str());
+        }
+    }
+    ImGui::End();
+}

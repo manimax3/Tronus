@@ -56,8 +56,6 @@ public:
     ResourceID GetResourceID(std::string_view name);
     ResourceID GetResourceID(const ResourcePtr<> &res);
 
-    ResourceName GetResourceName(const ResourceLoadHandler &       loader,
-                                 const ResourceLoadingInformation &info);
     ResourceName GetResourceName(ResourceID id);
 
     bool IsResourceLoaded(std::string_view name);

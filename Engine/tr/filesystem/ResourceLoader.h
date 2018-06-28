@@ -67,8 +67,7 @@ public:
 
     // If the ResourceManager can not determine a suitable it asks the
     // LoadHandler for a suitable name based on the ResourceLoadingInformation
-    virtual std::string
-    ResourceName(const ResourceLoadingInformation &info) const
+    virtual std::string ResourceName(ResourceWeakPtr<> res) const
     {
         throw std::logic_error(
             std::string("ResourceName(...) not implemented by ")

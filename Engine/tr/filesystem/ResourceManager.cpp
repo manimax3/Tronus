@@ -58,7 +58,7 @@ tr::ResourceManager::LoadResource(ResourceLoadingInformation  info,
     if (const auto &opt = InvalidInfoCheck(info); opt) {
 
         logger.log(
-            "ResourceLoading aborted because of invalid Loading information"s
+            "ResourceLoading aborted because of invalid Loading information. Reason: "s
                 + opt.value(),
             LogLevel::WARNING);
         throw ResourceNotLoadedError("Invalid ResourceLoadingInformation: \n"s
@@ -67,8 +67,7 @@ tr::ResourceManager::LoadResource(ResourceLoadingInformation  info,
 
     json &res_info = *info;
 
-    const auto &type
-        = res_info.at("type").get_ref<const std::string &>();
+    const auto type = res_info.at("type").get<std::string>();
 
     ResourceLoadingContext context;
     LoadDependecies(info, context);
@@ -95,10 +94,11 @@ tr::ResourceManager::LoadResource(ResourceLoadingInformation  info,
     ResourceID   id;
     ResourceName name;
     if (namehint.has_value()) {
-        id   = GetResourceID(namehint.value());
-        name = namehint.value();
+        const auto v = namehint.value();
+        id           = GetResourceID(v);
+        name         = namehint.value();
     } else {
-        name = loader_ptr->ResourceName(info);
+        name = loader_ptr->ResourceName(res_ptr);
         id   = GetResourceID(name);
     }
 
@@ -140,16 +140,17 @@ tr::ResourcePtr<>
 tr::ResourceManager::LoadResource(std::istream &              in,
                                   std::optional<ResourceName> namehint)
 {
-    json j;
+    auto info = std::make_shared<json>();
     try {
-        in >> j;
+        in >> *info;
     } catch (const json::parse_error &e) {
-        mEngine->Logger().log("Could not parse json object from stream | "s
-                              + e.what());
+        mEngine->Logger().log(
+            "Could not parse json object for resourceloading from stream | "s
+                + e.what(),
+            LogLevel::WARNING);
         throw ResourceNotLoadedError("Parsing from Stream");
     }
 
-    auto info = std::make_shared<json>(std::move(j));
     return LoadResource(std::move(info), std::move(namehint));
 }
 
@@ -236,13 +237,6 @@ bool tr::ResourceManager::IsResourceLoaded(std::string_view name)
 bool tr::ResourceManager::IsResourceLoaded(ResourceID id)
 {
     return mResources.find(id) != std::end(mResources);
-}
-
-tr::ResourceName
-tr::ResourceManager::GetResourceName(const ResourceLoadHandler &       loader,
-                                     const ResourceLoadingInformation &info)
-{
-    return loader.ResourceName(info);
 }
 
 tr::ResourceName tr::ResourceManager::GetResourceName(ResourceID id)
