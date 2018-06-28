@@ -145,7 +145,7 @@ void Engine::Tick()
     sEventSystem->Tick();
     sGraphicsHandler->Tick();
 
-    /* mWorld->DispatchTick(); */
+    mWorld->Update();
 }
 
 std::vector<int> tr::Engine::SubscripeTo() const { return { ENGINE_CHANNEL }; }
