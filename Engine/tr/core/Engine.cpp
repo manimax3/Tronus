@@ -14,8 +14,7 @@
 
 using namespace tr;
 
-Engine::Engine(Game &game)
-    : mGame(game)
+Engine::Engine()
 {
     sLog             = new Log;
     sJobHandler      = new JobHandler;
@@ -39,12 +38,17 @@ Engine::~Engine()
     delete mDebugWindow;
 }
 
-void Engine::Start()
+void Engine::Start(Game *game)
 {
     EASY_MAIN_THREAD;
     EASY_PROFILER_ENABLE;
 
     Logger().log("Tronus Engine Starting...", LogLevel::WARNING);
+
+    if (!(mGame = game)) {
+        Logger().log("No game instance provied aborting...", LogLevel::ERROR);
+        return;
+    }
 
     Logger().log("Starting Subsystem Initialization...");
     sLog->Initialize(this);
@@ -54,7 +58,7 @@ void Engine::Start()
     sEventSystem->Initialize(this);
     sGraphicsHandler->Initialize(this);
 
-    if (mGame.EngineCreateWindow)
+    if (mGame->EngineCreateWindow)
         sGraphicsHandler->CreateWindow(CreateWindowInfo());
 
     Logger().log("Starting Subsystem Post Initialization...");
@@ -66,7 +70,7 @@ void Engine::Start()
     sGraphicsHandler->PostInit();
 
     mWorld = new World(sEventSystem);
-    mGame.PreWorldStartUp(*this);
+    mGame->PreWorldStartUp(*this);
 
     mRunning = true;
 
@@ -82,7 +86,7 @@ void Engine::Start()
 
     /* mWorld->StartWorld(); */
 
-    mGame.OnWorldLoad(*mWorld);
+    mGame->OnWorldLoad(*mWorld);
 
     // Start the tick loop
 
@@ -120,7 +124,7 @@ void Engine::Start()
 
 void Engine::Stop()
 {
-    mGame.OnWorldShutdown();
+    mGame->OnWorldShutdown();
 
     /* mWorld->StopWorld(); */
 

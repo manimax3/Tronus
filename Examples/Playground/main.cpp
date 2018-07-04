@@ -24,8 +24,7 @@ class MyGame : public tr::Game {
 
 int main()
 {
-    MyGame     game;
-    tr::Engine engine(game);
-    engine.Start();
+    MyGame game;
+    tr::Engine::Get().Start(&game);
     return 0;
 }

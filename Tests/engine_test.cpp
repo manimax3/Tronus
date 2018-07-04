@@ -7,9 +7,8 @@
 TEST_CASE("Engine Creation and Running")
 {
     tr::Game game;
-    tr::Engine engine(game);
     
-    tr::JobHandler *handler = engine.sJobHandler;
+    tr::JobHandler *handler = tr::Engine::Get().sJobHandler;
     REQUIRE(handler);
     
     //engine.Start();

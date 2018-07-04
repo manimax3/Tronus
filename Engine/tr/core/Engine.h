@@ -1,12 +1,13 @@
 #pragma once
 
 #include "../util/Log.h"
+#include "../util/Singleton.h"
 #include "tr.h"
 #include <map>
 #include <type_traits>
 
 namespace tr {
-class Engine : public EventListener {
+class Engine : public Singleton<Engine>, public EventListener {
 public:
     class Log *            sLog             = nullptr;
     class JobHandler *     sJobHandler      = nullptr;
@@ -26,16 +27,16 @@ private:
     int mLastFps = 0;
 
     class DebugWindow *mDebugWindow = nullptr;
-    class Game &       mGame;
+    class Game *       mGame        = nullptr;
 
 public:
-    Engine(class Game &game);
+    Engine();
     ~Engine() override;
-    void Start();
+    void Start(class Game *game);
     void Stop();
 
     inline Log &       Logger() { return *sLog; }
-    inline const Game &GetGame() const { return mGame; }
+    inline const Game &GetGame() const { return *mGame; }
 
     // EventListener
     std::vector<int> SubscripeTo() const override;
