@@ -1,8 +1,6 @@
 #include "ImguiRenderer.h"
 
-#include <memory>
 #include "../core/Engine.h"
-#include "../event/CommonEvents.h"
 #include "../profile/Profiler.h"
 #include "../util/Keys.h"
 #include "GLCheck.h"
@@ -12,6 +10,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "imgui.h"
 #include "nlohmann/json.hpp"
+#include <memory>
 
 static bool   g_MouseJustPressed[3] = { false, false, false };
 static double g_time                = 0.0;
@@ -22,6 +21,9 @@ void tr::ImguiRenderer::Init(GraphicsHandler *gfx, ResourceManager *rm)
 
     mGfxHandler = gfx;
     mResManager = rm;
+
+    gfx->WindowChanged.connect([&](const WindowEvent &e) { this->OnEvent(e); });
+    gfx->InputRecieved.connect([&](const InputEvent &e) { this->OnEvent(e); });
 
     const auto w_size = gfx->GetWindowSize();
 
@@ -83,9 +85,8 @@ void tr::ImguiRenderer::Init(GraphicsHandler *gfx, ResourceManager *rm)
                { "ySize", height } };
     texture_handle["dependencies"][0]  = o;
 
-    mResManager->LoadResource(
-        std::make_shared<json>(std::move(texture_handle)),
-        std::string(TEXTURE_ID));
+    mResManager->LoadResource(std::make_shared<json>(std::move(texture_handle)),
+                              std::string(TEXTURE_ID));
     mShader = ResCast<GLSLShader>(mResManager->LoadResource(SHADER_ID));
 
     ResourcePtr<Texture> tex
@@ -127,8 +128,6 @@ void tr::ImguiRenderer::Init(GraphicsHandler *gfx, ResourceManager *rm)
     };
 
     im.ClipboardUserData = reinterpret_cast<void *>(mGfxHandler);
-
-    mGfxHandler->GetEngine().sEventSystem->AddListener(this);
 }
 
 void tr::ImguiRenderer::Render()
@@ -158,8 +157,10 @@ void tr::ImguiRenderer::StartDebugFrame()
 
     ImGui::NewFrame();
 
-    mGfxHandler->GetEngine().sEventSystem->DispatchEvent(RenderDebugEvent(),
-                                                         RENDER_CHANNEL);
+    /* mGfxHandler->GetEngine().sEventSystem->DispatchEvent(RenderDebugEvent(),
+     */
+    /*                                                      RENDER_CHANNEL); */
+    DebugFrameStarted();
 }
 
 void tr::ImguiRenderer::draw_data(ImDrawData *draw_data)
@@ -227,57 +228,50 @@ void tr::ImguiRenderer::draw_data(ImDrawData *draw_data)
     Call(glBindVertexArray(0));
 }
 
-std::vector<int> tr::ImguiRenderer::SubscripeTo() const
+void tr::ImguiRenderer::OnEvent(const InputEvent &ie)
 {
-    return { ENGINE_CHANNEL };
+
+    auto &im = ImGui::GetIO();
+
+    if (ie.type == InputEvent::MouseButton) {
+
+        if (ie.action == InputEvent::REPEAT)
+            return;
+
+        if (ie.Key >= 0 && ie.Key < 3)
+            g_MouseJustPressed[ie.Key] = ie.action == InputEvent::PRESS;
+
+    } else if (ie.type == InputEvent::Scroll) {
+
+        /* im.MouseWheelH += ie.xoffset; */
+        im.MouseWheel += (float)ie.yoffset;
+
+    } else if (ie.type == InputEvent::Keyboard) {
+
+        if (ie.action == InputEvent::PRESS)
+            im.KeysDown[ie.Key] = true;
+        else if (ie.action == InputEvent::RELEASE)
+            im.KeysDown[ie.Key] = false;
+
+        im.KeyAlt   = ie.Alt;
+        im.KeyCtrl  = ie.Control;
+        im.KeyShift = ie.Shift;
+        im.KeySuper = ie.Super;
+
+    } else if (ie.type == InputEvent::Char) {
+
+        if (ie.codepoint > 0 && ie.codepoint < 0x10000)
+            im.AddInputCharacter((unsigned short)ie.codepoint);
+    } else if (ie.type == InputEvent::Mouse) {
+        im.MousePos = ImVec2(ie.XPos, ie.YPos);
+    }
 }
 
-void tr::ImguiRenderer::OnEvent(const Event &e, int channel)
+void tr::ImguiRenderer::OnEvent(const WindowEvent &e)
 {
-    if (e.Identifier == event::INPUT) {
-
-        const auto &ie = static_cast<const InputEvent &>(e);
-        auto &            im = ImGui::GetIO();
-
-        if (ie.type == InputEvent::MouseButton) {
-
-            if (ie.action == InputEvent::REPEAT)
-                return;
-
-            if (ie.Key >= 0 && ie.Key < 3)
-                g_MouseJustPressed[ie.Key] = ie.action == InputEvent::PRESS;
-
-        } else if (ie.type == InputEvent::Scroll) {
-
-            /* im.MouseWheelH += ie.xoffset; */
-            im.MouseWheel += (float)ie.yoffset;
-
-        } else if (ie.type == InputEvent::Keyboard) {
-
-            if (ie.action == InputEvent::PRESS)
-                im.KeysDown[ie.Key] = true;
-            else if (ie.action == InputEvent::RELEASE)
-                im.KeysDown[ie.Key] = false;
-
-            im.KeyAlt   = ie.Alt;
-            im.KeyCtrl  = ie.Control;
-            im.KeyShift = ie.Shift;
-            im.KeySuper = ie.Super;
-
-        } else if (ie.type == InputEvent::Char) {
-
-            if (ie.codepoint > 0 && ie.codepoint < 0x10000)
-                im.AddInputCharacter((unsigned short)ie.codepoint);
-        } else if (ie.type == InputEvent::Mouse) {
-            im.MousePos = ImVec2(ie.XPos, ie.YPos);
-        }
-    } else if (e.Identifier == event::WINDOW) {
-        const auto &we = static_cast<const WindowEvent &>(e);
-
-        if (we.type == WindowEvent::RESIZED) {
-            mProjectionMatrix
-                = math::ortho<float>(0.f, we.xSize, we.ySize, 0.f, 1.f, -1.f);
-        }
+    if (e.type == WindowEvent::RESIZED) {
+        mProjectionMatrix
+            = math::ortho<float>(0.f, e.xSize, e.ySize, 0.f, 1.f, -1.f);
     }
 }
 

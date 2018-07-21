@@ -1,6 +1,7 @@
 #pragma once
 #include "../core/Subsystem.h"
-#include "../event/EventSystem.h"
+#include "../event/CommonEvents.h"
+#include "../event/Signal.h"
 #include "../math/Math.h"
 #include "ImguiRenderer.h"
 #include "Renderer2D.h"
@@ -45,9 +46,6 @@ public:
 
     void Render();
 
-    std::vector<int> SubscripeTo() const override;
-    void             OnEvent(const Event &e, int channel) override;
-
     // Input functionality
     const char *GetClipboard() const;
     void        SetClipboard(const std::string &c);
@@ -57,7 +55,15 @@ public:
     Vec2 GetWindowSize() const;
     Vec2 GetMousePos() const;
 
-    inline Renderer2D &GetRenderer2D() { return mRenderer2D; }
+    inline Renderer2D &   GetRenderer2D() { return mRenderer2D; }
+    inline ImguiRenderer &GetImguiRenderer() { return mImguiRenderer; }
+
+    Signal<void(const InputEvent &)>  InputRecieved;
+    Signal<void(const WindowEvent &)> WindowChanged;
+
+private:
+    void HandleInputEvent(const InputEvent &e);
+    void HandleWindowEvent(const WindowEvent &e);
 
 private:
     RenderContext    mContext;

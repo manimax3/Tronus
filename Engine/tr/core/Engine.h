@@ -2,18 +2,18 @@
 
 #include "../util/Log.h"
 #include "../util/Singleton.h"
+#include "../event/CommonEvents.h"
 #include "tr.h"
 #include <map>
 #include <type_traits>
 
 namespace tr {
-class Engine : public Singleton<Engine>, public EventListener {
+class Engine : public Singleton<Engine> {
 public:
     class Log *            sLog             = nullptr;
     class JobHandler *     sJobHandler      = nullptr;
     class ResourceManager *sResourceManager = nullptr;
     class Profiler *       sProfiler        = nullptr;
-    class EventSystem *    sEventSystem     = nullptr;
     class GraphicsHandler *sGraphicsHandler = nullptr;
 
     class World *mWorld = nullptr;
@@ -38,9 +38,7 @@ public:
     inline Log &       Logger() { return *sLog; }
     inline const Game &GetGame() const { return *mGame; }
 
-    // EventListener
-    std::vector<int> SubscripeTo() const override;
-    void             OnEvent(const Event &e, int channel) override;
+    void OnEvent(const WindowEvent &e);
 
     friend class DebugWindow;
 

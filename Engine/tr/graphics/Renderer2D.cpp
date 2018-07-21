@@ -23,9 +23,11 @@ tr::Renderer2D::Renderer2D()
 
 void tr::Renderer2D::Init(GraphicsHandler *gfx, ResourceManager *rm)
 {
-    rm->GetEngine().sEventSystem->AddListener(this);
     mGfxHandler = gfx;
     mResManager = rm;
+
+    gfx->WindowChanged.connect(
+        [this](const WindowEvent &e) { this->OnEvent(e); });
 
     mRenderables.reserve(RENDERABLE_SIZE);
 
@@ -45,8 +47,8 @@ void tr::Renderer2D::Init(GraphicsHandler *gfx, ResourceManager *rm)
     Call(glBufferData(GL_ARRAY_BUFFER, V_BUF_SIZE, nullptr, GL_DYNAMIC_DRAW));
 
     Call(glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIbo));
-    Call(glBufferData(GL_ELEMENT_ARRAY_BUFFER, I_BUF_SIZE * sizeof(uint), nullptr,
-                      GL_STATIC_DRAW));
+    Call(glBufferData(GL_ELEMENT_ARRAY_BUFFER, I_BUF_SIZE * sizeof(uint),
+                      nullptr, GL_STATIC_DRAW));
 
     Call(auto *indices = reinterpret_cast<uint *>(
              glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY)));
@@ -91,8 +93,9 @@ void tr::Renderer2D::Render()
     EASY_BLOCK("Renderer2D Render");
     StartFrame();
     RenderRenderables();
-    mGfxHandler->GetEngine().sEventSystem->DispatchEvent(Render2DEvent(*this),
-                                                         RENDER_CHANNEL);
+    /* mGfxHandler->GetEngine().sEventSystem->DispatchEvent(Render2DEvent(*this),
+     */
+    /*                                                      RENDER_CHANNEL); */
     EndFrame();
 }
 
@@ -214,20 +217,10 @@ tr::Renderer2D::Renderable *tr::Renderer2D::ModifyRenderable(uint r)
     return nullptr;
 }
 
-void tr::Renderer2D::OnEvent(const Event &e, int channel)
+void tr::Renderer2D::OnEvent(const WindowEvent &e)
 {
-    if (e.Identifier != event::WINDOW)
+    if (e.type != WindowEvent::RESIZED)
         return;
 
-    const auto &we = static_cast<const WindowEvent &>(e);
-
-    if (we.type != WindowEvent::RESIZED)
-        return;
-
-    mProjectionMatrix = math::ortho<float>(0, we.xSize, we.ySize, 0, 1, -1);
-}
-
-std::vector<int> tr::Renderer2D::SubscripeTo() const
-{
-    return { ENGINE_CHANNEL };
+    mProjectionMatrix = math::ortho<float>(0, e.xSize, e.ySize, 0, 1, -1);
 }

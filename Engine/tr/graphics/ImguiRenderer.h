@@ -1,5 +1,6 @@
 #pragma once
-#include "../event/EventSystem.h"
+#include "../event/CommonEvents.h"
+#include "../event/Signal.h"
 #include "../math/Math.h"
 #include "GLSLShader.h"
 #include <tr.h>
@@ -8,7 +9,7 @@ class ImDrawData;
 namespace tr {
 class GraphicsHandler;
 class ResourceManager;
-class ImguiRenderer : public EventListener {
+class ImguiRenderer {
 public:
     void Init(GraphicsHandler *gfx, ResourceManager *rm);
     void Shutdown();
@@ -16,8 +17,10 @@ public:
     void Render();
     void StartDebugFrame();
 
-    std::vector<int> SubscripeTo() const override;
-    void             OnEvent(const Event &e, int channel) override;
+    void OnEvent(const WindowEvent &e);
+    void OnEvent(const InputEvent &e);
+
+    Signal<void()> DebugFrameStarted;
 
 private:
     static constexpr const char *SHADER_ID  = "ImguiRenderer.json";

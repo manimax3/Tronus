@@ -1,6 +1,5 @@
 #include "Engine.h"
 #include "../event/CommonEvents.h"
-#include "../event/EventSystem.h"
 #include "../filesystem/ResourceManager.h"
 #include "../gameobject/Game.h"
 #include "../gameobject/World.h"
@@ -16,11 +15,11 @@ using namespace tr;
 
 Engine::Engine()
 {
+    // TODO: Why arent thos unique_ptr ?
     sLog             = new Log;
     sJobHandler      = new JobHandler;
     sResourceManager = new ResourceManager;
     sProfiler        = new Profiler;
-    sEventSystem     = new EventSystem;
     sGraphicsHandler = new GraphicsHandler;
 }
 
@@ -32,7 +31,6 @@ Engine::~Engine()
     delete sJobHandler;
     delete sResourceManager;
     delete sProfiler;
-    delete sEventSystem;
     delete sGraphicsHandler;
 
     delete mDebugWindow;
@@ -55,34 +53,28 @@ void Engine::Start(Game *game)
     sJobHandler->Initialize(this);
     sResourceManager->Initialize(this);
     sProfiler->Initialize(this);
-    sEventSystem->Initialize(this);
     sGraphicsHandler->Initialize(this);
 
     if (mGame->EngineCreateWindow)
         sGraphicsHandler->CreateWindow(CreateWindowInfo());
+
+    mWorld = new World(sLog);
 
     Logger().log("Starting Subsystem Post Initialization...");
     sLog->PostInit();
     sJobHandler->PostInit();
     sResourceManager->PostInit();
     sProfiler->PostInit();
-    sEventSystem->PostInit();
     sGraphicsHandler->PostInit();
 
-    mWorld = new World(sEventSystem);
+    sGraphicsHandler->WindowChanged.connect(
+        [&](const WindowEvent &e) { this->OnEvent(e); });
+
     mGame->PreWorldStartUp(*this);
 
     mRunning = true;
 
     mDebugWindow = new DebugWindow(*this);
-    sEventSystem->AddListener(this);
-
-    sEventSystem->AddListener(sLog);
-    sEventSystem->AddListener(sJobHandler);
-    sEventSystem->AddListener(sResourceManager);
-    sEventSystem->AddListener(sProfiler);
-    sEventSystem->AddListener(sEventSystem);
-    sEventSystem->AddListener(sGraphicsHandler);
 
     /* mWorld->StartWorld(); */
 
@@ -133,7 +125,6 @@ void Engine::Stop()
     sGraphicsHandler->Shutdown();
     sResourceManager->Shutdown();
     sJobHandler->Shutdown();
-    sEventSystem->Shutdown();
     sLog->Shutdown();
     Logger().log("All subsystems have been stopped");
 }
@@ -146,20 +137,14 @@ void Engine::Tick()
     sJobHandler->Tick();
     sResourceManager->Tick();
     sProfiler->Tick();
-    sEventSystem->Tick();
     sGraphicsHandler->Tick();
 
     mWorld->Update();
 }
 
-std::vector<int> tr::Engine::SubscripeTo() const { return { ENGINE_CHANNEL }; }
-
-void Engine::OnEvent(const Event &e, int channel)
+void Engine::OnEvent(const WindowEvent &e)
 {
-    if (e.Identifier == event::WINDOW) {
-        const auto &we = static_cast<const WindowEvent &>(e);
-        if (we.type == WindowEvent::CLOSED) {
-            this->Stop();
-        }
+    if (e.type == WindowEvent::CLOSED) {
+        this->Stop();
     }
 }

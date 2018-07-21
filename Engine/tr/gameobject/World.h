@@ -2,7 +2,6 @@
 #include <tr.h>
 
 #include "../core/Subsystem.h"
-#include "../event/EventListener.h"
 #include "../util/MakeID.h"
 #include "../util/TemplateMeta.h"
 #include "Component.h"
@@ -15,18 +14,15 @@ namespace tr {
 
 class World;
 
-class BaseSystem : public EventListener {
+class BaseSystem {
 public:
     friend class World;
 
     explicit BaseSystem(World &world) noexcept
         : mWorld(world){};
-    ~BaseSystem() override = default;
+    ~BaseSystem() = default;
 
     virtual void OnUpdate(){};
-
-    void             OnEvent(const Event &, int channel) override{};
-    std::vector<int> SubscripeTo() const override { return {}; };
 
 protected:
     virtual void HandleGameObjectAdd(GameObjectHandle go)             = 0;
@@ -104,7 +100,7 @@ public:
     }
 
     // Returns GameObject::INVALID if the gameobject wasnt found
-    GameObject& GetGameObject(GameObjectHandle handle);
+    GameObject &GetGameObject(GameObjectHandle handle);
 
     Engine *mEngine = nullptr;
 

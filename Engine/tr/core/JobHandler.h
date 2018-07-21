@@ -48,7 +48,7 @@ private:
 
 public:
     JobHandler();
-    ~JobHandler() override;
+    ~JobHandler();
 
     template<typename Func>
     bool AddJob(Func &&function, bool bypass = false);

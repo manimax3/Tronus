@@ -11,6 +11,8 @@
 
 #include "imgui.h"
 
+#include <functional>
+
 namespace tr {
 void key_callback(GLFWwindow *window,
                   int         key,
@@ -39,6 +41,11 @@ void framebuffer_resized_callback(GLFWwindow *window, int width, int height);
 
 bool tr::GraphicsHandler::Initialize(Engine *e)
 {
+    using namespace std::placeholders;
+    InputRecieved.connect(
+        [&](const InputEvent &e) { this->HandleInputEvent(e); });
+    WindowChanged.connect(
+        [&](const WindowEvent &e) { this->HandleWindowEvent(e); });
     return Subsystem::Initialize(e);
 }
 
@@ -109,40 +116,28 @@ void tr::GraphicsHandler::SetClipboard(const std::string &c)
                            c.c_str());
 }
 
-std::vector<int> tr::GraphicsHandler::SubscripeTo() const
+void tr::GraphicsHandler::HandleWindowEvent(const WindowEvent &e)
 {
-    return { ENGINE_CHANNEL };
+    if (!mContext.valid)
+        return;
+
+    if (e.type != WindowEvent::RESIZED)
+        return;
+
+    Call(glViewport(0, 0, e.xSize, e.ySize));
+
+    if (Valid()) {
+        mContext.windowInfo.Size.x = e.xSize;
+        mContext.windowInfo.Size.y = e.ySize;
+    }
 }
 
-void tr::GraphicsHandler::OnEvent(const Event &e, int channel)
+void tr::GraphicsHandler::HandleInputEvent(const InputEvent &e)
 {
-    if (e.Identifier == event::WINDOW) {
+    if (!mContext.valid)
+        return;
 
-        if (!mContext.valid)
-            return;
-
-        const auto &we = static_cast<const WindowEvent &>(e);
-
-        if (we.type != WindowEvent::RESIZED)
-            return;
-
-        Call(glViewport(0, 0, we.xSize, we.ySize));
-
-        if (Valid()) {
-            mContext.windowInfo.Size.x = we.xSize;
-            mContext.windowInfo.Size.y = we.ySize;
-        }
-    } else if (e.Identifier == event::INPUT) {
-        const auto &ie = static_cast<const InputEvent &>(e);
-
-        if (ie.type != InputEvent::Mouse)
-            return;
-
-        if (!mContext.valid)
-            return;
-
-        mContext.lastMousePos = Vec2(ie.XPos, ie.YPos);
-    }
+    mContext.lastMousePos = Vec2(e.XPos, e.YPos);
 }
 
 void tr::GraphicsHandler::CreateWindow(const CreateWindowInfo &info)
@@ -253,7 +248,8 @@ void tr::key_callback(GLFWwindow *window,
     if (mods & GLFW_MOD_CONTROL)
         event.Control = true;
 
-    handler->GetEngine().sEventSystem->DispatchEvent(event);
+    /* handler->GetEngine().sEventSystem->DispatchEvent(event); */
+    handler->InputRecieved(event);
 }
 
 void tr::cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
@@ -262,7 +258,8 @@ void tr::cursor_position_callback(GLFWwindow *window, double xpos, double ypos)
         = static_cast<GraphicsHandler *>(glfwGetWindowUserPointer(window));
 
     InputEvent event(xpos, ypos);
-    handler->GetEngine().sEventSystem->DispatchEvent(event);
+    /* handler->GetEngine().sEventSystem->DispatchEvent(event); */
+    handler->InputRecieved(event);
 }
 
 void tr::close_callback(GLFWwindow *window)
@@ -270,8 +267,9 @@ void tr::close_callback(GLFWwindow *window)
     auto *handler
         = static_cast<GraphicsHandler *>(glfwGetWindowUserPointer(window));
 
-    handler->GetEngine().sEventSystem->DispatchEvent(
-        WindowEvent(WindowEvent::CLOSED));
+    /* handler->GetEngine().sEventSystem->DispatchEvent( */
+    /*     WindowEvent(WindowEvent::CLOSED)); */
+    handler->WindowChanged(WindowEvent(WindowEvent::CLOSED));
 }
 
 void tr::error_callback(int error, const char *description)
@@ -312,7 +310,9 @@ void tr::character_callback(GLFWwindow *window, uint codepoint)
     auto *handler
         = static_cast<GraphicsHandler *>(glfwGetWindowUserPointer(window));
 
-    handler->GetEngine().sEventSystem->DispatchEvent(InputEvent(codepoint));
+    /* handler->GetEngine().sEventSystem->DispatchEvent(InputEvent(codepoint));
+     */
+    handler->InputRecieved(InputEvent(codepoint));
 }
 
 void tr::cursor_enter_callback(GLFWwindow *window, int entered)
@@ -320,8 +320,10 @@ void tr::cursor_enter_callback(GLFWwindow *window, int entered)
     auto *handler
         = static_cast<GraphicsHandler *>(glfwGetWindowUserPointer(window));
 
-    handler->GetEngine().sEventSystem->DispatchEvent(InputEvent(
-        entered ? InputEvent::CursorEntered : InputEvent::CursorLeave));
+    /* handler->GetEngine().sEventSystem->DispatchEvent(InputEvent( */
+    /*     entered ? InputEvent::CursorEntered : InputEvent::CursorLeave)); */
+    handler->InputRecieved(InputEvent(entered ? InputEvent::CursorEntered
+                                              : InputEvent::CursorLeave));
 }
 
 void tr::mouse_button_callback(GLFWwindow *window,
@@ -353,7 +355,8 @@ void tr::mouse_button_callback(GLFWwindow *window,
     if (mods & GLFW_MOD_CONTROL)
         event.Control = true;
 
-    handler->GetEngine().sEventSystem->DispatchEvent(event);
+    /* handler->GetEngine().sEventSystem->DispatchEvent(event); */
+    handler->InputRecieved(event);
 }
 
 void tr::scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
@@ -365,7 +368,8 @@ void tr::scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
     event.xoffset = xoffset;
     event.yoffset = yoffset;
 
-    handler->GetEngine().sEventSystem->DispatchEvent(event);
+    /* handler->GetEngine().sEventSystem->DispatchEvent(event); */
+    handler->InputRecieved(event);
 }
 
 void tr::framebuffer_resized_callback(GLFWwindow *window, int width, int height)
@@ -376,6 +380,7 @@ void tr::framebuffer_resized_callback(GLFWwindow *window, int width, int height)
     if (width == 0 || height == 0)
         return;
 
-    handler->GetEngine().sEventSystem->DispatchEvent(
-        WindowEvent(width, height));
+    /* handler->GetEngine().sEventSystem->DispatchEvent( */
+    /*     WindowEvent(width, height)); */
+    handler->WindowChanged(WindowEvent(width, height));
 }

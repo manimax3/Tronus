@@ -1,7 +1,11 @@
 #pragma once
-#include "EventSystem.h"
+#include <tr.h>
 
 namespace tr {
+
+struct Event {
+};
+
 struct InputEvent : public Event {
     enum Action { PRESS, RELEASE, REPEAT };
     enum Type {
@@ -19,7 +23,6 @@ struct InputEvent : public Event {
         , action(action)
         , type(Keyboard)
     {
-        Identifier = event::INPUT;
     }
 
     InputEvent(double x, double y)
@@ -27,20 +30,17 @@ struct InputEvent : public Event {
         , YPos(y)
         , type(Mouse)
     {
-        Identifier = event::INPUT;
     }
 
     InputEvent(uint c)
         : type(Char)
         , codepoint(c)
     {
-        Identifier = event::INPUT;
     }
 
     InputEvent(Type type)
         : type(type)
     {
-        Identifier = event::INPUT;
     }
 
     Type type;
@@ -70,13 +70,11 @@ struct WindowEvent : public Event {
 
     WindowEvent(Type type)
         : type(type)
-        , Event(event::WINDOW)
     {
     }
 
     WindowEvent(int x, int y)
         : type(RESIZED)
-        , Event(event::WINDOW)
         , xSize(x)
         , ySize(y)
     {
@@ -90,17 +88,13 @@ struct WindowEvent : public Event {
 };
 
 struct RenderDebugEvent : public Event {
-    RenderDebugEvent()
-        : Event(event::RENDER_DEBUG)
-    {
-    }
+    RenderDebugEvent() {}
 };
 
 class Renderer2D;
 struct Render2DEvent : public Event {
     Render2DEvent(Renderer2D &ren)
-        : Event(event::RENDER_2D)
-        , renderer(ren)
+        : renderer(ren)
     {
     }
     Renderer2D &renderer;

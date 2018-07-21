@@ -1,5 +1,5 @@
 #pragma once
-#include "../event/EventSystem.h"
+#include "../event/CommonEvents.h"
 #include "../math/Math.h"
 #include "../util/MakeID.h"
 #include "GLSLShader.h"
@@ -12,7 +12,7 @@ class GraphicsHandler;
 class ResourceManager;
 class Texture;
 
-class Renderer2D : public EventListener {
+class Renderer2D {
 public:
     using Camera = Mat4;
 
@@ -53,12 +53,9 @@ public:
     void Render();
     void Shutdown();
 
-    uint      SubmitRenderable(const Renderable &r);
+    uint        SubmitRenderable(const Renderable &r);
     void        DeleteRenderable(uint renderable);
     Renderable *ModifyRenderable(uint r);
-
-    void             OnEvent(const Event &e, int channel) override;
-    std::vector<int> SubscripeTo() const override;
 
     void StartFrame();
     void Submit(const Renderable &r);
@@ -67,6 +64,8 @@ public:
     void PushTexture(Texture *const tex);
 
     void RenderRenderables();
+
+    void OnEvent(const WindowEvent &e);
 
 private:
     ResourcePtr<GLSLShader> mShader      = nullptr;

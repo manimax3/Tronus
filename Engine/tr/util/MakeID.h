@@ -1,10 +1,12 @@
 #pragma once
 #include <tr.h>
 
+#include <limits>
+
 namespace tr {
 class MakeID {
 public:
-    explicit MakeID(const uint max_id);
+    explicit MakeID(const uint max_id = std::numeric_limits<uint>::max());
 
     MakeID(const MakeID &) = delete;
     MakeID &operator=(const MakeID &) = delete;

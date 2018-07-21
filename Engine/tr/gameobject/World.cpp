@@ -1,14 +1,12 @@
 #include "World.h"
 
 #include "../core/Engine.h"
-#include "../event/EventSystem.h"
 #include "Sprite2DComponent.h"
 
 tr::GameObject tr::GameObject::INVALID = GameObject();
 
 tr::World::World(BaseSubsystem *s) noexcept
-    : mGameObjectsGenerator(0xFFFFFFFF)
-    , mEngine(s ? &s->GetEngine() : nullptr)
+    : mEngine(s ? &s->GetEngine() : nullptr)
 {
     uint i;
     mGameObjectsGenerator.CreateID(i);
@@ -44,8 +42,6 @@ void tr::World::SetupSystemInternal(BaseSystem *s)
 {
     if (!mEngine)
         return;
-
-    mEngine->sEventSystem->AddListener(s);
 }
 
 tr::GameObject &tr::World::GetGameObject(GameObjectHandle handle)

@@ -1,18 +1,17 @@
 #pragma once
-#include "../event/EventSystem.h"
+#include <array>
 #include <tr.h>
+
+#include "../event/CommonEvents.h"
 
 namespace tr {
 class Engine;
-class DebugWindow : public EventListener {
+class DebugWindow {
 public:
     DebugWindow(Engine &engine);
 
-    std::vector<int> SubscripeTo() const override
-    {
-        return { ENGINE_CHANNEL, RENDER_CHANNEL };
-    }
-    void OnEvent(const Event &e, int channel) override;
+    void OnRenderDebugEvent();
+    void OnEvent(const InputEvent &e);
 
 private:
     void draw();

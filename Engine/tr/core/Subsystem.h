@@ -1,13 +1,12 @@
 #pragma once
 
-#include "../event/EventListener.h"
 #include "tr.h"
 #include <string>
 
 namespace tr {
 class Engine;
 
-class BaseSubsystem : public EventListener {
+class BaseSubsystem {
 public:
     virtual bool               Initialize(Engine *engine);
     virtual void               PostInit(){};
@@ -17,9 +16,6 @@ public:
 
     inline bool    IsInitialized() const { return mInitialized; }
     inline Engine &GetEngine() { return *mEngine; }
-
-    std::vector<int> SubscripeTo() const override;
-    void             OnEvent(const Event &e, int channel) override {}
 
 protected:
     bool    mInitialized = false;

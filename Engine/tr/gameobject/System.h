@@ -23,7 +23,7 @@ public:
     {
     }
 
-    ~System() override = default;
+    ~System() = default;
 
     virtual void OnGameObjectAdd(GameObjectHandle handle){};
     virtual void OnGameObjectRemove(GameObjectHandle handle){};

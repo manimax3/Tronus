@@ -13,29 +13,36 @@
 tr::DebugWindow::DebugWindow(Engine &engine)
     : mEngine(engine)
 {
-    engine.sEventSystem->AddListener(this);
+    auto *gfx = engine.sGraphicsHandler;
+    gfx->InputRecieved.connect([&](const InputEvent &e) { this->OnEvent(e); });
+
+    gfx->GetImguiRenderer().DebugFrameStarted.connect(
+        [&]() { this->OnRenderDebugEvent(); });
 }
 
-void tr::DebugWindow::OnEvent(const Event &e, int channel)
+void tr::DebugWindow::OnRenderDebugEvent()
 {
-    if (channel == RENDER_CHANNEL && e.Identifier == event::RENDER_DEBUG) {
-        if (mShouldDraw)
-            draw();
-    } else if (channel == RENDER_CHANNEL && e.Identifier == event::RENDER_2D
-               && render2d_test_open) {
+    /* if (channel == RENDER_CHANNEL && e.Identifier == event::RENDER_DEBUG) {
+     */
+    if (mShouldDraw)
+        draw();
+    /* } else if (channel == RENDER_CHANNEL && e.Identifier == event::RENDER_2D
+     */
+    /*            && render2d_test_open) { */
 
-        renderer2d_enable_test_window(
-            static_cast<const Render2DEvent &>(e).renderer);
+    /*     renderer2d_enable_test_window( */
+    /*         static_cast<const Render2DEvent &>(e).renderer); */
 
-    } else if (e.Identifier == event::INPUT) {
-        auto ie = static_cast<const InputEvent &>(e);
-        if (ie.type == InputEvent::Keyboard && ie.Key == KEY_F3) {
-            if (ie.action == InputEvent::REPEAT
-                || ie.action == InputEvent::RELEASE)
-                return;
-            else
-                mShouldDraw = !mShouldDraw;
-        }
+    /* } */
+}
+
+void tr::DebugWindow::OnEvent(const InputEvent &e)
+{
+    if (e.type == InputEvent::Keyboard && e.Key == KEY_F3) {
+        if (e.action == InputEvent::REPEAT || e.action == InputEvent::RELEASE)
+            return;
+        else
+            mShouldDraw = !mShouldDraw;
     }
 }
 
