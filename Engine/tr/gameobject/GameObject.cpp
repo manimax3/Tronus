@@ -22,7 +22,21 @@ void tr::GameObject::EnterWorld(World &world)
 {
     assert(!mWorld);
     mWorld = &world;
+
+    // Setup the input component
+    if (!DisableInputComponentConstruction) {
+        cInputComponent = std::make_shared<InputComponent>();
+        cInputComponent->SetOwner(*this);
+        cInputComponent->OnWorldEnter(world);
+    }
+
     OnWorldEnter();
+
+    if (!DisableInputComponent && !DisableInputComponentConstruction) {
+        // Apparently no one wants to prevent us from setting our listenting up
+        // Those fools ...
+        cInputComponent->SetupInputListening();
+    }
 }
 
 tr::World &tr::GameObject::GetWorld()
