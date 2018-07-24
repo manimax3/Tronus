@@ -38,6 +38,8 @@ tr::Texture::Texture(const Image &im,
 
     if (compressed)
         throw std::logic_error("Compressed Textures not supported");
+
+    mSize = Vec2(im.GetSizeX(), im.GetSizeY());
 }
 
 tr::Texture::~Texture()

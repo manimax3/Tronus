@@ -58,7 +58,7 @@ void Engine::Start(Game *game)
     if (mGame->EngineCreateWindow)
         sGraphicsHandler->CreateWindow(CreateWindowInfo());
 
-    mWorld = new World(sLog);
+    mWorld = new World(*this);
 
     Logger().log("Starting Subsystem Post Initialization...");
     sLog->PostInit();

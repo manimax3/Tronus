@@ -1,5 +1,6 @@
 #pragma once
 #include "../filesystem/ResourceLoader.h"
+#include "../math/Math.h"
 #include <tr.h>
 
 namespace tr {
@@ -36,8 +37,11 @@ public:
 
     void Bind(int slot = 0);
 
+    Vec2 GetSize() const { return mSize; };
+
 private:
     uint mTextureHandle = 0;
+    Vec2 mSize          = Vec2(0);
 };
 
 class TextureLoader : public ResourceLoadHandler {

@@ -2,23 +2,34 @@
 #include "tr/core/Engine.h"
 #include "tr/gameobject/Game.h"
 #include "tr/gameobject/GameObject.h"
-#include "tr/gameobject/Sprite2DComponent.h"
+#include "tr/gameobject/SpriteComponent.h"
 #include "tr/gameobject/World.h"
 #include "tr/graphics/GraphicsHandler.h"
 #include "tr/graphics/Texture.h"
 #include "tr/util/Keys.h"
 
+
+class MyEntity : public tr::GameObject {
+    public:
+        void OnWorldEnter() override {
+            sSprite = CreateComponent<tr::SpriteComponent>("Test sprite");
+            GetWorld().GetEngine().sResourceManager->LoadResource(
+                "test_texture.json");
+            sSprite->SetTexture("test_texture.json");
+            sSprite->SetUVs(tr::Vec2{ 0.f }, tr::Vec2{ 256.f, 256.f });
+            sSprite->SetSize(tr::Vec2{ 50.f, 50.f });
+            RootComponent = sSprite;
+        }
+
+    private:
+        tr::SpriteComponent *sSprite;
+};
+
+
 class MyGame : public tr::Game {
     void OnWorldLoad(tr::World &world) override
     {
-        auto handle = world.CreateGameObject<tr::Sprite2DComponent,
-                                             tr::SceneComponent>();
-        auto sprite = world.GetComponent<tr::Sprite2DComponent>(handle);
-        auto res    = world.mEngine->sResourceManager->LoadResource(
-            "test_texture.json");
-        sprite->texture = tr::ResCast<tr::Texture>(res).get();
-        sprite->color   = tr::Vec4(1.f);
-        sprite->dirty   = true;
+        world.Spawn<MyEntity>();
     }
 };
 

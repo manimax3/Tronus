@@ -36,6 +36,11 @@ void tr::Renderer2D::Init(GraphicsHandler *gfx, ResourceManager *rm)
     const Vec2 ws     = gfx->GetWindowSize();
     mProjectionMatrix = math::ortho<float>(0, ws.x, ws.y, 0, 1, -1);
 
+    // The id generator creates for the first id a 0 which we are using a the
+    // "non specified" id. So we have to remove it from the pool of possible ids
+    uint i;
+    mIDGenerator.CreateID(i);
+
     // Generate the buffers
     Call(glGenBuffers(1, &mVbo));
     Call(glGenBuffers(1, &mIbo));

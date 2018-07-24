@@ -1,11 +1,18 @@
 #pragma once
 #include <tr.h>
 
-#include "DefaultComponents.h"
-#include "System.h"
+#include "../math/Math.h"
+#include "Component.h"
 
 namespace tr {
-struct Sprite2DComponent {
+class Sprite2DComponent : public SceneComponent {
+
+public:
+    void OnWorldEnter(World &world) override;
+
+protected:
+    void OnComponentUpdate() override;
+
     bool visible       = true;
     uint renderable_id = 0;
     Vec4 color         = Vec4(1.f);

@@ -1,115 +1,70 @@
 #pragma once
 #include <tr.h>
 
-#include "../core/Subsystem.h"
-#include "../util/MakeID.h"
-#include "../util/TemplateMeta.h"
-#include "Component.h"
 #include "GameObject.h"
-
-#include <memory>
 #include <vector>
+#include <boost/poly_collection/base_collection.hpp>
 
 namespace tr {
 
+class Engine;
 class World;
-
-class BaseSystem {
-public:
-    friend class World;
-
-    explicit BaseSystem(World &world) noexcept
-        : mWorld(world){};
-    ~BaseSystem() = default;
-
-    virtual void OnUpdate(){};
-
-protected:
-    virtual void HandleGameObjectAdd(GameObjectHandle go)             = 0;
-    virtual void HandleGameObjectRemove(GameObjectHandle go)          = 0;
-    virtual void HandleGameObjectComponentUpdate(GameObjectHandle go) = 0;
-
-    World &mWorld;
-};
 
 class World {
 public:
-    explicit World(BaseSubsystem *s = nullptr) noexcept;
+    /**
+     * World constructor.
+     *
+     * @param engine Owning Engine.
+     */
+    explicit World(Engine &engine);
 
+    /**
+     * Updates the world.
+     *
+     * The update gets propagated to the GameObjects.
+     */
     void Update();
-    void DestroyGameObject(GameObjectHandle go);
-    void UpdateGameObject(GameObjectHandle go);
 
-    template<typename... C>
-    GameObjectHandle CreateGameObject()
+    /**
+     * Starts the world.
+     * Called by the engine.
+     */
+    void Start();
+
+    /**
+     * Tells the world to load necesseary resources for starting.
+     * Called by the engine. Called before the Games OnWorldLoad function.
+     */
+    void Load();
+
+    /**
+     * Spawns a new GameObject of type T
+     */
+    template<typename T>
+    void Spawn()
     {
-
-        static_assert((std::is_default_constructible_v<C> && ...),
-                      "CreateGameObject<C...> Only works with default "
-                      "constructible components");
-
-        uint id;
-        mGameObjectsGenerator.CreateID(id);
-
-        GameObject go(id);
-        (go.AttachComponent<C>(), ...);
-
-        mGameObjects[id] = std::move(go);
-
-        for (auto &system : mSystems)
-            system->HandleGameObjectAdd(id);
-
-        return id;
+        static_assert(std::is_base_of_v<GameObject, T>);
+        static_assert(std::is_default_constructible_v<T>);
+        auto it = mGameObjects.insert(T());
+        SetupInternal(&(*it));
     }
 
     template<typename T>
-    void AttachSystem()
+    void AttachWorldCapability()
     {
-        static_assert(std::is_base_of_v<BaseSystem, T>);
-
-        mSystems.emplace_back(new T(*this));
-        SetupSystemInternal(mSystems.back().get());
-        for (auto &[handle, go] : mGameObjects) {
-            mSystems.back()->HandleGameObjectAdd(handle);
-        }
-    };
-
-    template<typename... Comps>
-    std::tuple<Comps *...> GetComponents(GameObjectHandle handle)
-    {
-        static_assert(mp::is_unique_v<Comps...>);
-
-        auto &go = mGameObjects[handle];
-        return std::make_tuple(go.GetComponent<Comps>()...);
     }
 
-    template<typename Comp>
-    Comp *GetComponent(GameObjectHandle handle)
-    {
-        return std::get<0>(GetComponents<Comp>(handle));
-    }
-
-    template<typename... C>
-    bool MatchesComponents(GameObjectHandle handle)
-    {
-        static_assert(mp::is_unique_v<C...>);
-
-        auto &     go = mGameObjects[handle];
-        const bool r  = (go.GetComponent<C>() && ...);
-        return r;
-    }
-
-    // Returns GameObject::INVALID if the gameobject wasnt found
-    GameObject &GetGameObject(GameObjectHandle handle);
-
-    Engine *mEngine = nullptr;
+    /**
+     * Returns a refernce to the engine.
+     */
+    Engine &GetEngine() { return mEngine; };
 
 private:
-    void SetupSystemInternal(BaseSystem *system);
+    void SetupInternal(GameObject *ptr);
 
-    std::unordered_map<GameObjectHandle, GameObject> mGameObjects;
-    std::vector<std::unique_ptr<BaseSystem>>         mSystems;
+    Engine &mEngine;
 
-    MakeID mGameObjectsGenerator;
+    boost::poly_collection::base_collection<GameObject> mGameObjects;
 };
 }

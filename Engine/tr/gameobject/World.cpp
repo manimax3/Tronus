@@ -1,60 +1,28 @@
 #include "World.h"
-
 #include "../core/Engine.h"
-#include "Sprite2DComponent.h"
 
-tr::GameObject tr::GameObject::INVALID = GameObject();
-
-tr::World::World(BaseSubsystem *s) noexcept
-    : mEngine(s ? &s->GetEngine() : nullptr)
+tr::World::World(Engine &engine)
+    : mEngine(engine)
 {
-    uint i;
-    mGameObjectsGenerator.CreateID(i);
-    AttachSystem<SpriteRenderSystem>();
-};
+}
 
 void tr::World::Update()
 {
-    for (auto &system : mSystems) {
-        system->OnUpdate();
+    for (auto seg : mGameObjects.segment_traversal()) {
+        for (auto &go : seg) {
+            if (go.IsGameObjectTicking()) {
+                go.Update();
+            }
+        }
     }
 }
 
-void tr::World::DestroyGameObject(GameObjectHandle handle)
+void tr::World::Start() {}
+
+void tr::World::Load() {}
+
+void tr::World::SetupInternal(GameObject *ptr)
 {
-
-    for (auto &system : mSystems) {
-        system->HandleGameObjectRemove(handle);
-    }
-
-    mGameObjects.erase(handle);
-    mGameObjectsGenerator.DestroyID(handle);
-}
-
-void tr::World::UpdateGameObject(GameObjectHandle handle)
-{
-    for (auto &system : mSystems) {
-        system->HandleGameObjectComponentUpdate(handle);
-    }
-}
-
-void tr::World::SetupSystemInternal(BaseSystem *s)
-{
-    if (!mEngine)
-        return;
-}
-
-tr::GameObject &tr::World::GetGameObject(GameObjectHandle handle)
-{
-    if (const auto &go = mGameObjects.find(handle);
-        go != std::end(mGameObjects)) {
-        return std::get<1>(*go);
-    }
-
-    if (mEngine)
-        mEngine->sLog->log("Could not find gameobject with handle: "s
-                               + std::to_string(handle),
-                           LogLevel::ERROR);
-
-    return GameObject::INVALID;
+    assert(ptr);
+    ptr->EnterWorld(*this);
 }
