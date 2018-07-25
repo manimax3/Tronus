@@ -39,7 +39,7 @@ target_include_directories(Tronus INTERFACE .)
 
 ## Dependencies: Link and include
 
-find_package(Boost 1.54 REQUIRED COMPONENTS filesystem)
+find_package(Boost 1.65 REQUIRED COMPONENTS filesystem)
 target_include_directories(Tronus PRIVATE ${Boost_INCLUDE_DIRS})
 target_link_libraries(Tronus ${Boost_LIBRARIES})
 
