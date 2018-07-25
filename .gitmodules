@@ -26,3 +26,6 @@
 [submodule "External/glm"]
 	path = External/glm
 	url = https://github.com/g-truc/glm.git
+[submodule "External/Box2D"]
+	path = External/Box2D
+	url = https://github.com/erincatto/Box2D.git

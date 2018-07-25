@@ -55,6 +55,7 @@ target_include_directories(Tronus PUBLIC "${CMAKE_SOURCE_DIR}/External/glm")
 target_link_libraries(Tronus easy_profiler)
 target_link_libraries(Tronus Glad)
 target_link_libraries(Tronus ImGui)
+target_link_libraries(Tronus Box2D)
 
 ## Compile options
 
