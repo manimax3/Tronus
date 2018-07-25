@@ -37,6 +37,24 @@ public:
      * Used for debugging and informational purposes.
      */
     virtual std::string GetCapabilityName() const = 0;
+
+    /**
+     * Gives the capability its reference to the world it belongs to.
+     */
+    void Setup(World &w)
+    {
+        if (!mWorld)
+            mWorld = &w;
+    }
+
+protected:
+    /**
+     * Returns a reference to the world.
+     */
+    World &GetWorld() { return *mWorld; };
+
+private:
+    World *mWorld = nullptr;
 };
 
 class World {
@@ -95,6 +113,7 @@ public:
         if (const auto it = mWorldCapabilities.find(name);
             it == std::end(mWorldCapabilities)) {
 
+            cap->Setup(*this);
             mWorldCapabilities[name] = std::shared_ptr<WorldCapability>(cap);
 
         } else {
@@ -111,7 +130,12 @@ public:
     {
         static_assert(std::is_base_of_v<WorldCapability, T>);
         static_assert(std::is_default_constructible_v<T>);
-        return static_cast<T *>(mWorldCapabilities.at(name).get());
+
+        try {
+            return static_cast<T *>(mWorldCapabilities.at(name).get());
+        } catch (std::out_of_range e) {
+            return nullptr;
+        }
     }
 
     /**

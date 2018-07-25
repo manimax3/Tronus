@@ -1,5 +1,6 @@
 #include "World.h"
 #include "../core/Engine.h"
+#include "../profile/Profiler.h"
 
 tr::World::World(Engine &engine)
     : mEngine(engine)
@@ -8,6 +9,8 @@ tr::World::World(Engine &engine)
 
 void tr::World::Update()
 {
+    EASY_BLOCK("World Update");
+
     for (auto seg : mGameObjects.segment_traversal()) {
         for (auto &go : seg) {
             if (go.IsGameObjectTicking()) {

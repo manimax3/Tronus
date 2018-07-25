@@ -7,6 +7,7 @@
 #include "tr/graphics/GraphicsHandler.h"
 #include "tr/graphics/Texture.h"
 #include "tr/util/Keys.h"
+#include "tr/gameobject/Collision2DCapability.h"
 
 class MyEntity : public tr::GameObject {
 public:
@@ -36,7 +37,10 @@ private:
 };
 
 class MyGame : public tr::Game {
-    void OnWorldLoad(tr::World &world) override { world.Spawn<MyEntity>(); }
+    void PreWorldLoad(tr::World &world) override {
+        world.AttachWorldCapability<tr::Collision2DCapability>();
+    }
+    void PreWorldStart(tr::World &world) override { world.Spawn<MyEntity>(); }
 };
 
 int main()

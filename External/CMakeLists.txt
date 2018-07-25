@@ -19,6 +19,6 @@ add_library(ImGui STATIC "imgui/imgui.cpp" "imgui/imgui_demo.cpp" "imgui/imgui_d
 target_include_directories(ImGui INTERFACE imgui)
 
 #Box2D
-file(GLOB box2d_source_files Box2D/Box2D/**/*.cpp)
+file(GLOB_RECURSE box2d_source_files Box2D/Box2D/**/*.cpp)
 add_library(Box2D STATIC ${box2d_source_files})
 target_include_directories(Box2D PUBLIC Box2D)

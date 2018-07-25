@@ -70,15 +70,15 @@ void Engine::Start(Game *game)
     sGraphicsHandler->WindowChanged.connect(
         [&](const WindowEvent &e) { this->OnEvent(e); });
 
-    mGame->PreWorldStartUp(*this);
+
+    mGame->PreWorldLoad(*mWorld);
+    mWorld->Load();
+    mGame->PreWorldStart(*mWorld);
+    mWorld->Start();
 
     mRunning = true;
 
     mDebugWindow = new DebugWindow(*this);
-
-    /* mWorld->StartWorld(); */
-
-    mGame->OnWorldLoad(*mWorld);
 
     // Start the tick loop
 
