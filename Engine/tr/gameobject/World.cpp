@@ -15,11 +15,25 @@ void tr::World::Update()
             }
         }
     }
+
+    for (const auto &[name, ptr] : mWorldCapabilities) {
+        ptr->OnUpdate();
+    }
 }
 
-void tr::World::Start() {}
+void tr::World::Start()
+{
+    for (const auto &[name, ptr] : mWorldCapabilities) {
+        ptr->OnStart();
+    }
+}
 
-void tr::World::Load() {}
+void tr::World::Load()
+{
+    for (const auto &[name, ptr] : mWorldCapabilities) {
+        ptr->OnLoad();
+    }
+}
 
 void tr::World::SetupInternal(GameObject *ptr)
 {
