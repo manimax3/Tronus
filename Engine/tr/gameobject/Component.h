@@ -47,6 +47,12 @@ public:
     bool IsChild(GameObjectComponent *ptr) const;
 
     /**
+     * Checks if ptr is a child or child of child... of this component.
+     * Does a DFS search
+     */
+    bool IsChildRecursive(GameObjectComponent *ptr) const;
+
+    /**
      * Updates the component.
      *
      * Only happens if TickingComponent is set to true.
@@ -97,6 +103,11 @@ public:
      */
     virtual bool IsComponentRelative() const { return false; };
 
+    /**
+     * See SceneComponent on NotifyRelativeChange().
+     */
+    virtual void NotifyRelativeChange(){};
+
 protected:
     /**
      * Can be overwritten to add functionality during updating.
@@ -115,6 +126,11 @@ protected:
      * Returns the Parent component.
      */
     GameObjectComponent *GetParent() const { return mParentComponent; };
+
+    const std::list<GameObjectComponent *> &GetChildComponents() const
+    {
+        return mChildComponents;
+    }
 
 private:
     std::list<GameObjectComponent *> mChildComponents;
@@ -217,7 +233,16 @@ public:
      */
     Mat4 GetAbsoluteTransform() const;
 
-public:
+    /**
+     * Notifies components downwards about a relative change.
+     * Only components which are IsRelativeComponent() == true get the
+     * notification.
+     *
+     * Calling this directly is not recommended but can be done in order to
+     * recalculate transform dependent information in the child components.
+     */
+    void NotifyRelativeChange() override;
+
     /**
      * If this component is relative to something.
      *
@@ -227,14 +252,18 @@ public:
     bool RelativeComponent = true;
 
 protected:
-
     /**
      * Returns the ParentComponent castet to SceneComponent.
      * If ParentComponent is not relative returns nullptr.
      */
-    SceneComponent* GetParentAsSceneComponent() const;
+    SceneComponent *GetParentAsSceneComponent() const;
 
-protected:
+    /**
+     * Override this to handle a relative change from a parent component.
+     */
+    virtual void OnRelativeChange(){};
+
+private:
     Transform mTransform;
 };
 }

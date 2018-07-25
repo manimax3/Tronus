@@ -2,9 +2,9 @@
 #include <tr.h>
 
 #include "../filesystem/ResourceLoader.h"
+#include "../graphics/Texture.h"
 #include "../math/Rect.h"
 #include "Component2D.h"
-#include "../graphics/Texture.h"
 
 namespace tr {
 
@@ -97,9 +97,16 @@ public:
 
     /**
      * Forces the sprite to udpate its state.
-     * The state is basically a copy on the gpu.
+     * The state is basically a copy on the gpu. Needs to be called if changing
+     * transform data.
      */
     void ForceRenderStateUpdate();
+
+private:
+    /**
+     * Used to update the sprites transform
+     */
+    void OnRelativeChange() override;
 
 private:
     /**

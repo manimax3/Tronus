@@ -13,18 +13,20 @@ public:
     void OnWorldEnter() override
     {
         sSprite = CreateComponent<tr::SpriteComponent>("Test sprite");
+
         GetWorld().GetEngine().sResourceManager->LoadResource(
             "test_texture.json");
+
         sSprite->SetTexture("test_texture.json");
         sSprite->SetUVs(tr::Vec2{ 0.f }, tr::Vec2{ 256.f, 256.f });
         sSprite->SetSize(tr::Vec2{ 50.f, 50.f });
+
         RootComponent = sSprite;
 
         cInputComponent->InputRecieved.connect([&](const tr::InputEvent &e) {
             if (e.type == tr::InputEvent::Mouse) {
                 tr::Vec2 newp{ e.XPos, e.YPos };
                 sSprite->SetRelativePostion2D(newp);
-                sSprite->ForceRenderStateUpdate();
             }
         });
     }

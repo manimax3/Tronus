@@ -17,7 +17,8 @@ void tr::Component2D::SetRelativeScale2D(Vec2 scale)
 
 tr::Vec2 tr::Component2D::GetRelativePostion2D() const
 {
-    return { mTransform.translation.x, mTransform.translation.y };
+    const auto pos = GetRelativeTranslation();
+    return { pos.x, pos.y };
 }
 
 tr::Radians tr::Component2D::GetRelativeRotation2D() const
@@ -27,7 +28,8 @@ tr::Radians tr::Component2D::GetRelativeRotation2D() const
 
 tr::Vec2 tr::Component2D::GetRelativeScale2D() const
 {
-    return { mTransform.scale.x, mTransform.scale.y };
+    const auto scale = GetRelativeScale();
+    return { scale.x, scale.y };
 }
 
 tr::Vec2 tr::Component2D::GetAbsolutePostion2D() const

@@ -53,6 +53,21 @@ bool tr::GameObjectComponent::IsChild(GameObjectComponent *ptr) const
         != std::end(mChildComponents);
 }
 
+bool tr::GameObjectComponent::IsChildRecursive(GameObjectComponent *ptr) const
+{
+    if (IsChild(ptr))
+        return true;
+
+    for (const auto *c : mChildComponents) {
+        if (c->IsChildRecursive(ptr))
+            return true;
+        else
+            continue;
+    }
+
+    return false;
+}
+
 void tr::GameObjectComponent::UpdateComponent() { OnComponentUpdate(); }
 
 void tr::GameObjectComponent::SetOwner(GameObject &owner)
@@ -76,32 +91,38 @@ tr::GameObject &tr::GameObjectComponent::GetOwner()
 void tr::SceneComponent::SetRelativeTranslation(Vec3 translation)
 {
     mTransform.translation = translation;
+    NotifyRelativeChange();
 }
 
 void tr::SceneComponent::SetRelativeRotation(EulerAngles rotation)
 {
     mTransform.rotation = Quaternion(rotation);
+    NotifyRelativeChange();
 }
 
 void tr::SceneComponent::SetRelativeScale(Vec3 scale)
 {
     mTransform.scale = scale;
+    NotifyRelativeChange();
 }
 
 void tr::SceneComponent::AddRelativeTranslation(Vec3 translation)
 {
     mTransform.translation += translation;
+    NotifyRelativeChange();
 }
 
 void tr::SceneComponent::AddRelativeRotation(EulerAngles rotation)
 {
     Quaternion rot(rotation);
     mTransform.rotation *= rot;
+    NotifyRelativeChange();
 }
 
 void tr::SceneComponent::AddRelativeScale(Vec3 scale)
 {
     mTransform.scale *= scale;
+    NotifyRelativeChange();
 }
 
 tr::Vec3 tr::SceneComponent::GetRelativeTranslation() const
@@ -171,4 +192,16 @@ tr::SceneComponent *tr::SceneComponent::GetParentAsSceneComponent() const
         return nullptr;
 
     return static_cast<SceneComponent *>(GetParent());
+}
+
+void tr::SceneComponent::NotifyRelativeChange()
+{
+
+    OnRelativeChange();
+
+    for (auto *c : GetChildComponents()) {
+        if (c->IsComponentRelative()) {
+            c->NotifyRelativeChange();
+        }
+    }
 }

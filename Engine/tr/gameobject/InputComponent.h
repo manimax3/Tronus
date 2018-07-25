@@ -21,7 +21,7 @@ public:
     void SetupInputListening();
 
     /**
-     * Signal to listen for events.
+     * Signal to listen for input events.
      */
     Signal<void(const InputEvent &)> InputRecieved;
 
