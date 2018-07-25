@@ -1,7 +1,10 @@
 #pragma once
 #include <tr.h>
 
+#include "../event/CommonEvents.h"
+#include "../event/Signal.h"
 #include "Component.h"
+
 #include <memory>
 
 namespace tr {
@@ -16,5 +19,17 @@ public:
      * Connects to the required input signals
      */
     void SetupInputListening();
+
+    /**
+     * Signal to listen for events.
+     */
+    Signal<void(const InputEvent &)> InputRecieved;
+
+private:
+    /**
+     * Handles a recieved input event.
+     * Fires the the InputRecieved Signal.
+     */
+    void OnEvent(const InputEvent &e);
 };
 }
