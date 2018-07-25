@@ -123,9 +123,9 @@ tr::Vec3 tr::SceneComponent::GetAbsoluteTranslation() const
 {
     auto *const p = GetParentAsSceneComponent();
     if (p) {
-        return p->GetAbsoluteTranslation() + GetRelativeRotation();
+        return p->GetAbsoluteTranslation() + GetRelativeTranslation();
     } else {
-        return GetRelativeRotation();
+        return GetRelativeTranslation();
     }
 }
 

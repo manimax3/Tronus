@@ -8,29 +8,33 @@
 #include "tr/graphics/Texture.h"
 #include "tr/util/Keys.h"
 
-
 class MyEntity : public tr::GameObject {
-    public:
-        void OnWorldEnter() override {
-            sSprite = CreateComponent<tr::SpriteComponent>("Test sprite");
-            GetWorld().GetEngine().sResourceManager->LoadResource(
-                "test_texture.json");
-            sSprite->SetTexture("test_texture.json");
-            sSprite->SetUVs(tr::Vec2{ 0.f }, tr::Vec2{ 256.f, 256.f });
-            sSprite->SetSize(tr::Vec2{ 50.f, 50.f });
-            RootComponent = sSprite;
-        }
+public:
+    void OnWorldEnter() override
+    {
+        sSprite = CreateComponent<tr::SpriteComponent>("Test sprite");
+        GetWorld().GetEngine().sResourceManager->LoadResource(
+            "test_texture.json");
+        sSprite->SetTexture("test_texture.json");
+        sSprite->SetUVs(tr::Vec2{ 0.f }, tr::Vec2{ 256.f, 256.f });
+        sSprite->SetSize(tr::Vec2{ 50.f, 50.f });
+        RootComponent = sSprite;
 
-    private:
-        tr::SpriteComponent *sSprite;
+        cInputComponent->InputRecieved.connect([&](const tr::InputEvent &e) {
+            if (e.type == tr::InputEvent::Mouse) {
+                tr::Vec2 newp{ e.XPos, e.YPos };
+                sSprite->SetRelativePostion2D(newp);
+                sSprite->ForceRenderStateUpdate();
+            }
+        });
+    }
+
+private:
+    tr::SpriteComponent *sSprite;
 };
 
-
 class MyGame : public tr::Game {
-    void OnWorldLoad(tr::World &world) override
-    {
-        world.Spawn<MyEntity>();
-    }
+    void OnWorldLoad(tr::World &world) override { world.Spawn<MyEntity>(); }
 };
 
 int main()

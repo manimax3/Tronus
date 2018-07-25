@@ -31,5 +31,10 @@ private:
      * Fires the the InputRecieved Signal.
      */
     void OnEvent(const InputEvent &e);
+
+    /**
+     * We use this to disconnect our slot
+     */
+    sig::scoped_connection connection;
 };
 }

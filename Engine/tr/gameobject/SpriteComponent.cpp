@@ -136,8 +136,8 @@ void tr::SpriteComponent::UpdateRenderState()
 
     const auto size = GetSize();
 
-    renderable.top_left     = transform * Vec3{ 0.f, 0.f, 0.f };
-    renderable.top_right    = transform * Vec3{ size.x, 0.f, 0.f };
-    renderable.bottom_left  = transform * Vec3{ 0.f, size.y, 0.f };
-    renderable.bottom_right = transform * Vec3{ size.x, size.y, 0.f };
+    renderable.top_left     = transform * Vec3{ 0.f, 0.f, 1.f };
+    renderable.top_right    = transform * Vec3{ size.x, 0.f, 1.f };
+    renderable.bottom_left  = transform * Vec3{ 0.f, size.y, 1.f };
+    renderable.bottom_right = transform * Vec3{ size.x, size.y, 1.f };
 }

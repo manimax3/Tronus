@@ -4,10 +4,8 @@
 
 void tr::InputComponent::SetupInputListening()
 {
-    tr::Engine::Get().sGraphicsHandler->InputRecieved.connect(
-        Signal<void(const InputEvent &)>::slot_type(
-            &InputComponent::OnEvent, this, boost::placeholders::_1)
-            .track_foreign(this->weak_from_this()));
+    connection = tr::Engine::Get().sGraphicsHandler->InputRecieved.connect(
+        [&](const InputEvent &e) { this->OnEvent(e); });
 }
 
 void tr::InputComponent::OnEvent(const InputEvent &e) { InputRecieved(e); }
