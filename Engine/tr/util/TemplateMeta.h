@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <type_traits>
 
 namespace tr::mp {
@@ -37,6 +38,13 @@ struct is_unique<T, R...> {
 
 template<typename... T>
 constexpr bool is_unique_v = is_unique<T...>::value;
+
+template<typename Container, typename T, typename Pred>
+auto SortedInsert(Container &c, T &&value, Pred p)
+{
+    return c.insert(std::upper_bound(std::begin(c), std::end(c), value, p),
+                    std::forward<T>(value));
+}
 }
 
 #define TR_GENERATE_HAS_MEMBER_TYPE(Type)                                      \

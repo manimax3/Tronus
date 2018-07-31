@@ -34,6 +34,8 @@ public:
         Vec4     uv      = { 0.f, 0.f, 1.f, 1.f };
         Texture *texture = nullptr;
 
+        int layer = 0;
+
         friend class Renderer2D;
 
     private:

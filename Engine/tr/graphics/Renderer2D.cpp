@@ -4,16 +4,14 @@
 #include "../filesystem/ResourceManager.h"
 #include "../profile/Profiler.h"
 #include "../util/Keys.h"
+#include "../util/TemplateMeta.h"
 #include "GLCheck.h"
 #include "GraphicsHandler.h"
 #include "Image.h"
 #include "Texture.h"
 #include "glm/gtc/matrix_transform.hpp"
 
-#include <algorithm>
-
 #include "glad/glad.h"
-
 #include "imgui.h"
 
 tr::Renderer2D::Renderer2D()
@@ -181,8 +179,12 @@ tr::uint tr::Renderer2D::SubmitRenderable(const Renderable &r)
 {
     uint id;
     mIDGenerator.CreateID(id);
-    mRenderables.push_back(r);
-    mRenderables.back().id = id;
+    auto it
+        = mp::SortedInsert(mRenderables, r, [](const auto &a, const auto &b) {
+              return a.layer < b.layer;
+          });
+
+    it->id = id;
     return id;
 }
 
