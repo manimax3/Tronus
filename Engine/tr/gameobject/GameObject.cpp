@@ -36,6 +36,11 @@ void tr::GameObject::EnterWorld(World &world)
         // Apparently no one wants to prevent us from setting our listenting up
         // Those fools ...
         cInputComponent->SetupInputListening();
+        cInputComponent->PostWorldEnter();
+    }
+
+    for(const auto& [k, comp] : mComponents) {
+        comp->PostWorldEnter();
     }
 }
 

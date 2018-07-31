@@ -8,32 +8,42 @@
 #include "tr/graphics/Texture.h"
 #include "tr/util/Keys.h"
 #include "tr/gameobject/Collision2DCapability.h"
+#include "tr/gameobject/ColliderComponent2D.h"
 
 class MyEntity : public tr::GameObject {
 public:
     void OnWorldEnter() override
     {
-        sSprite = CreateComponent<tr::SpriteComponent>("Test sprite");
+        sSprite   = CreateComponent<tr::SpriteComponent>("Test sprite");
+        sCollider = CreateComponent<tr::ColliderComponent2D>("Collider");
 
         GetWorld().GetEngine().sResourceManager->LoadResource(
             "test_texture.json");
 
         sSprite->SetTexture("test_texture.json");
         sSprite->SetUVs(tr::Vec2{ 0.f }, tr::Vec2{ 256.f, 256.f });
-        sSprite->SetSize(tr::Vec2{ 50.f, 50.f });
+        sSprite->SetSize(tr::Vec2{ 5.f, 5.f });
 
-        RootComponent = sSprite;
+        sCollider->AddShapeRect(tr::Vec4{ 0, 0, 5, 5 });
+        sCollider->EnablePhysicsSimulation = true;
+        sCollider->SetRelativeScale2D({ 1.f, 1.f });
+
+        RootComponent = sCollider;
+        sCollider->AttachChildComponent(sSprite);
 
         cInputComponent->InputRecieved.connect([&](const tr::InputEvent &e) {
             if (e.type == tr::InputEvent::Mouse) {
                 tr::Vec2 newp{ e.XPos, e.YPos };
-                sSprite->SetRelativePostion2D(newp);
+                sCollider->SetRelativePosition2D(newp);
             }
         });
+
+       TickingGameObject = true; 
     }
 
 private:
-    tr::SpriteComponent *sSprite;
+    tr::SpriteComponent *    sSprite;
+    tr::ColliderComponent2D *sCollider;
 };
 
 class MyGame : public tr::Game {

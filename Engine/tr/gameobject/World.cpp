@@ -11,16 +11,16 @@ void tr::World::Update()
 {
     EASY_BLOCK("World Update");
 
+    for (const auto &[name, ptr] : mWorldCapabilities) {
+        ptr->OnUpdate();
+    }
+
     for (auto seg : mGameObjects.segment_traversal()) {
         for (auto &go : seg) {
             if (go.IsGameObjectTicking()) {
                 go.Update();
             }
         }
-    }
-
-    for (const auto &[name, ptr] : mWorldCapabilities) {
-        ptr->OnUpdate();
     }
 }
 

@@ -11,7 +11,7 @@ using EulerAngles = Vec3;
 
 struct Transform {
     Vec3       translation{ 0.f };
-    Vec3       scale{ 1.f };
+    Vec3       scale{ 10.f };
     Quaternion rotation;
 
     Transform operator*(const Transform &other) const

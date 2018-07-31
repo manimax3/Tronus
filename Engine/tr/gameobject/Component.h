@@ -92,6 +92,13 @@ public:
     virtual void OnWorldEnter(class World &world){};
 
     /**
+     * Gets called after WorldEnter.
+     * Can be used to set up stuff based on settings which were set during
+     * WorldEnter by the user or other parts of the system.
+     */
+    virtual void PostWorldEnter() {}
+
+    /**
      * Checks for Positional Capabilities.
      *
      * GameObjectComponents dont represent something "physical" in world so they
@@ -115,6 +122,16 @@ protected:
     virtual void OnComponentUpdate(){};
 
     /**
+     * Can be overriden in order to react to an attachment
+     */
+    virtual void OnChildAttach(GameObjectComponent *child) {}
+
+    /**
+     * Can be overriden in order to react to an detachment
+     */
+    virtual void OnChildDetach(GameObjectComponent *child) {}
+
+    /**
      * Enables calling the UpdateComponent() function.
      *
      * Can be change at any given time. But no gurantees when the first update
@@ -127,6 +144,9 @@ protected:
      */
     GameObjectComponent *GetParent() const { return mParentComponent; };
 
+    /**
+     * Returns a ref to the list of child components
+     */
     const std::list<GameObjectComponent *> &GetChildComponents() const
     {
         return mChildComponents;

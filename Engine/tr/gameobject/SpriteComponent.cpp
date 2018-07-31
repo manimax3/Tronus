@@ -130,7 +130,7 @@ void tr::SpriteComponent::UpdateRenderState()
 
     // Create the transform matrix
     math::mat3 transform(1.f);
-    transform = math::translate(transform, GetAbsolutePostion2D());
+    transform = math::translate(transform, GetAbsolutePosition2D());
     transform = math::scale(transform, GetAbsoluteScale2D());
     transform = math::rotate(transform, GetAbsoluteRotation2D().get());
 

@@ -1,6 +1,6 @@
 #include "Component2D.h"
 
-void tr::Component2D::SetRelativePostion2D(Vec2 position)
+void tr::Component2D::SetRelativePosition2D(Vec2 position)
 {
     SetRelativeTranslation({ position.x, position.y, 0.f });
 }
@@ -15,7 +15,7 @@ void tr::Component2D::SetRelativeScale2D(Vec2 scale)
     SetRelativeScale({ scale.x, scale.y, 0.f });
 }
 
-tr::Vec2 tr::Component2D::GetRelativePostion2D() const
+tr::Vec2 tr::Component2D::GetRelativePosition2D() const
 {
     const auto pos = GetRelativeTranslation();
     return { pos.x, pos.y };
@@ -32,7 +32,7 @@ tr::Vec2 tr::Component2D::GetRelativeScale2D() const
     return { scale.x, scale.y };
 }
 
-tr::Vec2 tr::Component2D::GetAbsolutePostion2D() const
+tr::Vec2 tr::Component2D::GetAbsolutePosition2D() const
 {
     const auto abs = GetAbsoluteTranslation();
     return { abs.x, abs.y };

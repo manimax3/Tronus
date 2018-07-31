@@ -32,6 +32,7 @@ void tr::GameObjectComponent::AttachChildComponent(GameObjectComponent *ptr)
     if (!IsChild(ptr)) {
         mChildComponents.push_back(ptr);
         ptr->mParentComponent = this;
+        OnChildAttach(ptr);
     }
 }
 
@@ -43,6 +44,7 @@ void tr::GameObjectComponent::DetachChildComponent(GameObjectComponent *ptr)
 
         (*it)->mParentComponent = nullptr;
         mChildComponents.erase(it);
+        OnChildDetach(ptr);
     }
 }
 

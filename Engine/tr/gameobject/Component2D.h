@@ -15,7 +15,7 @@ public:
      * Sets the relative postion of the component in 2D space.
      * Similar to the 3D equivalent.
      */
-    void SetRelativePostion2D(Vec2 position);
+    void SetRelativePosition2D(Vec2 position);
 
     /**
      * Sets the relative scale of the component in 2D space.
@@ -32,7 +32,7 @@ public:
     /**
      * Returns the 2D relative position of the component.
      */
-    Vec2 GetRelativePostion2D() const;
+    Vec2 GetRelativePosition2D() const;
 
     /**
      * Returns the 2D relative scale of the component.
@@ -48,7 +48,7 @@ public:
      * Returns the 2D absolute position.
      * This also take the parents (3D) positon into account.
      */
-    Vec2 GetAbsolutePostion2D() const;
+    Vec2 GetAbsolutePosition2D() const;
 
     /**
      * Returns the 2D absolute scale.

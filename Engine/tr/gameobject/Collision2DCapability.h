@@ -34,7 +34,7 @@ public:
     /**
      * The gravitation the world applies to every object
      */
-    Vec2 Gravitation = Vec2{ 0.f, -9.8f };
+    Vec2 Gravitation = Vec2{ 0.f, 98.f };
 
     /**
      * How many VelocityIterations should be done every update.
@@ -45,6 +45,11 @@ public:
      * How many PositionIterations should be done every update.
      */
     int PositionIterations = 2;
+
+    /**
+     * Get a ref to the Box2D world
+     */
+    b2World &GetWorldInternal() { return *mBox2DWorld; };
 
 private:
     /**
