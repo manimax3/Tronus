@@ -116,6 +116,7 @@ void tr::SpriteComponent::UpdateRenderState()
     renderable.visible = mVisible;
     renderable.color   = mColor;
     renderable.texture = mTexture ? mTexture.get() : nullptr;
+    renderable.layer   = GetLayer();
 
     if (renderable.texture) {
         const auto r  = GetUV();

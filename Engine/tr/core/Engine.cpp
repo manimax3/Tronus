@@ -79,7 +79,6 @@ void Engine::Start(Game *game)
     // Start the tick loop
 
     Timer       timer, sleep_timer;
-    const float msPerTick   = 1000.f / 60.f;
     float       updateTimer = 0;
     float       tickTimer   = 0;
 
@@ -99,9 +98,9 @@ void Engine::Start(Game *game)
             tickTimer += 1000.f;
         }
 
-        if ((timer.GetElapsed() - updateTimer) >= msPerTick) {
+        if ((timer.GetElapsed() - updateTimer) >= TICK_MS_DELTA) {
             Tick();
-            updateTimer += msPerTick;
+            updateTimer += TICK_MS_DELTA;
             mUPS++;
         }
 

@@ -17,6 +17,9 @@ public:
 
     class World *mWorld = nullptr;
 
+    constexpr static double UPDATE_MS_DELTA = 1000.0 / 60.f;
+    constexpr static double TICK_MS_DELTA   = UPDATE_MS_DELTA;
+
 private:
     bool mRunning = false;
     int  mUPS     = 0;
