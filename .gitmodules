@@ -29,3 +29,6 @@
 [submodule "External/Box2D"]
 	path = External/Box2D
 	url = https://github.com/erincatto/Box2D.git
+[submodule "External/spdlog"]
+	path = External/spdlog
+	url = https://github.com/gabime/spdlog.git
