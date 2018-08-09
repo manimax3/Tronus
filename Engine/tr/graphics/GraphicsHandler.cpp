@@ -144,10 +144,8 @@ void tr::GraphicsHandler::CreateWindow(const CreateWindowInfo &info)
 {
     EASY_BLOCK("CreateWindowCmd");
 
-    auto &Logger = GetEngine().Logger();
-
     if (!glfwInit())
-        Logger.log("Error Initializing GLFW!", LogLevel::ERROR);
+        Log().error("Error Initializing GLFW!");
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, info.OpenGLVersion.x);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, info.OpenGLVersion.y);
@@ -165,7 +163,7 @@ void tr::GraphicsHandler::CreateWindow(const CreateWindowInfo &info)
         info.Fullscreen ? glfwGetPrimaryMonitor() : nullptr, nullptr);
 
     if (!window) {
-        Logger.log("Error Creating a GLFW Window", LogLevel::ERROR);
+        Log().error("Error Creating a GLFW Window");
         return;
     }
 
@@ -186,7 +184,7 @@ void tr::GraphicsHandler::CreateWindow(const CreateWindowInfo &info)
 
     // Load the OpenGL extensions
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-        Logger.log("Failed to initialize OpenGL context", LogLevel::ERROR);
+        Log().error("Failed to initialize OpenGL context");
 
 #ifdef TR_DEBUG
     // Enable the Debug Message Callback if available (>=GL4.3)
@@ -202,7 +200,7 @@ void tr::GraphicsHandler::CreateWindow(const CreateWindowInfo &info)
     version_info += " GLSL: ";
     version_info += reinterpret_cast<char *>(
         const_cast<byte *>(glGetString(GL_SHADING_LANGUAGE_VERSION)));
-    Logger.log(version_info);
+    Log().info(version_info);
 
     glfwSwapInterval(info.VSync ? 1 : 0);
 
@@ -274,10 +272,7 @@ void tr::close_callback(GLFWwindow *window)
 
 void tr::error_callback(int error, const char *description)
 {
-    if (Log::STATIC_LOGGER)
-        Log::STATIC_LOGGER->log("GLFW - "s + description
-                                    + " Error Code: " + std::to_string(error),
-                                LogLevel::ERROR);
+    Log().error("GLFW - {} Error Code: {}", description, error);
 }
 
 void tr::gl_debug_callback(GLenum        source,
@@ -300,9 +295,10 @@ void tr::gl_debug_callback(GLenum        source,
     else
         m += std::string(message, length);
 
-    handler->GetEngine().Logger().log(
-        m,
-        severity == GL_DEBUG_TYPE_ERROR ? LogLevel::ERROR : LogLevel::WARNING);
+    if (severity == GL_DEBUG_TYPE_ERROR)
+        Log().error(m);
+    else
+        Log().warn(m);
 }
 
 void tr::character_callback(GLFWwindow *window, uint codepoint)

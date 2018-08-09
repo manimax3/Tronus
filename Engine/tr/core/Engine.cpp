@@ -16,7 +16,6 @@ using namespace tr;
 Engine::Engine()
 {
     // TODO: Why arent thos unique_ptr ?
-    sLog             = new Log;
     sJobHandler      = new JobHandler;
     sResourceManager = new ResourceManager;
     sProfiler        = new Profiler;
@@ -27,7 +26,6 @@ Engine::~Engine()
 {
     delete mWorld;
 
-    delete sLog;
     delete sJobHandler;
     delete sResourceManager;
     delete sProfiler;
@@ -41,15 +39,14 @@ void Engine::Start(Game *game)
     EASY_MAIN_THREAD;
     EASY_PROFILER_ENABLE;
 
-    Logger().log("Tronus Engine Starting...", LogLevel::WARNING);
+    Log().warn("Tronus Engine Starting...");
 
     if (!(mGame = game)) {
-        Logger().log("No game instance provied aborting...", LogLevel::ERROR);
+        Log().error("No game instance provided aborting...");
         return;
     }
 
-    Logger().log("Starting Subsystem Initialization...");
-    sLog->Initialize(this);
+    Log().info("Starting Subsystem Initializatiion...");
     sJobHandler->Initialize(this);
     sResourceManager->Initialize(this);
     sProfiler->Initialize(this);
@@ -60,8 +57,7 @@ void Engine::Start(Game *game)
 
     mWorld = new World(*this);
 
-    Logger().log("Starting Subsystem Post Initialization...");
-    sLog->PostInit();
+    Log().info("Starting Subsystem Post Initialization...");
     sJobHandler->PostInit();
     sResourceManager->PostInit();
     sProfiler->PostInit();
@@ -125,15 +121,13 @@ void Engine::Stop()
     sGraphicsHandler->Shutdown();
     sResourceManager->Shutdown();
     sJobHandler->Shutdown();
-    sLog->Shutdown();
-    Logger().log("All subsystems have been stopped");
+    Log().info("All subsystems have been stoppend");
 }
 
 void Engine::Tick()
 {
     EASY_FUNCTION(profiler::colors::Red);
 
-    sLog->Tick();
     sJobHandler->Tick();
     sResourceManager->Tick();
     sProfiler->Tick();

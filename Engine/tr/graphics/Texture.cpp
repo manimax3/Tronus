@@ -64,9 +64,7 @@ tr::TextureLoader::LoadResource(ResourceLoadingInformation info,
     json &jhandle = *info;
 
     if (!(rm.GetEngine().sGraphicsHandler->Valid())) {
-        rm.GetEngine().Logger().log(
-            "Tried to create a Texture without valid render Context",
-            LogLevel::ERROR);
+        Log().error("Tried to create a Texture without valid render Context");
         return nullptr;
     }
 
@@ -86,13 +84,12 @@ tr::TextureLoader::LoadResource(ResourceLoadingInformation info,
         /*     ? jhandle["dependencies"][0].get<std::string>() */
         /*     : jhandle["dependencies"][0]["id"].get<std::string>(); */
     } catch (json::out_of_range e) {
-        rm.GetEngine().Logger().log(
-            "Error Loading values from Texture Handle: "s
-                + "<IMPLEMNT TEXTTURE NAME RESOLVING>" + " | " + e.what(),
-            LogLevel::WARNING);
+        Log().warn("Error Loading values from Texture Handle: <IMPLEMNT "
+                   "TEXTTURE NAME RESOLVING> | {}",
+                   e.what());
         return nullptr;
     } catch (...) {
-        rm.GetEngine().Logger().log("See the doctor!", LogLevel::ERROR);
+        Log().error("Unknown Error occurred in Tetxutre.cpp");
         return nullptr;
     }
 
@@ -100,8 +97,7 @@ tr::TextureLoader::LoadResource(ResourceLoadingInformation info,
     auto beg = context.dependencies.begin();
 
     if (beg == std::end(context.dependencies)) {
-        rm.GetEngine().Logger().log("No dependency image was specified",
-                                    LogLevel::WARNING);
+        Log().warn("No dependency image was specified for texture");
         return nullptr;
     }
 
@@ -109,10 +105,9 @@ tr::TextureLoader::LoadResource(ResourceLoadingInformation info,
     auto tup  = std::get<1>(*beg);
 
     if (std::get<0>(tup) == ResourceLoadingContext::NotFound) {
-        rm.GetEngine().Logger().log("Couldnt find corresponding image to load "
-                                    "Texture with provided name: "
-                                        + name,
-                                    LogLevel::WARNING);
+        Log().warn("Couldnt find corresponding image to load "
+                   "Texture with provided name: {}",
+                   name);
         return nullptr;
     }
 

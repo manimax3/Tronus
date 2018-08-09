@@ -15,12 +15,11 @@ std::tuple<std::string, std::string>
      SplitShaders(const std::string &shaders,
                   const std::string &vertex_sep,
                   const std::string &fragment_sep);
-void checkCompileErrors(uint shader, const std::string &type, Log &log);
+void checkCompileErrors(uint shader, const std::string &type);
 }
 
 tr::uint tr::GLSLShader::CompileShader(const std::string &vertex,
-                                       const std::string &fragment,
-                                       Log &              log)
+                                       const std::string &fragment)
 {
     GLuint s_vertex, s_fragment;
 
@@ -36,13 +35,13 @@ tr::uint tr::GLSLShader::CompileShader(const std::string &vertex,
     s_vertex = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(s_vertex, 1, &c_vertex, &v_size);
     glCompileShader(s_vertex);
-    detail::checkCompileErrors(s_vertex, "Vertex", log);
+    detail::checkCompileErrors(s_vertex, "Vertex");
 
     // Compile fragment shader
     s_fragment = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(s_fragment, 1, &c_fragment, &f_size);
     glCompileShader(s_fragment);
-    detail::checkCompileErrors(s_fragment, "Fragment", log);
+    detail::checkCompileErrors(s_fragment, "Fragment");
 
     program = glCreateProgram();
 
@@ -50,7 +49,7 @@ tr::uint tr::GLSLShader::CompileShader(const std::string &vertex,
     glAttachShader(program, s_fragment);
 
     glLinkProgram(program);
-    detail::checkCompileErrors(program, "PROGRAM", log);
+    detail::checkCompileErrors(program, "PROGRAM");
 
     glDeleteShader(s_vertex);
     glDeleteShader(s_fragment);
@@ -74,8 +73,7 @@ tr::GLSLShaderLoader::LoadResource(ResourceLoadingInformation info,
         vertex_sep   = jhandle.at("vertex_seperator");
         fragment_sep = jhandle.at("fragment_seperator");
     } catch (json::out_of_range e) {
-        rm.GetEngine().Logger().log("Loading shader"s + " | " + e.what(),
-                                    LogLevel::ERROR);
+        Log().error("Loading shader | {}", e.what());
         return nullptr;
     }
 
@@ -89,19 +87,16 @@ tr::GLSLShaderLoader::LoadResource(ResourceLoadingInformation info,
         ss << ifs.rdbuf();
         shader_file = ss.str();
     } else {
-        rm.GetEngine().Logger().log("Could not open file: "s + shader_file,
-                                    LogLevel::WARNING);
+        Log().warn("Couldnt open file: {}", shader_file);
         return nullptr;
     }
 
     try {
         auto [vertex, fragment]
             = detail::SplitShaders(shader_file, vertex_sep, fragment_sep);
-        program = GLSLShader::CompileShader(vertex, fragment,
-                                            rm.GetEngine().Logger());
+        program = GLSLShader::CompileShader(vertex, fragment);
     } catch (std::runtime_error e) {
-        rm.GetEngine().Logger().log("Shader parsing: "s + e.what(),
-                                    LogLevel::ERROR);
+        Log().error("Shader parsing | ", e.what());
     }
 
     return ResourcePtr<>(program ? new GLSLShader(program) : nullptr);
@@ -199,9 +194,7 @@ tr::detail::SplitShaders(const std::string &shaders,
                                                      std::move(fragment));
 }
 
-void tr::detail::checkCompileErrors(uint               shader,
-                                    const std::string &type,
-                                    tr::Log &          log)
+void tr::detail::checkCompileErrors(uint shader, const std::string &type)
 {
     using namespace tr;
     GLint  success;
@@ -211,15 +204,13 @@ void tr::detail::checkCompileErrors(uint               shader,
         glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
         if (!success) {
             glGetShaderInfoLog(shader, 1024, nullptr, infoLog);
-            log.log("Error Compiling a "s + type + " Shader | " + infoLog,
-                    LogLevel::ERROR);
+            Log().error("Error Compiling a {} Shader | {}", type, infoLog);
         }
     } else {
         glGetProgramiv(shader, GL_LINK_STATUS, &success);
         if (!success) {
             glGetProgramInfoLog(shader, 1024, nullptr, infoLog);
-            log.log("Error Linking a "s + type + " Shader | " + infoLog,
-                    LogLevel::ERROR);
+            Log().error("Error Linking a {} Shader | {}", type, infoLog);
         }
     }
 }

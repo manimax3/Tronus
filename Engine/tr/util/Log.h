@@ -2,52 +2,39 @@
 
 #include "../core/Subsystem.h"
 #include "../filesystem/Stream.h"
+#include "../filesystem/Filesystem.h"
 #include <bitset>
+#include <string>
 #include <tr.h>
 #include <type_traits>
-#include <string>
+
+#include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
+#include "spdlog/spdlog.h"
 
 namespace tr {
-
-using LogOptions = uint32;
-
 using namespace std::literals::string_literals;
 
-namespace LogOption {
-    constexpr auto CONSOLE  = 1 << 0;
-    constexpr auto LOGFILE  = 1 << 1;
-    constexpr auto AUTOENDL = 1 << 2;
+namespace detail {
+    inline auto CreateLoggerInternal()
+    {
+        auto console_sink
+            = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+        console_sink->set_pattern("[%T] [%l] %v");
+        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(
+            fs::GetExecutablePath() + "tronus_log.txt");
+        file_sink->set_pattern("[%T] [%l] %v");
+
+        std::vector<spdlog::sink_ptr> sinks{ console_sink, file_sink };
+        auto log = std::make_shared<spdlog::logger>("EngineLogger", std::begin(sinks), std::end(sinks));
+        spdlog::register_logger(log);
+        return log;
+    }
 }
 
-enum class LogLevel { INFO, WARNING, ERROR };
-
-class Log : public Subsystem<Log> {
-public:
-    static constexpr LogOptions DEFAULT
-        = LogOption::CONSOLE | LogOption::LOGFILE | LogOption::AUTOENDL;
-
-    bool Initialize(Engine *engine) override;
-    inline std::string GetName() const override { return "Log"; };
-
-    template<typename T>
-    Log &log(const T &t, LogLevel level = LogLevel::INFO,
-        LogOptions options = DEFAULT)
-    {
-        if constexpr (std::is_convertible_v<std::decay_t<T>, std::string>)
-            this->log(static_cast<std::string>(t), level);
-        else
-            this->log(std::to_string(t), level);
-
-        return *this;
-    }
-
-    Log &log(const std::string &out, LogLevel level = LogLevel::INFO,
-        LogOptions options = DEFAULT);
-
-    // Use this only if no other choise
-    static Log *STATIC_LOGGER;
-
-private:
-    Outstream mFileStream;
-};
+inline auto &Log()
+{
+    static auto Logger = detail::CreateLoggerInternal();
+    return *Logger;
+}
 }

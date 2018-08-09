@@ -53,14 +53,11 @@ tr::ResourcePtr<>
 tr::ResourceManager::LoadResource(ResourceLoadingInformation  info,
                                   std::optional<ResourceName> namehint)
 {
-    auto &logger = mEngine->Logger();
-
     if (const auto &opt = InvalidInfoCheck(info); opt) {
 
-        logger.log(
-            "ResourceLoading aborted because of invalid Loading information. Reason: "s
-                + opt.value(),
-            LogLevel::WARNING);
+        Log().warn("ResourceLoading aborted because of invalid Loading "
+                   "information. Reason: {}",
+                   opt.value());
         throw ResourceNotLoadedError("Invalid ResourceLoadingInformation: \n"s
                                      + opt.value());
     }
@@ -74,8 +71,7 @@ tr::ResourceManager::LoadResource(ResourceLoadingInformation  info,
 
     const auto loader_iter = mResourceLoaders.find(type);
     if (loader_iter == std::end(mResourceLoaders)) {
-        logger.log("No resource loader found for type: "s + type,
-                   LogLevel::WARNING);
+        Log().warn("No resource loader found for type: {}", type);
         throw ResourceNotLoadedError("No loader found");
     }
 
@@ -84,10 +80,9 @@ tr::ResourceManager::LoadResource(ResourceLoadingInformation  info,
                                             std::move(context));
 
     if (!res_ptr) {
-        logger.log(
-            "ResourceLoadHandler returned nullptr while loadint a resource of type: "s
-                + type,
-            LogLevel::WARNING);
+        Log().warn("ResourceLoadHandler returned nullptr while loadint a "
+                   "resource of type: {}",
+                   type);
         throw ResourceNotLoadedError("ResourceLoadHandler returned nullptr");
     }
 
@@ -120,7 +115,7 @@ tr::ResourceManager::LoadResource(std::string_view            file,
     f = GetEngineAssetPath() + f;
 
     if (!fs::FileExists(f)) {
-        mEngine->Logger().log("Couldnt find file: "s + f, LogLevel::WARNING);
+        Log().warn("Couldnt find file: {}", f);
         throw ResourceNotLoadedError("File not found: "s + f);
     }
 
@@ -131,8 +126,7 @@ tr::ResourceManager::LoadResource(std::string_view            file,
     try {
         return LoadResource(in, std::move(namehint));
     } catch (const ResourceNotLoadedError &e) {
-        mEngine->Logger().log("Error in loading resource from file: "s + f,
-                              LogLevel::WARNING);
+        Log().warn("Error Loading resource from file: {}", f);
         throw;
     }
 }
@@ -144,10 +138,9 @@ tr::ResourceManager::LoadResource(std::istream &              in,
     try {
         in >> *info;
     } catch (const json::parse_error &e) {
-        mEngine->Logger().log(
-            "Could not parse json object for resourceloading from stream | "s
-                + e.what(),
-            LogLevel::WARNING);
+        Log().warn(
+            "Could not parse json object for resourceloading from stream | {}",
+            e.what());
         throw ResourceNotLoadedError("Parsing from Stream");
     }
 
@@ -256,7 +249,6 @@ void tr::ResourceManager::LoadDependecies(ResourceLoadingInformation &info,
     assert(!InvalidInfoCheck(info));
     const json &res_info     = *info;
     const auto &dependencies = res_info.find("dependencies");
-    auto &      logger       = mEngine->Logger();
 
     if (dependencies == res_info.end())
         return; // No deps specified
@@ -277,9 +269,8 @@ void tr::ResourceManager::LoadDependecies(ResourceLoadingInformation &info,
                     context.dependencies[name]
                         = { ResourceLoadingContext::Loaded, ptr };
                 } catch (const ResourceNotLoadedError &e) {
-                    logger.log("Could not load dependency: "s + name + " | "
-                                   + e.what(),
-                               LogLevel::WARNING);
+                    Log().warn("Could not load dependency: {} | {}", name,
+                               e.what());
                     context.dependencies[name]
                         = { ResourceLoadingContext::NotFound, {} };
                 }
@@ -305,11 +296,9 @@ void tr::ResourceManager::LoadDependecies(ResourceLoadingInformation &info,
                     = { ResourceLoadingContext::Loaded, ptr };
 
             } catch (const ResourceNotLoadedError &e) {
-                logger.log("Couldnt load dependency: "s + dep.dump() + " | "
-                               + e.what()
-                               + "\n There couldnt be added a NotFound entry "
-                                 "into the Loading Context",
-                           LogLevel::WARNING);
+                Log().warn("Couldnt load dependency: {} | {} \n There couldnt "
+                           "be added a NotFound entry into the Laoding Context",
+                           dep.dump(), e.what());
             }
         }
     }

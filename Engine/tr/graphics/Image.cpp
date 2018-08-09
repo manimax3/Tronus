@@ -87,8 +87,7 @@ tr::ResourcePtr<> tr::ImageLoader::LoadResource(ResourceLoadingInformation info,
             xSize = jhandle["xSize"];
             ySize = jhandle["ySize"];
         } catch (json::out_of_range e) {
-            rm.GetEngine().Logger().log("Not size specified in: "s + jhandle.dump(),
-                                         LogLevel::WARNING);
+            Log().warn("No size specified in: {}", jhandle.dump());
             return nullptr;
         }
 
@@ -106,9 +105,7 @@ tr::ResourcePtr<> tr::ImageLoader::LoadResource(ResourceLoadingInformation info,
             xSize = jhandle["xSize"];
             ySize = jhandle["ySize"];
         } catch (json::out_of_range e) {
-            rm.GetEngine().Logger().log("Invalid handle to load from color: "s
-                                             + jhandle.dump(),
-                                         LogLevel::WARNING);
+            Log().warn("Invalid handle to load from color: {}", jhandle.dump());
             return nullptr;
         }
 

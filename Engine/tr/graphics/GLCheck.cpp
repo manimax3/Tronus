@@ -15,10 +15,7 @@ void GLCheck(const char *file, int line, const char *functions)
         ss << "OpenGL Code: " << error << " Function: " << functions
            << " File: " << file << " Line: " << line;
 
-        if (tr::Log::STATIC_LOGGER)
-            tr::Log::STATIC_LOGGER->log(ss.str(), tr::LogLevel::ERROR);
-        else
-            std::cout << ss.str() << '\n';
+        tr::Log().error(ss.str());
 
         error = glGetError();
     }

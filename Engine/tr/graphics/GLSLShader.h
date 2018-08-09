@@ -9,8 +9,7 @@ class Log;
 class GLSLShader : public Resource {
 public:
     static uint CompileShader(const std::string &vertex,
-                              const std::string &fragment,
-                              Log &              log);
+                              const std::string &fragment);
 
     explicit GLSLShader(uint program);
     ~GLSLShader() override;

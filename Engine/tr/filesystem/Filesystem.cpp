@@ -20,9 +20,8 @@ bool fs::DirExists(const std::string &name)
         return true;
     } else if (errno == ENOENT)
         return false;
-    else if (tr::Log::STATIC_LOGGER)
-        Log::STATIC_LOGGER->log("Something went wrong checking for a directory",
-                                LogLevel::WARNING);
+    else
+        Log().warn("Something went wrong checking for a directory: {}", name);
 
     return false;
 }

@@ -10,7 +10,6 @@
 namespace tr {
 class Engine : public Singleton<Engine> {
 public:
-    class Log *            sLog             = nullptr;
     class JobHandler *     sJobHandler      = nullptr;
     class ResourceManager *sResourceManager = nullptr;
     class Profiler *       sProfiler        = nullptr;
@@ -35,7 +34,6 @@ public:
     void Start(class Game *game);
     void Stop();
 
-    inline Log &       Logger() { return *sLog; }
     inline const Game &GetGame() const { return *mGame; }
 
     void OnEvent(const WindowEvent &e);
