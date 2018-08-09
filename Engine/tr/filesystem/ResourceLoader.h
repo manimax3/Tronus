@@ -13,6 +13,9 @@ namespace tr {
 
 class ResourceManager;
 
+/**
+ * Base class for resources
+ */
 struct Resource {
     virtual ~Resource() = default;
 };
@@ -44,6 +47,10 @@ using ResourceType = std::string;
 
 constexpr ResourceID RESOURCE_ID_INVALID = 0;
 
+/**
+ * Context where you can look up inforamtion about the current resource loading
+ * process.
+ */
 struct ResourceLoadingContext {
     enum State { Loaded, NotFound, OptionallyLoadable };
 
@@ -54,6 +61,9 @@ struct ResourceLoadingContext {
         dependencies;
 };
 
+/**
+ * Base class representing a resource loadger for a specified type
+ */
 class ResourceLoadHandler {
 public:
     explicit ResourceLoadHandler() = default;
