@@ -25,6 +25,11 @@ struct ResourceNotLoadedError : public std::runtime_error {
     }
 };
 
+struct ResourceNotFoundError : public std::runtime_error {
+    explicit ResourceNotFoundError(
+        std::variant<ResourceName, ResourceID> search_term);
+};
+
 /**
  * Manages the loading and unloading of resources
  */

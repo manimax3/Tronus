@@ -7,12 +7,31 @@
 #include "../graphics/Image.h"
 #include "../graphics/Texture.h"
 #include "Filesystem.h"
+#include "spdlog/fmt/fmt.h"
 
 #include "nlohmann/json.hpp"
 #include <fstream>
 #include <sstream>
 
 using json = nlohmann::json;
+
+tr::ResourceNotFoundError::ResourceNotFoundError(
+    std::variant<ResourceName, ResourceID> search_term)
+    : std::runtime_error(std::visit(
+          [](auto &&t) {
+              using T = std::decay_t<decltype(t)>;
+              if constexpr (std::is_same_v<T, ResourceID>) {
+                  return fmt::format(
+                      "Couldnt find resource specified with ResourceID: {}", t);
+              } else if constexpr (std::is_same_v<T, ResourceName>) {
+                  return fmt::format(
+                      "Couldnt find resource specified with ResourceName: {}",
+                      t);
+              }
+          },
+          search_term))
+{
+}
 
 bool tr::ResourceManager::Initialize(Engine *engine)
 {
@@ -150,6 +169,8 @@ tr::ResourceManager::LoadResource(std::istream &              in,
 tr::ResourcePtr<> tr::ResourceManager::GetResource(std::string_view name)
 {
     const auto id = mResourceIDLookup.find(name);
+    if (id == std::end(mResourceIDLookup))
+        throw ResourceNotFoundError(ResourceName(fmt::format("{}", name)));
     return GetResource(std::get<1>(*id));
 }
 
@@ -239,8 +260,7 @@ tr::ResourceName tr::ResourceManager::GetResourceName(ResourceID id)
             return name;
     }
 
-    // TODO: Make this a better exception
-    throw std::runtime_error("Couldnt find a resource for specified id");
+    throw ResourceNotFoundError(id);
 }
 
 void tr::ResourceManager::LoadDependecies(ResourceLoadingInformation &info,
