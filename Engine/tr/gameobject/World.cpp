@@ -17,9 +17,8 @@ void tr::World::Update()
 
     for (auto seg : mGameObjects.segment_traversal()) {
         for (auto &go : seg) {
-            if (go.IsGameObjectTicking()) {
-                go.Update();
-            }
+            // GOs check for themselve if they need to tick
+            go.Update();
         }
     }
 }

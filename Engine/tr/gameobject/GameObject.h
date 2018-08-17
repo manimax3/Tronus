@@ -137,6 +137,12 @@ protected:
      */
     bool TickingGameObject = false;
 
+    /**
+     * Prevents components which require updates from recieving them.
+     * Usually no reason to enable this.
+     */
+    bool PreventComponentTicking = false;
+
 private:
     using ComponentMap = std::unordered_map<std::string, ComponentUPtr>;
     ComponentMap mComponents;

@@ -12,10 +12,15 @@ tr::GameObjectComponent &tr::GameObject::GetRootComponent()
 
 void tr::GameObject::Update()
 {
-    for (auto &[k, v] : mComponents) {
-        if (v->IsComponentTicking())
-            v->UpdateComponent();
+    if (!PreventComponentTicking) {
+        for (auto &[k, v] : mComponents) {
+            if (v->IsComponentTicking())
+                v->UpdateComponent();
+        }
     }
+
+    if (IsGameObjectTicking())
+        OnUpdate();
 }
 
 void tr::GameObject::EnterWorld(World &world)
@@ -39,7 +44,7 @@ void tr::GameObject::EnterWorld(World &world)
         cInputComponent->PostWorldEnter();
     }
 
-    for(const auto& [k, comp] : mComponents) {
+    for (const auto &[k, comp] : mComponents) {
         comp->PostWorldEnter();
     }
 }
