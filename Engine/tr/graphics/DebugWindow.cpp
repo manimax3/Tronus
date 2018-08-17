@@ -14,7 +14,8 @@ tr::DebugWindow::DebugWindow(Engine &engine)
     : mEngine(engine)
 {
     auto *gfx = engine.sGraphicsHandler;
-    gfx->InputRecieved.connect([&](const InputEvent &e) { this->OnEvent(e); });
+    gfx->InputRecieved.connect(InputLayer::DEBUG,
+                               [&](const InputEvent &e) { this->OnEvent(e); });
 
     gfx->GetImguiRenderer().DebugFrameStarted.connect(
         [&]() { this->OnRenderDebugEvent(); });

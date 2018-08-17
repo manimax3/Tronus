@@ -5,7 +5,11 @@
 void tr::InputComponent::SetupInputListening()
 {
     connection = tr::Engine::Get().sGraphicsHandler->InputRecieved.connect(
-        [&](const InputEvent &e) { this->OnEvent(e); });
+        InputLayer::COMPONENT, [&](const InputEvent &e) {
+            if (e.canceled)
+                return;
+            this->OnEvent(e);
+        });
 }
 
 void tr::InputComponent::OnEvent(const InputEvent &e) { InputRecieved(e); }

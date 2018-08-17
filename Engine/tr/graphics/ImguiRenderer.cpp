@@ -23,7 +23,8 @@ void tr::ImguiRenderer::Init(GraphicsHandler *gfx, ResourceManager *rm)
     mResManager = rm;
 
     gfx->WindowChanged.connect([&](const WindowEvent &e) { this->OnEvent(e); });
-    gfx->InputRecieved.connect([&](const InputEvent &e) { this->OnEvent(e); });
+    gfx->InputRecieved.connect(InputLayer::DEBUG,
+                               [&](const InputEvent &e) { this->OnEvent(e); });
 
     const auto w_size = gfx->GetWindowSize();
 
@@ -230,6 +231,8 @@ void tr::ImguiRenderer::draw_data(ImDrawData *draw_data)
 
 void tr::ImguiRenderer::OnEvent(const InputEvent &ie)
 {
+    if (ie.canceled)
+        return;
 
     auto &im = ImGui::GetIO();
 
@@ -265,6 +268,9 @@ void tr::ImguiRenderer::OnEvent(const InputEvent &ie)
     } else if (ie.type == InputEvent::Mouse) {
         im.MousePos = ImVec2(ie.XPos, ie.YPos);
     }
+
+    if (im.WantTextInput || im.WantCaptureMouse || im.WantCaptureKeyboard)
+        ie.canceled = true;
 }
 
 void tr::ImguiRenderer::OnEvent(const WindowEvent &e)

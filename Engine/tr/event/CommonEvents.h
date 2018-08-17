@@ -4,6 +4,21 @@
 namespace tr {
 
 struct Event {
+    virtual ~Event() = default;
+
+    mutable bool canceled = false;
+};
+
+/**
+ * Represents the input layers.
+ * Can be specified on connection to the InputRecived Signal.
+ * Used to order the input event slots.
+ */
+struct InputLayer {
+    static constexpr int DEBUG     = -10;
+    static constexpr int DEFAULT   = 0;
+    static constexpr int GUI       = 2;
+    static constexpr int COMPONENT = 4;
 };
 
 struct InputEvent : public Event {
