@@ -3,6 +3,7 @@
 
 #include "GraphicsHandler.h"
 #include "StaticMesh.h"
+#include "BufferHelper.h"
 
 namespace tr {
 /**
