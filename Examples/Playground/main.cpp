@@ -14,15 +14,18 @@ class MyEntity : public tr::GameObject {
 public:
     void OnWorldEnter() override
     {
-        sSprite   = CreateComponent<tr::SpriteComponent>("Test sprite");
+        sSprite   = CreateComponent<tr::FlipbookComponent>("Test sprite");
         sCollider = CreateComponent<tr::ColliderComponent2D>("Collider");
 
         GetWorld().GetEngine().sResourceManager->LoadResource(
             "test_texture.json");
 
         sSprite->SetTexture("test_texture.json");
-        sSprite->SetUVs(tr::Vec2{ 0.f }, tr::Vec2{ 256.f, 256.f });
         sSprite->SetSize(tr::Vec2{ 5.f, 5.f });
+        /* sSprite->SetUVs(tr::Vec2{ 0.f }, tr::Vec2{ 256.f, 256.f }); */
+        sSprite->AddFrame(tr::Rect(0, 0, 256.f, 256.f), 500);
+        sSprite->AddFrame(tr::Rect(100, 100, 256.f, 256.f), 1000);
+        sSprite->AddFrame(tr::Rect(200, 200, 256.f, 256.f), 250);
 
         sCollider->AddShapeRect(tr::Vec4{ 0, 0, 5, 5 });
         sCollider->EnablePhysicsSimulation = true;
@@ -42,7 +45,7 @@ public:
     }
 
 private:
-    tr::SpriteComponent *    sSprite;
+    tr::FlipbookComponent *    sSprite;
     tr::ColliderComponent2D *sCollider;
 };
 

@@ -144,3 +144,54 @@ void tr::SpriteComponent::UpdateRenderState()
 }
 
 void tr::SpriteComponent::OnRelativeChange() { UpdateRenderState(); }
+
+void tr::FlipbookComponent::OnWorldEnter(World &world)
+{
+    SpriteComponent::OnWorldEnter(world);
+    TickingComponent = true;
+}
+
+void tr::FlipbookComponent::OnComponentUpdate()
+{
+    if (!AutoAnimate)
+        return;
+
+    mMsUntilNext -= Engine::UPDATE_MS_DELTA;
+
+    if (mMsUntilNext < 0) {
+        NextFrame();
+    }
+}
+
+void tr::FlipbookComponent::NextFrame()
+{
+    mCurrentFrame += 1;
+    mCurrentFrame = mCurrentFrame % mFrames.size();
+
+    auto it = mFrames.begin();
+    std::advance(it, mCurrentFrame);
+
+    SetUVs(std::get<1>(*it));
+    mMsUntilNext = std::get<0>(*it);
+}
+
+int tr::FlipbookComponent::AddFrame(Rect rect, int duration, int position_hint)
+{
+    if (position_hint < 0
+        || static_cast<uint>(position_hint) >= mFrames.size()) {
+        mFrames.emplace_back(std::tuple{ duration, rect });
+        return mFrames.size();
+    } else {
+        auto it = std::begin(mFrames);
+        std::advance(it, position_hint);
+        mFrames.emplace(it, std::tuple{ duration, rect });
+        return position_hint;
+    }
+}
+
+void tr::FlipbookComponent::RemoveFrame(int position)
+{
+    auto it = std::begin(mFrames);
+    std::advance(it, position);
+    mFrames.erase(it);
+}

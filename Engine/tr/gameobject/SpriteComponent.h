@@ -13,7 +13,7 @@ class Texture;
 /**
  * Component to render a sprite screen.
  */
-class SpriteComponent final : public Component2D {
+class SpriteComponent : public Component2D {
 public:
     void OnWorldEnter(class World &world) override;
 
@@ -161,5 +161,62 @@ private:
      * Gets set on world entering.
      */
     class Renderer2D *mRenderer = nullptr;
+};
+
+class FlipbookComponent final : public SpriteComponent {
+public:
+    void OnWorldEnter(World &world) override;
+
+    /**
+     * We use this to advance the animation
+     */
+    void OnComponentUpdate() override;
+
+    /**
+     * Adds a new frame to this animation
+     * @param rect UVs on the texture.
+     * @param time_point After how many ms this frame should be shown.
+     * @return the position of this frame
+     */
+    int AddFrame(Rect rect, int duration, int position_hint = -1);
+
+    /**
+     * Removes a frame at given timepoint.
+     */
+    void RemoveFrame(int position);
+
+    /**
+     * Should the frame be advanced autmatically.
+     * Can be disabled to pause the antimation at any give time.
+     */
+    bool AutoAnimate = true;
+
+    /**
+     * Show the next frame.
+     */
+    void NextFrame();
+
+private:
+
+    /**
+     * The curren avtive frame.
+     */
+    int mCurrentFrame = 0;
+
+    /**
+     * Type of a frame consisting of a duration and a rect
+     */
+    using Frame = std::tuple<int, Rect>;
+
+    /**
+     * The frames
+     */
+    std::list<Frame> mFrames;
+
+    /**
+     * We store the amount of ms that need to pass until the next frame should
+     * be displayed.
+     */
+    float mMsUntilNext = 0;
 };
 }

@@ -21,6 +21,11 @@ struct Rect {
     {
     }
 
+    Rect(const Rect&) = default;
+    Rect(Rect&&) = default;
+    Rect& operator=(const Rect&) = default;
+    Rect& operator=(Rect&&) = default;
+
     Rect  operator*(float scale) { return { pos, size * scale }; }
     Rect &operator*=(float scale)
     {
