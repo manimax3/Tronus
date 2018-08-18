@@ -129,10 +129,36 @@ private:
  */
 class AttributBufferStore {
 public:
-    // TODO:
-    // Disable copyable
-    // Special move semantics
-    // defautl constructor
+    /**
+     * Default constructor
+     */
+    AttributBufferStore() = default;
+
+    /**
+     * Deleted copy constructor
+     */
+    AttributBufferStore(const AttributBufferStore &) = delete;
+
+    /**
+     * Deleted assignment copy
+     */
+    AttributBufferStore &operator=(const AttributBufferStore &) = delete;
+
+    /**
+     * Deleted assignemt move.
+     */
+    AttributBufferStore &operator=(AttributBufferStore &&other) = delete;
+
+    /**
+     * Move constructor
+     */
+    AttributBufferStore(AttributBufferStore &&other)
+        : mHandle(std::move(other.mHandle))
+        , mBuffers(std::move(other.mBuffers))
+    {
+        other.mHandle = 0;
+        other.mBuffers.clear();
+    }
 
     /**
      * Setup the internal state
