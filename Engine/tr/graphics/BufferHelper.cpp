@@ -60,7 +60,8 @@ void tr::detail::Buffer::Create(size_t element_size, size_t count, void *data)
     Bind();
 
     Call(glBufferData(ToEnum(mType), element_size * count, data,
-                      ToEnum(mLocality)))
+                      ToEnum(mLocality)));
+    mDataSize = element_size * count;
 }
 
 void tr::detail::Buffer::Destroy()

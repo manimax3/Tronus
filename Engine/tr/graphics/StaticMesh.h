@@ -3,6 +3,7 @@
 
 #include "../filesystem/ResourceLoader.h"
 #include "../math/Math.h"
+#include "BufferHelper.h"
 #include "Texture.h"
 
 namespace tr {
@@ -11,7 +12,7 @@ namespace tr {
  * Vertex for 3D model/mesh Rendering.
  * Contains a pos, normal, tangent, bitangent and uv.
  */
-class Vertex_PNTBU {
+struct Vertex_PNTBU {
     Vec3 position;
     Vec3 normal;
     Vec3 tangent;
@@ -25,10 +26,35 @@ class Vertex_PNTBU {
 class StaticMesh : public Resource {
 public:
     /**
+     * Returns a layout which can be used for Vertex buffer to hold the vertices
+     * data
+     */
+    static detail::BufferLayout GetVertexBufferLayout()
+    {
+        detail::BufferLayout layout(sizeof(Vertex_PNTBU));
+        layout.Add(0, 3, detail::BufferLayout::FLOAT,
+                   (void *)offsetof(Vertex_PNTBU, position));
+
+        layout.Add(1, 3, detail::BufferLayout::FLOAT,
+                   (void *)offsetof(Vertex_PNTBU, normal));
+
+        layout.Add(2, 3, detail::BufferLayout::FLOAT,
+                   (void *)offsetof(Vertex_PNTBU, tangent));
+
+        layout.Add(3, 3, detail::BufferLayout::FLOAT,
+                   (void *)offsetof(Vertex_PNTBU, bitangent));
+
+        layout.Add(4, 2, detail::BufferLayout::FLOAT,
+                   (void *)offsetof(Vertex_PNTBU, uv));
+
+        return layout;
+    }
+
+    /**
      * Constructs a mesh from given vertices and indices.
      */
     explicit StaticMesh(std::vector<Vertex_PNTBU> vertices,
-                        std::vector<int>          indices)
+                        std::vector<uint>         indices)
         : mVertices(std::move(vertices))
         , mIndices(std::move(indices))
     {
@@ -52,12 +78,12 @@ public:
     /**
      * Pointer to the Vertex data.
      */
-    const Vertex_PNTBU *GetVertices() const { return mVertices.data(); }
+    Vertex_PNTBU *GetVertices() { return mVertices.data(); }
 
     /**
      * Pointer to the Index data.
      */
-    const int *GetIndices() const { return mIndices.data(); }
+    uint *GetIndices() { return mIndices.data(); }
 
     /**
      * Frees up the memory space.
@@ -70,7 +96,7 @@ public:
 
 private:
     std::vector<Vertex_PNTBU> mVertices;
-    std::vector<int>          mIndices;
+    std::vector<uint>         mIndices;
 };
 
 /**

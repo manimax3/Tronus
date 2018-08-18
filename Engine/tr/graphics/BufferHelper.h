@@ -2,10 +2,9 @@
 #include <tr.h>
 
 #include "../util/Exceptions.h"
-#include "StaticMesh.h"
 
 #include <any>
-#include <queue>
+#include <list>
 
 namespace tr::detail {
 
@@ -74,10 +73,16 @@ public:
      */
     void Unbind();
 
+    /**
+     * Returns the size in bytes of the buffer.
+     */
+    size_t GetBufferSize() const { return mDataSize; }
+
 private:
     std::any   mHandle = 0;
     BufferType mType;
     Locality   mLocality;
+    size_t     mDataSize;
 };
 
 /**
