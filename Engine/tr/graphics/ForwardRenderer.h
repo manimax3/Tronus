@@ -28,7 +28,7 @@ public:
         /**
          * The geometry data
          */
-        ResourcePtr<StaticMesh>    mesh;
+        ResourcePtr<StaticMesh> mesh;
 
         /**
          * The material used to render the mesh
@@ -38,7 +38,7 @@ public:
         /**
          * The model matrix in order to apply an transform to the mesh
          */
-        Mat4                       model;
+        Mat4 model;
     };
 
     /**
@@ -68,6 +68,16 @@ public:
          * May be in an invalid state (not useable for reuse)
          */
         RenderInfo mInfo;
+
+        /**
+         * The amount of indices in this mesh
+         */
+        size_t mIndexCount = 0;
+
+        /**
+         * The amount of vertices
+         */
+        size_t mVertexCount = 0;
 
         /**
          * The buffer representing the gpu state
@@ -120,7 +130,7 @@ private:
     /**
      * The currently active camera
      */
-    Camera                  mCamera;
+    Camera mCamera;
 
     /**
      * The currently active renderables
