@@ -2,6 +2,7 @@
 #include "../core/Engine.h"
 #include "../filesystem/Filesystem.h"
 #include "../filesystem/ResourceManager.h"
+#include "../util/Exceptions.h"
 #include "GLCheck.h"
 #include "glad/glad.h"
 #include "nlohmann/json.hpp"
@@ -72,7 +73,7 @@ tr::GLSLShaderLoader::LoadResource(ResourceLoadingInformation info,
         shader_file  = jhandle.at("shader_source");
         vertex_sep   = jhandle.at("vertex_seperator");
         fragment_sep = jhandle.at("fragment_seperator");
-    } catch (json::out_of_range e) {
+    } catch (const json::out_of_range &e) {
         Log().error("Loading shader | {}", e.what());
         return nullptr;
     }
@@ -95,15 +96,43 @@ tr::GLSLShaderLoader::LoadResource(ResourceLoadingInformation info,
         auto [vertex, fragment]
             = detail::SplitShaders(shader_file, vertex_sep, fragment_sep);
         program = GLSLShader::CompileShader(vertex, fragment);
-    } catch (std::runtime_error e) {
+    } catch (const std::runtime_error &e) {
         Log().error("Shader parsing | ", e.what());
     }
 
-    return ResourcePtr<>(program ? new GLSLShader(program) : nullptr);
+    std::optional<ShaderInterface> siv, sif;
+
+    try {
+        siv = jhandle.at("vertex_interface").get<ShaderInterface>();
+    } catch (const json::out_of_range &) {
+        Log().warn("No vertex_interface specified for shader | {}",
+                   jhandle.dump());
+    } catch (const json::parse_error &e) {
+        Log().warn("Couldnt parse the vertex_interface of a shader | {}",
+                   e.what());
+    }
+
+    try {
+        sif = jhandle.at("fragment_interface").get<ShaderInterface>();
+    } catch (const json::out_of_range &) {
+        Log().warn("No fragment_interface specified for shader | {}",
+                   jhandle.dump());
+    } catch (const json::parse_error &e) {
+        Log().warn("Couldnt parse the fragment_interface of a shader | {}",
+                   e.what());
+    }
+
+    return ResourcePtr<>(
+        program ? new GLSLShader(program, std::move(siv), std::move(sif))
+                : nullptr);
 }
 
-tr::GLSLShader::GLSLShader(uint program)
+tr::GLSLShader::GLSLShader(uint                           program,
+                           std::optional<ShaderInterface> vertex_interface,
+                           std::optional<ShaderInterface> fragment_interface)
     : mShader(static_cast<GLuint>(program))
+    , mShaderInterfaceVertex(std::move(vertex_interface))
+    , mShaderInterfaceFragment(std::move(fragment_interface))
 {
 }
 
@@ -212,5 +241,162 @@ void tr::detail::checkCompileErrors(uint shader, const std::string &type)
             glGetProgramInfoLog(shader, 1024, nullptr, infoLog);
             Log().error("Error Linking a {} Shader | {}", type, infoLog);
         }
+    }
+}
+
+void tr::ShaderInterface::AddAttribute(ElementType type, int location)
+{
+    throw NotImplementedError("ShaderInterface AddAttribute");
+}
+
+void tr::ShaderInterface::AddUniform(ElementType   type,
+                                     std::string   name,
+                                     Sampler2DType opt_sampler_type)
+{
+    throw NotImplementedError("ShaderInterface AddUniform");
+}
+
+bool tr::ShaderInterface::HasAttribute(int location, ElementType type) const
+{
+    return std::find_if(std::begin(mAttributes), std::end(mAttributes),
+                        [&](const auto &a) {
+                            return location == a.location && type == a.type;
+                        })
+        != std::end(mAttributes);
+}
+
+bool tr::ShaderInterface::HasUniform(const std::string &name,
+                                     ElementType        type,
+                                     Sampler2DType      opt_sampler_type) const
+{
+    return std::find_if(std::begin(mUniforms), std::end(mUniforms),
+                        [&](const auto &a) {
+                            return type == a.type && name == a.name
+                                && (type == ElementType::SAMPLER2D
+                                        ? opt_sampler_type == a.sampler_type
+                                        : true);
+                        })
+        != std::end(mUniforms);
+}
+
+bool tr::ShaderInterface::IsCompatibleWith(const ShaderInterface &other) const
+{
+    for (const auto &a : mAttributes) {
+        if (!other.HasAttribute(a.location, a.type))
+            return false;
+    }
+
+    for (const auto &u : mUniforms) {
+        if (!other.HasUniform(u.name, u.type, u.sampler_type))
+            return false;
+    }
+
+    // Empty interfaces are always compatible
+    return true;
+}
+
+void tr::detail::ShaderInterfaceTypes::from_json(const json &j, Element &e)
+{
+    std::string v = j.get<std::string>();
+    if (v == "UNIFORM")
+        e = Element::UNIFORM;
+    else if (v == "ATTRIBUTE")
+        e = Element::ATTRIBUTE;
+
+    throw json::parse_error::create(
+        101, 0,
+        fmt::format("Couldnt parse {} to a ShaderInterface::Element enum", v));
+}
+
+void tr::detail::ShaderInterfaceTypes::from_json(const json & j,
+                                                 ElementType &type)
+{
+    std::string v = j.get<std::string>();
+    if (v == "SAMPLER2D")
+        type = ElementType::SAMPLER2D;
+    else if (v == "MAT4")
+        type = ElementType::MAT4;
+    else if (v == "VEC4")
+        type = ElementType::VEC4;
+    else if (v == "VEC3")
+        type = ElementType::VEC3;
+    else if (v == "VEC2")
+        type = ElementType::VEC2;
+    else if (v == "FLOAT")
+        type = ElementType::FLOAT;
+    else if (v == "BOOL")
+        type = ElementType::BOOL;
+    else if (v == "STRUCT")
+        type = ElementType::STRUCT;
+
+    throw json::parse_error::create(
+        101, 0,
+        fmt::format("Couldnt parse {} to a ShaderInterface::ElementType enum",
+                    v));
+}
+
+void tr::detail::ShaderInterfaceTypes::from_json(const json &   j,
+                                                 Sampler2DType &type)
+{
+
+    std::string v = j.get<std::string>();
+    if (v == "ALBEDO")
+        type = Sampler2DType::ALBEDO;
+    else if (v == "DIFFUSE")
+        type = Sampler2DType::DIFFUSE;
+    else if (v == "SPECULAR")
+        type = Sampler2DType::SPECULAR;
+    else if (v == "OTHER")
+        type = Sampler2DType::OTHER;
+
+    throw json::parse_error::create(
+        101, 0,
+        fmt::format("Couldnt parse {} to a ShaderInterface::Sampler2DType enum",
+                    v));
+}
+
+void tr::detail::ShaderInterfaceTypes::from_json(const json &j,
+                                                 Uniform &   uniform)
+{
+    uniform.name = j.at("name");
+    uniform.type = j.at("type").get<ElementType>();
+
+    if (uniform.type == ElementType::SAMPLER2D)
+        uniform.sampler_type = j.at("sampler_type").get<Sampler2DType>();
+}
+
+void tr::detail::ShaderInterfaceTypes::from_json(const json &j,
+                                                 Attribute & attribute)
+{
+    attribute.location = j.at("location");
+    attribute.type     = j.at("type").get<ElementType>();
+
+    if (attribute.type == ElementType::SAMPLER2D
+        || attribute.type == ElementType::STRUCT)
+        throw json::parse_error::create(
+            101, 0,
+            fmt::format(
+                "{} Is not a supported type for ShaderInterface::Attribute",
+                j.at("type").get<std::string>()));
+}
+
+void tr::from_json(const json &j, ShaderInterface &i)
+{
+    const json &attributes = j.at("attributes");
+    const json &uniforms   = j.at("uniforms");
+
+    if (!attributes.is_array() || !uniforms.is_array())
+        throw json::parse_error::create(
+            104, 0, "attributes or uniforms is not an array");
+
+    for (auto it = attributes.begin(); it != attributes.end(); it++) {
+        ShaderInterface::Attribute a
+            = it->get<tr::detail::ShaderInterfaceTypes::Attribute>();
+        i.mAttributes.push_back(std::move(a));
+    }
+
+    for (auto it = uniforms.begin(); it != uniforms.end(); it++) {
+        ShaderInterface::Uniform u = it->get<ShaderInterface::Uniform>();
+        i.mUniforms.push_back(std::move(u));
     }
 }
