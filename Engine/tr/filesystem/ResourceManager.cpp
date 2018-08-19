@@ -13,7 +13,6 @@
 #include <fstream>
 #include <sstream>
 
-using json = nlohmann::json;
 
 tr::ResourceNotFoundError::ResourceNotFoundError(
     std::variant<ResourceName, ResourceID> search_term)

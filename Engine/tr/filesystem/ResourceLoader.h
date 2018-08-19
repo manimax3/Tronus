@@ -12,6 +12,7 @@
 namespace tr {
 
 class ResourceManager;
+using json = nlohmann::json;
 
 /**
  * Base class for resources
