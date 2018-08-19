@@ -22,9 +22,14 @@ BETTER_ENUM(ShaderElementType,
             Sampler2D_Specular,
             Sampler2D_Other,
             Mat4,
+            Vec4,
             Vec3,
             Vec2,
             Float,
             Bool,
             Struct);
+
+BETTER_ENUM(BufferType, int, Vertex, Index);
+
+BETTER_ENUM(BufferLocality, int, Static, Stream, Dynamic);
 }

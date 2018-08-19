@@ -32,19 +32,19 @@ public:
     static detail::BufferLayout GetVertexBufferLayout()
     {
         detail::BufferLayout layout(sizeof(Vertex_PNTBU));
-        layout.Add(0, 3, detail::BufferLayout::FLOAT,
+        layout.Add(0, ShaderElementType::Vec3,
                    (void *)offsetof(Vertex_PNTBU, position));
 
-        layout.Add(1, 3, detail::BufferLayout::FLOAT,
+        layout.Add(1, ShaderElementType::Vec3,
                    (void *)offsetof(Vertex_PNTBU, normal));
 
-        layout.Add(2, 3, detail::BufferLayout::FLOAT,
+        layout.Add(2, ShaderElementType::Vec3,
                    (void *)offsetof(Vertex_PNTBU, tangent));
 
-        layout.Add(3, 3, detail::BufferLayout::FLOAT,
+        layout.Add(3, ShaderElementType::Vec3,
                    (void *)offsetof(Vertex_PNTBU, bitangent));
 
-        layout.Add(4, 2, detail::BufferLayout::FLOAT,
+        layout.Add(4, ShaderElementType::Vec2,
                    (void *)offsetof(Vertex_PNTBU, uv));
 
         return layout;
@@ -103,6 +103,33 @@ private:
  * Base class for different types of material.
  */
 class Material : public Resource {
+public:
+    /**
+     * Adds uniforms to the interface
+     */
+    void AddUniformsToInterface(ShaderInterface &interface) const
+    {
+        for (const auto &u : mUniforms) {
+            interface.AddUniform(u.type, u.name);
+        }
+    }
+
+    /**
+     * Add a new uniform element.
+     */
+    void AddUniformElement(ShaderElementType type, std::string name)
+    {
+        mUniforms.push_back(ShaderInterface::Uniform{ std::move(name), type });
+    }
+
+    /**
+     * Bind your data to the provided shader.
+     * Which is guranteed to support your specified interface.
+     */
+    virtual void Bind(GLSLShader &shader) = 0;
+
+private:
+    std::list<ShaderInterface::Uniform> mUniforms;
 };
 
 /**
@@ -125,6 +152,23 @@ public:
         assert(ambient);
         assert(diffuse);
         assert(specular);
+
+        AddUniformElement(ShaderElementType::Sampler2D_Other, "ambient");
+        AddUniformElement(ShaderElementType::Sampler2D_Diffuse, "diffuse");
+        AddUniformElement(ShaderElementType::Sampler2D_Specular, "specular");
+        AddUniformElement(ShaderElementType::Float, "shininess");
+    }
+
+    void Bind(GLSLShader &shader) override
+    {
+        shader.Set("ambient", 0);
+        shader.Set("diffuse", 1);
+        shader.Set("specular", 2);
+        shader.Set("shininess", mShininess);
+
+        mAmbient->Bind();
+        mDiffues->Bind(1);
+        mSpecular->Bind(2);
     }
 
 private:

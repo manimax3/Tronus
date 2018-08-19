@@ -4,14 +4,14 @@
 #include "glad/glad.h"
 
 namespace {
-GLenum ToEnum(tr::detail::BufferType t)
+GLenum ToEnum(tr::BufferType t)
 {
-    using tr::detail::BufferType;
-    if (t == BufferType::VERTEX)
+    switch (t) {
+    case tr::BufferType::Vertex:
         return GL_ARRAY_BUFFER;
-    else if (t == BufferType::INDEX)
+    case tr::BufferType::Index:
         return GL_ELEMENT_ARRAY_BUFFER;
-    else {
+    default:
         tr::Log().critical(
             "Couldnt resolve BufferType to corresponding GLenum");
         return GL_NONE;
@@ -19,28 +19,37 @@ GLenum ToEnum(tr::detail::BufferType t)
 }
 GLenum ToEnum(tr::detail::Buffer::Locality m)
 {
-    using tr::detail::Buffer;
-    if (m == Buffer::STATIC)
+
+    switch (m) {
+    case tr::BufferLocality::Static:
         return GL_STATIC_DRAW;
-    else if (m == Buffer::DYNAMIC)
+    case tr::BufferLocality::Dynamic:
         return GL_DYNAMIC_DRAW;
-    else if (m == Buffer::STREAM)
+    case tr::BufferLocality::Stream:
         return GL_STREAM_DRAW;
-    else {
+
+    default:
         tr::Log().critical(
             "Couldnt resolve BufferLocality to corresponding GLenum");
         return GL_NONE;
     }
 }
-GLenum ToEnum(tr::detail::BufferLayout::ElementType e)
+std::tuple<GLenum, int> ToEnum(tr::detail::BufferLayout::ElementType e)
 {
-    using tr::detail::BufferLayout;
-    if (e == BufferLayout::FLOAT) {
-        return GL_FLOAT;
-    } else {
+    switch (e) {
+    case tr::ShaderElementType::Float:
+        return { GL_FLOAT, 1 };
+    case tr::ShaderElementType::Vec2:
+        return { GL_FLOAT, 2 };
+    case tr::ShaderElementType::Vec3:
+        return { GL_FLOAT, 3 };
+    case tr::ShaderElementType::Vec4:
+        return { GL_FLOAT, 4 };
+    default:
         tr::Log().critical(
-            "Couldnt resolve BufferElementType to corresponding GLenum");
-        return GL_NONE;
+            "Other ShaderElementTypes apart from floats and Vec2-4 are not "
+            "supported in BufferLayouts");
+        return { GL_NONE, 0 };
     }
 }
 }
@@ -87,14 +96,12 @@ void tr::detail::Buffer::Bind()
 void tr::detail::Buffer::Unbind() { Call(glBindBuffer(ToEnum(mType), 0)); }
 
 void tr::detail::BufferLayout::Add(uint        index,
-                                   int         components,
                                    ElementType type,
                                    void *      offset,
                                    bool        normalized)
 {
     // TODO: Check the index
-    mAttribPointers.push_back(
-        std::tuple(index, components, type, normalized, offset));
+    mAttribPointers.push_back(std::tuple(index, type, normalized, offset));
 }
 
 void tr::detail::BufferLayout::ApplyTo(Buffer &buffer)
@@ -104,9 +111,9 @@ void tr::detail::BufferLayout::ApplyTo(Buffer &buffer)
 
     buffer.Bind();
 
-    for (auto [index, components, type, normalized, offset] : mAttribPointers) {
-        Call(glVertexAttribPointer(index, components, ToEnum(type), normalized,
-                                   mSize, offset));
+    for (auto [index, type, normalized, offset] : mAttribPointers) {
+        auto [e, c] = ToEnum(type);
+        Call(glVertexAttribPointer(index, c, e, normalized, mSize, offset));
         Call(glEnableVertexAttribArray(index));
     }
 }
@@ -150,4 +157,12 @@ void tr::detail::AttributBufferStore::Unbind() { Call(glBindVertexArray(0)); }
 void tr::detail::AttributBufferStore::AddBuffer(const Buffer &b)
 {
     mBuffers.push_back(b);
+}
+
+void tr::detail::BufferLayout::AddAttributesToShaderInterface(
+    ShaderInterface &interface) const
+{
+    for (auto &[index, type, n, o] : mAttribPointers) {
+        interface.AddAttribute(type, index);
+    }
 }

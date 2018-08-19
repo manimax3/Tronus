@@ -2,6 +2,8 @@
 #include <tr.h>
 
 #include "../util/Exceptions.h"
+#include "GLSLShader.h"
+#include "InterfaceTypes.h"
 
 #include <any>
 #include <list>
@@ -9,16 +11,11 @@
 namespace tr::detail {
 
 /**
- * Different Types of GPU Buffers
- */
-enum class BufferType { VERTEX, INDEX };
-
-/**
  * A Buffer Representing Some data on the gpu
  */
 class Buffer {
 public:
-    enum Locality { STATIC, STREAM, DYNAMIC };
+    using Locality = BufferLocality;
 
     explicit Buffer(BufferType type, Locality l)
         : mType(type)
@@ -90,7 +87,7 @@ private:
  */
 class BufferLayout {
 public:
-    enum ElementType { FLOAT };
+    using ElementType = ShaderElementType;
 
     /**
      * Constructor.
@@ -104,16 +101,12 @@ public:
     /**
      * Add new element to the layout.
      * @param index The index of the attribute (used in the shaders)
-     * @param components Of how many components does this elements consist of
      * @param type The type of one component.
      * @param[in] offset The offset from the previous elements.
      * @param normalized Wheter to normalize float values.
      */
-    void Add(uint        index,
-             int         components,
-             ElementType type,
-             void *      offset,
-             bool        normalized = false);
+    void
+    Add(uint index, ElementType type, void *offset, bool normalized = false);
 
     /**
      * Apply this layout to an buffer.
@@ -121,9 +114,14 @@ public:
      */
     void ApplyTo(Buffer &buffer);
 
+    /**
+     * Adds the attributes described by this to the interface.
+     */
+    void AddAttributesToShaderInterface(ShaderInterface &interface) const;
+
 private:
-    // Index components type normalized offset
-    using Data            = std::tuple<uint, int, ElementType, bool, void *>;
+    // Index type normalized offset
+    using Data            = std::tuple<uint, ElementType, bool, void *>;
     size_t          mSize = 0;
     std::list<Data> mAttribPointers;
 };

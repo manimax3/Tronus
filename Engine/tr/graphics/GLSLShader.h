@@ -26,8 +26,8 @@ public:
     };
 
     struct Uniform {
-        std::string   name;
-        ElementType   type;
+        std::string name;
+        ElementType type;
     };
     void AddAttribute(ElementType type, int location);
 

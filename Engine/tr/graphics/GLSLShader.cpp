@@ -246,12 +246,30 @@ void tr::detail::checkCompileErrors(uint shader, const std::string &type)
 
 void tr::ShaderInterface::AddAttribute(ElementType type, int location)
 {
-    throw NotImplementedError("ShaderInterface AddAttribute");
+    if (std::find_if(std::begin(mAttributes), std::end(mAttributes),
+                     [&](const auto &a) { return location == a.location; })
+        != std::end(mAttributes)) {
+        Log().warn("Tried to add two attributes with the same location ({}) to "
+                   "a ShaderInterface.\nIgnoring the second one...",
+                   location);
+        return;
+    }
+
+    mAttributes.push_back(Attribute{ location, type });
 }
 
 void tr::ShaderInterface::AddUniform(ElementType type, std::string name)
 {
-    throw NotImplementedError("ShaderInterface AddUniform");
+    if (std::find_if(std::begin(mUniforms), std::end(mUniforms),
+                     [&](const auto &a) { return name == a.name; })
+        != std::end(mUniforms)) {
+        Log().warn("Tried to add two uniforms with the same name ({}) to "
+                   "a ShaderInterface.\nIgnoring the second one...",
+                   name);
+        return;
+    }
+
+    mUniforms.push_back(Uniform{ std::move(name), type });
 }
 
 bool tr::ShaderInterface::HasAttribute(int location, ElementType type) const
