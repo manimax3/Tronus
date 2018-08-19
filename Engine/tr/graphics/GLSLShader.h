@@ -56,11 +56,9 @@ public:
     static uint CompileShader(const std::string &vertex,
                               const std::string &fragment);
 
-    explicit GLSLShader(uint                           program,
-                        std::optional<ShaderInterface> vertex_interface
-                        = std::nullopt,
-                        std::optional<ShaderInterface> fragment_interface
-                        = std::nullopt);
+    explicit GLSLShader(
+        uint                           program,
+        std::optional<ShaderInterface> interface = std::nullopt);
 
     ~GLSLShader() override;
 
@@ -77,21 +75,12 @@ public:
 
     inline uint GetProgram() const { return mShader; }
 
-    std::optional<ShaderInterface> GetInterfaceVertex()
-    {
-        return mShaderInterfaceVertex;
-    }
-
-    std::optional<ShaderInterface> GetInterfaceFragment()
-    {
-        return mShaderInterfaceFragment;
-    }
+    std::optional<ShaderInterface> GetInterface() { return mShaderInterface; }
 
 private:
     int GetUniformLocation(const std::string &name);
 
-    std::optional<ShaderInterface> mShaderInterfaceVertex;
-    std::optional<ShaderInterface> mShaderInterfaceFragment;
+    std::optional<ShaderInterface> mShaderInterface;
 
     uint                       mShader;
     std::map<std::string, int> mUnifoms;

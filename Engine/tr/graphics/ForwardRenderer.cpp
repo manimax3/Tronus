@@ -19,8 +19,8 @@ tr::ForwardRenderer::RenderInfoHandle::RenderInfoHandle(
     mBuffer.Create();
     mBuffer.Bind();
 
-    detail::Buffer vertex(detail::BufferType::VERTEX, detail::Buffer::STATIC);
-    detail::Buffer index(detail::BufferType::INDEX, detail::Buffer::STATIC);
+    detail::Buffer vertex(BufferType::Vertex, BufferLocality::Static);
+    detail::Buffer index(BufferType::Index, BufferLocality::Static);
 
     vertex.Create(sizeof(Vertex_PNTBU), mInfo.mesh->GetVertexCount(),
                   static_cast<void *>(mInfo.mesh->GetVertices()));
@@ -40,6 +40,7 @@ tr::ForwardRenderer::RenderInfoHandle::RenderInfoHandle(
     mVertexCount = mInfo.mesh->GetVertexCount();
 
     mInfo.mesh.reset();
+    mMaterial = std::move(info.material);
 }
 
 void tr::ForwardRenderer::Init(GraphicsHandler &gfx)
@@ -105,13 +106,32 @@ void tr::ForwardRenderer::GeometryPass()
     for (auto &info : mRenderables) {
         if (!info.visible)
             continue;
-        const auto vpm = mProjection * mCamera * info.mInfo.model;
+        const auto mvp = mProjection * mCamera * info.mInfo.model;
         mPhongShader->Bind();
-        mPhongShader->Set("vpm", vpm);
-        // TODO: Bind the material and set the uniforms
+        mPhongShader->Set("mvp", mvp);
+        info.mMaterial->Bind(*mPhongShader);
         info.mBuffer.Bind();
         Call(glDrawElements(GL_TRIANGLES, info.mVertexCount, GL_UNSIGNED_INT,
                             (void *)nullptr));
     }
+}
+
+tr::ForwardRenderer::RenderInfoHandle &
+tr::ForwardRenderer::CreateRenderInfo(RenderInfo info)
+{
+    ShaderInterface interface;
+    StaticMesh::GetVertexBufferLayout().AddAttributesToShaderInterface(
+        interface);
+    info.material->AddUniformsToInterface(interface);
+    interface.AddUniform(ShaderElementType::Mat4, "mvp");
+
+    if (mPhongShader->GetInterface().has_value()) {
+        if (!(mPhongShader->GetInterface()->IsCompatibleWith(interface))) {
+            throw std::runtime_error("Incompatible shaders");
+        }
+    }
+
+    mRenderables.emplace_back(std::move(info));
+    return mRenderables.back();
 }
 

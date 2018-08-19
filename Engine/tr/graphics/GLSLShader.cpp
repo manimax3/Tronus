@@ -100,39 +100,26 @@ tr::GLSLShaderLoader::LoadResource(ResourceLoadingInformation info,
         Log().error("Shader parsing | ", e.what());
     }
 
-    std::optional<ShaderInterface> siv, sif;
+    std::optional<ShaderInterface> siv;
 
     try {
-        siv = jhandle.at("vertex_interface").get<ShaderInterface>();
+        siv = jhandle.at("interface").get<ShaderInterface>();
     } catch (const json::out_of_range &) {
-        Log().warn("No vertex_interface specified for shader | {}",
+        Log().warn("No interface specified for shader. Used renderer might not "
+                   "rely on one | {}",
                    jhandle.dump());
     } catch (const json::parse_error &e) {
-        Log().warn("Couldnt parse the vertex_interface of a shader | {}",
-                   e.what());
+        Log().warn("Couldnt parse the interface of a shader | {}", e.what());
     }
 
-    try {
-        sif = jhandle.at("fragment_interface").get<ShaderInterface>();
-    } catch (const json::out_of_range &) {
-        Log().warn("No fragment_interface specified for shader | {}",
-                   jhandle.dump());
-    } catch (const json::parse_error &e) {
-        Log().warn("Couldnt parse the fragment_interface of a shader | {}",
-                   e.what());
-    }
-
-    return ResourcePtr<>(
-        program ? new GLSLShader(program, std::move(siv), std::move(sif))
-                : nullptr);
+    return ResourcePtr<>(program ? new GLSLShader(program, std::move(siv))
+                                 : nullptr);
 }
 
 tr::GLSLShader::GLSLShader(uint                           program,
-                           std::optional<ShaderInterface> vertex_interface,
-                           std::optional<ShaderInterface> fragment_interface)
+                           std::optional<ShaderInterface> interface)
     : mShader(static_cast<GLuint>(program))
-    , mShaderInterfaceVertex(std::move(vertex_interface))
-    , mShaderInterfaceFragment(std::move(fragment_interface))
+    , mShaderInterface(std::move(interface))
 {
 }
 

@@ -47,6 +47,12 @@ public:
     class RenderInfoHandle {
     public:
         friend class ForwardRenderer;
+
+        /**
+         * Construct a internal renderables based on the provided data
+         */
+        explicit RenderInfoHandle(RenderInfo info);
+
         /**
          * Disable the rendering of this Renderable
          */
@@ -58,11 +64,6 @@ public:
         bool destroy = false;
 
     private:
-        /**
-         * Construct a internal renderables based on the provided data
-         */
-        explicit RenderInfoHandle(RenderInfo info);
-
         /**
          * Used to store some data.
          * May be in an invalid state (not useable for reuse)
@@ -83,6 +84,11 @@ public:
          * The buffer representing the gpu state
          */
         detail::AttributBufferStore mBuffer;
+
+        /**
+         * Material used to render this mesh
+         */
+        ResourcePtr<Material> mMaterial;
     };
 
     /**
