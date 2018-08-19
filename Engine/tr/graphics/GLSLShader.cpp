@@ -249,9 +249,7 @@ void tr::ShaderInterface::AddAttribute(ElementType type, int location)
     throw NotImplementedError("ShaderInterface AddAttribute");
 }
 
-void tr::ShaderInterface::AddUniform(ElementType   type,
-                                     std::string   name,
-                                     Sampler2DType opt_sampler_type)
+void tr::ShaderInterface::AddUniform(ElementType type, std::string name)
 {
     throw NotImplementedError("ShaderInterface AddUniform");
 }
@@ -266,16 +264,11 @@ bool tr::ShaderInterface::HasAttribute(int location, ElementType type) const
 }
 
 bool tr::ShaderInterface::HasUniform(const std::string &name,
-                                     ElementType        type,
-                                     Sampler2DType      opt_sampler_type) const
+                                     ElementType        type) const
 {
-    return std::find_if(std::begin(mUniforms), std::end(mUniforms),
-                        [&](const auto &a) {
-                            return type == a.type && name == a.name
-                                && (type == ElementType::SAMPLER2D
-                                        ? opt_sampler_type == a.sampler_type
-                                        : true);
-                        })
+    return std::find_if(
+               std::begin(mUniforms), std::end(mUniforms),
+               [&](const auto &a) { return type == a.type && name == a.name; })
         != std::end(mUniforms);
 }
 
@@ -287,7 +280,7 @@ bool tr::ShaderInterface::IsCompatibleWith(const ShaderInterface &other) const
     }
 
     for (const auto &u : mUniforms) {
-        if (!other.HasUniform(u.name, u.type, u.sampler_type))
+        if (!other.HasUniform(u.name, u.type))
             return false;
     }
 
@@ -295,89 +288,54 @@ bool tr::ShaderInterface::IsCompatibleWith(const ShaderInterface &other) const
     return true;
 }
 
-void tr::detail::ShaderInterfaceTypes::from_json(const json &j, Element &e)
+namespace tr {
+static void from_json(const json &j, ShaderElement &e)
 {
     std::string v = j.get<std::string>();
-    if (v == "UNIFORM")
-        e = Element::UNIFORM;
-    else if (v == "ATTRIBUTE")
-        e = Element::ATTRIBUTE;
 
-    throw json::parse_error::create(
-        101, 0,
-        fmt::format("Couldnt parse {} to a ShaderInterface::Element enum", v));
+    try {
+        e = ShaderElement::_from_string_nocase(v.c_str());
+    } catch (const std::runtime_error &e) {
+        throw json::parse_error::create(
+            101, 0, fmt::format("Couldnt parse {} to a ShaderElement enum", v));
+    }
 }
 
-void tr::detail::ShaderInterfaceTypes::from_json(const json & j,
-                                                 ElementType &type)
+static void from_json(const json &j, ShaderElementType &type)
 {
     std::string v = j.get<std::string>();
-    if (v == "SAMPLER2D")
-        type = ElementType::SAMPLER2D;
-    else if (v == "MAT4")
-        type = ElementType::MAT4;
-    else if (v == "VEC4")
-        type = ElementType::VEC4;
-    else if (v == "VEC3")
-        type = ElementType::VEC3;
-    else if (v == "VEC2")
-        type = ElementType::VEC2;
-    else if (v == "FLOAT")
-        type = ElementType::FLOAT;
-    else if (v == "BOOL")
-        type = ElementType::BOOL;
-    else if (v == "STRUCT")
-        type = ElementType::STRUCT;
 
-    throw json::parse_error::create(
-        101, 0,
-        fmt::format("Couldnt parse {} to a ShaderInterface::ElementType enum",
-                    v));
+    try {
+        type = ShaderElementType::_from_string_nocase(v.c_str());
+    } catch (const std::runtime_error &e) {
+        throw json::parse_error::create(
+            101, 0,
+            fmt::format("Couldnt parse {} to a ShaderElementType enum", v));
+    }
 }
 
-void tr::detail::ShaderInterfaceTypes::from_json(const json &   j,
-                                                 Sampler2DType &type)
-{
-
-    std::string v = j.get<std::string>();
-    if (v == "ALBEDO")
-        type = Sampler2DType::ALBEDO;
-    else if (v == "DIFFUSE")
-        type = Sampler2DType::DIFFUSE;
-    else if (v == "SPECULAR")
-        type = Sampler2DType::SPECULAR;
-    else if (v == "OTHER")
-        type = Sampler2DType::OTHER;
-
-    throw json::parse_error::create(
-        101, 0,
-        fmt::format("Couldnt parse {} to a ShaderInterface::Sampler2DType enum",
-                    v));
-}
-
-void tr::detail::ShaderInterfaceTypes::from_json(const json &j,
-                                                 Uniform &   uniform)
+static void from_json(const json &j, ShaderInterface::Uniform &uniform)
 {
     uniform.name = j.at("name");
-    uniform.type = j.at("type").get<ElementType>();
-
-    if (uniform.type == ElementType::SAMPLER2D)
-        uniform.sampler_type = j.at("sampler_type").get<Sampler2DType>();
+    uniform.type = j.at("type").get<ShaderElementType>();
 }
 
-void tr::detail::ShaderInterfaceTypes::from_json(const json &j,
-                                                 Attribute & attribute)
+static void from_json(const json &j, ShaderInterface::Attribute &attribute)
 {
     attribute.location = j.at("location");
-    attribute.type     = j.at("type").get<ElementType>();
+    attribute.type     = j.at("type").get<ShaderElementType>();
 
-    if (attribute.type == ElementType::SAMPLER2D
-        || attribute.type == ElementType::STRUCT)
+    if (attribute.type == +ShaderElementType::Sampler2D_Diffuse
+        || attribute.type == +ShaderElementType::Sampler2D_Albedo
+        || attribute.type == +ShaderElementType::Sampler2D_Specular
+        || attribute.type == +ShaderElementType::Sampler2D_Other
+        || attribute.type == +ShaderElementType::Struct)
         throw json::parse_error::create(
             101, 0,
             fmt::format(
                 "{} Is not a supported type for ShaderInterface::Attribute",
                 j.at("type").get<std::string>()));
+}
 }
 
 void tr::from_json(const json &j, ShaderInterface &i)
@@ -390,8 +348,7 @@ void tr::from_json(const json &j, ShaderInterface &i)
             104, 0, "attributes or uniforms is not an array");
 
     for (auto it = attributes.begin(); it != attributes.end(); it++) {
-        ShaderInterface::Attribute a
-            = it->get<tr::detail::ShaderInterfaceTypes::Attribute>();
+        ShaderInterface::Attribute a = it->get<ShaderInterface::Attribute>();
         i.mAttributes.push_back(std::move(a));
     }
 

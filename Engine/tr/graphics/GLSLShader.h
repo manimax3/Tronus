@@ -3,44 +3,9 @@
 
 #include "../filesystem/ResourceLoader.h"
 #include "../math/Math.h"
+#include "InterfaceTypes.h"
 
 namespace tr {
-
-/**
- * See ShaderInterface for Info about this
- */
-namespace detail::ShaderInterfaceTypes {
-
-    enum class Element { UNIFORM, ATTRIBUTE };
-    enum class ElementType {
-        SAMPLER2D,
-        MAT4,
-        VEC4,
-        VEC3,
-        VEC2,
-        FLOAT,
-        BOOL,
-        STRUCT
-    };
-    enum class Sampler2DType { ALBEDO, DIFFUSE, SPECULAR, OTHER };
-
-    struct Attribute {
-        int         location;
-        ElementType type;
-    };
-
-    struct Uniform {
-        std::string   name;
-        ElementType   type;
-        Sampler2DType sampler_type;
-    };
-
-    void from_json(const json &j, Element &e);
-    void from_json(const json &j, ElementType &type);
-    void from_json(const json &j, Sampler2DType &type);
-    void from_json(const json &j, Uniform &uniform);
-    void from_json(const json &j, Attribute &attribute);
-}
 
 /**
  * Represents a interface to a shader
@@ -53,24 +18,24 @@ public:
      */
     ShaderInterface() = default;
 
-    using ElementType   = detail::ShaderInterfaceTypes::ElementType;
-    using Element       = detail::ShaderInterfaceTypes::Element;
-    using Sampler2DType = detail::ShaderInterfaceTypes::Sampler2DType;
-    using Attribute     = detail::ShaderInterfaceTypes::Attribute;
-    using Uniform       = detail::ShaderInterfaceTypes::Uniform;
+    using ElementType = ShaderElementType;
 
+    struct Attribute {
+        int         location;
+        ElementType type;
+    };
+
+    struct Uniform {
+        std::string   name;
+        ElementType   type;
+    };
     void AddAttribute(ElementType type, int location);
 
-    void AddUniform(ElementType   type,
-                    std::string   name,
-                    Sampler2DType opt_sampler_type = Sampler2DType::OTHER);
+    void AddUniform(ElementType type, std::string name);
 
     bool HasAttribute(int location, ElementType type) const;
 
-    bool HasUniform(const std::string &name,
-                    ElementType        type,
-                    Sampler2DType      opt_sampler_type
-                    = Sampler2DType::OTHER) const;
+    bool HasUniform(const std::string &name, ElementType type) const;
 
     /**
      * Check if other supporst all of our elements
