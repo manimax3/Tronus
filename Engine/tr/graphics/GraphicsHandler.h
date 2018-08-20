@@ -3,6 +3,7 @@
 #include "../event/CommonEvents.h"
 #include "../event/Signal.h"
 #include "../math/Math.h"
+#include "ForwardRenderer.h"
 #include "ImguiRenderer.h"
 #include "Renderer2D.h"
 #include "Simple2DRenderer.h"
@@ -55,8 +56,9 @@ public:
     Vec2 GetWindowSize() const;
     Vec2 GetMousePos() const;
 
-    inline Renderer2D &   GetRenderer2D() { return mRenderer2D; }
-    inline ImguiRenderer &GetImguiRenderer() { return mImguiRenderer; }
+    inline Renderer2D &     GetRenderer2D() { return mRenderer2D; }
+    inline ImguiRenderer &  GetImguiRenderer() { return mImguiRenderer; }
+    inline ForwardRenderer &GetForwardRenderer() { return mForwardRenderer; }
 
     Signal<void(const InputEvent &)>  InputRecieved;
     Signal<void(const WindowEvent &)> WindowChanged;
@@ -70,5 +72,6 @@ private:
     Simple2DRenderer mSimpleRenderer2D;
     Renderer2D       mRenderer2D;
     ImguiRenderer    mImguiRenderer;
+    ForwardRenderer  mForwardRenderer;
 };
 }

@@ -3,6 +3,7 @@
 #include "../filesystem/ResourceManager.h"
 #include "../util/Log.h"
 #include "GLCheck.h"
+#include "GraphicsHandler.h"
 
 #include "glad/glad.h"
 #include "glm/gtc/matrix_transform.hpp"
@@ -63,6 +64,8 @@ void tr::ForwardRenderer::Init(GraphicsHandler &gfx)
     }
 
     mCamera = Mat4();
+
+    gfx.WindowChanged.connect([&](const WindowEvent &e) { this->OnEvent(e); });
 
     // TODO: Seems obvious doesnt it?
     mProjection = math::perspective(

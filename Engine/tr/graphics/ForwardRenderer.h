@@ -1,8 +1,8 @@
 #pragma once
 #include <tr.h>
 
+#include "../event/CommonEvents.h"
 #include "BufferHelper.h"
-#include "GraphicsHandler.h"
 #include "StaticMesh.h"
 
 #include <forward_list>
@@ -94,7 +94,7 @@ public:
     /**
      * init the renderer
      */
-    void Init(GraphicsHandler &gfx);
+    void Init(class GraphicsHandler &gfx);
 
     /**
      * process logic tasks

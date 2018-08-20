@@ -166,3 +166,8 @@ void tr::detail::BufferLayout::AddAttributesToShaderInterface(
         interface.AddAttribute(type, index);
     }
 }
+
+tr::detail::AttributBufferStore::operator bool() const
+{
+    return std::any_cast<GLuint>(mHandle) != 0;
+}

@@ -70,6 +70,7 @@ bool tr::GraphicsHandler::Tick()
 
     glfwPollEvents();
     mRenderer2D.Tick();
+    mForwardRenderer.Tick();
 
     return true;
 }
@@ -80,6 +81,7 @@ bool tr::GraphicsHandler::Shutdown()
         return true;
 
     mSimpleRenderer2D.Shutdown();
+    mForwardRenderer.Shutdown();
     mRenderer2D.Shutdown();
     mImguiRenderer.Shutdown();
 
@@ -101,6 +103,7 @@ void tr::GraphicsHandler::Render()
     mImguiRenderer.StartDebugFrame();
     mSimpleRenderer2D.Render();
     mRenderer2D.Render();
+    mForwardRenderer.Render();
     mImguiRenderer.Render();
     glfwSwapBuffers(static_cast<GLFWwindow *>(mContext.window));
 }
@@ -215,6 +218,7 @@ void tr::GraphicsHandler::CreateWindow(const CreateWindowInfo &info)
     mSimpleRenderer2D.Init(this, GetEngine().sResourceManager);
     mRenderer2D.Init(this, GetEngine().sResourceManager);
     mImguiRenderer.Init(this, GetEngine().sResourceManager);
+    mForwardRenderer.Init(*this);
 }
 
 void tr::key_callback(GLFWwindow *window,
