@@ -9,4 +9,12 @@ struct NotImplementedError : public std::logic_error {
     {
     }
 };
+
+struct ShaderInterfaceException : public std::runtime_error {
+    explicit ShaderInterfaceException(const char *reason) noexcept
+        : std::runtime_error(
+              fmt::format("ShaderInterface incomaptible: {}", reason))
+    {
+    }
+};
 }

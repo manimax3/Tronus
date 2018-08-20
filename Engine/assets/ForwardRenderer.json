@@ -16,7 +16,8 @@
                 { "name" : "mvp", "type" : "Mat4" },
                 { "name" : "ambient", "type" : "Sampler2D_Other" },
                 { "name" : "diffuse", "type" : "Sampler2D_Diffuse" },
-                { "name" : "specular", "type" : "Sampler2D_Specular" }
+                { "name" : "specular", "type" : "Sampler2D_Specular" },
+                { "name" : "shininess", "type" : "Float" }
             ]
     }
 }

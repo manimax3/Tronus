@@ -405,3 +405,7 @@ __pycache__/
 
 #Ctags tags file
 tags
+
+## KDevelop
+.kdev4/
+*.kdev4

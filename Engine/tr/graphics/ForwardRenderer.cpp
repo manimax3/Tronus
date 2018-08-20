@@ -132,8 +132,12 @@ tr::ForwardRenderer::CreateRenderInfo(RenderInfo info)
     interface.AddUniform(ShaderElementType::Mat4, "mvp");
 
     if (mPhongShader->GetInterface().has_value()) {
-        if (!(mPhongShader->GetInterface()->IsCompatibleWith(interface))) {
-            throw std::runtime_error("Incompatible shaders");
+        if (!(interface.IsCompatibleWith(*mPhongShader->GetInterface()))) {
+            Log().warn(
+                "Couldnt add RenderInfo to the ForwardRenderer because the "
+                "shader is incompatible with the required interface.");
+            throw ShaderInterfaceException(
+                "Provided RenderInfo not compatible with PhongShader");
         }
     }
 
