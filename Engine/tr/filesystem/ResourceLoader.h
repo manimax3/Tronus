@@ -2,6 +2,7 @@
 #include <tr.h>
 
 #include "../core/JobHandler.h"
+#include "../util/Exceptions.h"
 #include "nlohmann/json_fwd.hpp"
 
 #include <functional>
@@ -80,9 +81,7 @@ public:
     // LoadHandler for a suitable name based on the ResourceLoadingInformation
     virtual std::string ResourceName(ResourceWeakPtr<> res) const
     {
-        throw std::logic_error(
-            std::string("ResourceName(...) not implemented by ")
-            + typeid(this).name());
+        throw NotImplementedError("ResourceLoader::ResourceName()");
     }
 
     virtual std::list<ResourceType> GetSupportedTypes() const = 0;
