@@ -5,6 +5,7 @@
 #include "../gameobject/Game.h"
 #include "../graphics/GLSLShader.h"
 #include "../graphics/Image.h"
+#include "../graphics/StaticMesh.h"
 #include "../graphics/Texture.h"
 #include "Filesystem.h"
 #include "spdlog/fmt/fmt.h"
@@ -41,6 +42,8 @@ bool tr::ResourceManager::Initialize(Engine *engine)
     AddLoader<GLSLShaderLoader>();
     AddLoader<ImageLoader>();
     AddLoader<TextureLoader>();
+    AddLoader<StaticMeshLoader>();
+    AddLoader<PhongMaterialLoader>();
 
     return Subsystem::Initialize(engine);
 }
@@ -111,6 +114,9 @@ tr::ResourceManager::LoadResource(ResourceLoadingInformation  info,
             const auto v = namehint.value();
             id           = GetResourceID(v);
             name         = namehint.value();
+        } else if (res_info.find("name") != res_info.end()) {
+            name = res_info["name"];
+            id   = GetResourceID(name);
         } else {
             name = loader_ptr->ResourceName(res_ptr);
             id   = GetResourceID(name);

@@ -11,7 +11,7 @@ add_subdirectory(External)
 add_subdirectory(Engine)
 
 if (TRONUS_BUILD_EXAMPLES)
-add_subdirectory(Editor)
+add_subdirectory(Examples)
 endif()
 
 if (TRONUS_BUILD_TOOLS)

@@ -2,6 +2,7 @@
 #include <tr.h>
 
 #include "../core/Subsystem.h"
+#include "../util/Log.h"
 #include "../util/MakeID.h"
 #include "ResourceLoader.h"
 

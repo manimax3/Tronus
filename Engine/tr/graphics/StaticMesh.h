@@ -22,7 +22,9 @@ struct Vertex_PNTBU {
     template<typename A>
     void Serialize(A &a)
     {
-        a &position &normal &tangent &bitangent &uv;
+        a &position.x &position.y &position.z &normal.x &normal.y &normal
+            .z &tangent.x &tangent.y &tangent.z &bitangent.x &bitangent
+            .y &bitangent.z &uv.x &uv.y;
     }
 };
 
@@ -198,6 +200,7 @@ public:
 };
 
 class StaticMeshLoader : public ResourceLoadHandler {
+public:
     ResourcePtr<> LoadResource(ResourceLoadingInformation info,
                                const ResourceType &       type,
                                ResourceManager &          rm,

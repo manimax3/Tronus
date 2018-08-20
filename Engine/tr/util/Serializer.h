@@ -1,18 +1,19 @@
 #pragma once
 #include <tr.h>
 
-#include "Exceptions.h"
 #include "../math/Math.h"
+#include "../util/TemplateMeta.h"
+#include "Exceptions.h"
 
 #include <algorithm>
 #include <cassert>
-#include <stdint.h>
-#include <string>
-
 #include <deque>
 #include <list>
 #include <map>
 #include <set>
+#include <stdint.h>
+#include <string>
+#include <type_traits>
 #include <vector>
 
 #include <exception>
@@ -130,6 +131,8 @@ public:
 };
 
 namespace tr {
+
+TR_GENERATE_HAS_MEMBER_TYPE(Serialize)
 
 /**
  * Class used for serializing binary data
@@ -318,39 +321,6 @@ public:
         uint32_t len = v.length();
         *this &  len;
         m_stream.write(v.c_str(), len);
-        return *this;
-    }
-
-    Serializer &operator&(Vec2 &v)
-    {
-        *this &v.x &v.y;
-        return *this;
-    }
-    const Serializer &operator&(const Vec2 &v)
-    {
-        *this &v.x &v.y;
-        return *this;
-    }
-
-    Serializer &operator&(Vec3 &v)
-    {
-        *this &v.x &v.y &v.z;
-        return *this;
-    }
-    const Serializer &operator&(const Vec3 &v)
-    {
-        *this &v.x &v.y &v.z;
-        return *this;
-    }
-
-    Serializer &operator&(Vec4 &v)
-    {
-        *this &v.x &v.y &v.z &v.w;
-        return *this;
-    }
-    const Serializer &operator&(const Vec4 &v)
-    {
-        *this &v.x &v.y &v.z &v.w;
         return *this;
     }
 
