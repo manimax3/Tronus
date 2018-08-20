@@ -164,6 +164,10 @@ private:
     void LoadDependecies(ResourceLoadingInformation &info,
                          ResourceLoadingContext &    context);
 
+    ResourcePtr<> LoadBinaryResource(std::string                file,
+                                     std::optional<std::string> namehint
+                                     = std::nullopt);
+
     std::unordered_map<ResourceID, ResourcePtr<>>   mResources;
     std::map<ResourceName, ResourceID, std::less<>> mResourceIDLookup;
 

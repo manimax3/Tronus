@@ -13,7 +13,6 @@
 #include <fstream>
 #include <sstream>
 
-
 tr::ResourceNotFoundError::ResourceNotFoundError(
     std::variant<ResourceName, ResourceID> search_term)
     : std::runtime_error(std::visit(
@@ -106,21 +105,32 @@ tr::ResourceManager::LoadResource(ResourceLoadingInformation  info,
 
     ResourceID   id;
     ResourceName name;
-    if (namehint.has_value()) {
-        const auto v = namehint.value();
-        id           = GetResourceID(v);
-        name         = namehint.value();
-    } else {
-        name = loader_ptr->ResourceName(res_ptr);
-        id   = GetResourceID(name);
-    }
 
-    if (id == RESOURCE_ID_INVALID) {
-        mResourceIDGenerator.CreateID(id);
-    }
+    try {
+        if (namehint.has_value()) {
+            const auto v = namehint.value();
+            id           = GetResourceID(v);
+            name         = namehint.value();
+        } else {
+            name = loader_ptr->ResourceName(res_ptr);
+            id   = GetResourceID(name);
+        }
 
-    mResources[id]          = res_ptr;
-    mResourceIDLookup[name] = id;
+        if (id == RESOURCE_ID_INVALID) {
+            mResourceIDGenerator.CreateID(id);
+        }
+
+        mResources[id]          = res_ptr;
+        mResourceIDLookup[name] = id;
+
+    } catch (const NotImplementedError &e) {
+        Log().error(
+            "Couldnt resolve resource to a name the resource has been "
+            "loaded anyway but will not be kept alive by the ResouceManager "
+            "you have to store the returned ResourcePtr<> yourself | {}\n"
+            "Handle of resource: {}",
+            e.what(), res_info.dump());
+    }
 
     return res_ptr;
 }
@@ -136,6 +146,9 @@ tr::ResourceManager::LoadResource(std::string_view            file,
         Log().warn("Couldnt find file: {}", f);
         throw ResourceNotLoadedError("File not found: "s + f);
     }
+
+    if (fs::Extension(file) == ".trb")
+        return LoadBinaryResource(std::move(f), std::move(namehint));
 
     std::ifstream in(f);
     if (!namehint.has_value())
@@ -341,5 +354,61 @@ std::string tr::ResourceManager::ResolvePath(std::string_view path) const
     }
 
     return std::string(path.data(), path.size());
+}
+
+tr::ResourcePtr<>
+tr::ResourceManager::LoadBinaryResource(std::string                file,
+                                        std::optional<std::string> namehint)
+{
+    std::ifstream ifs(file, std::ios::binary);
+
+    if (!ifs) {
+        throw ResourceNotLoadedError(
+            fmt::format("Couldnt open a file stream to: {}", file));
+    }
+
+    char  header[5] = { 0 };
+    int16 version_major, version_minor;
+    int32 meta_info_length;
+
+    ifs.read(header, 4)
+        .read(reinterpret_cast<char *>(&version_major), sizeof(int16))
+        .read(reinterpret_cast<char *>(&version_minor), sizeof(int16))
+        .read(reinterpret_cast<char *>(&meta_info_length), sizeof(int32));
+
+    if (strcmp(header, "TRBF") != 0) {
+        throw ResourceNotLoadedError(
+            fmt::format("Invalid Header: {} of file: {}", header, file));
+    }
+
+    if (meta_info_length <= 0) {
+        throw ResourceNotLoadedError(fmt::format(
+            "Invalid length for the msgpack header in file {}", file));
+    }
+
+    std::vector<uint8> msgpack_header(meta_info_length);
+    ifs.read(reinterpret_cast<char *>(msgpack_header.data()), meta_info_length);
+
+    json j;
+
+    try {
+        j = json::from_msgpack(msgpack_header);
+    } catch (const json::parse_error &e) {
+        throw ResourceNotLoadedError(
+            fmt::format("Couldnt parse the msgpack header of file: {} | {}",
+                        file, e.what()));
+    }
+
+    j["_parsed_from_binary"] = true;
+    j["_binary_file"]        = file;
+    j["_binary_read"]        = static_cast<size_t>(ifs.tellg());
+    auto curr                = ifs.tellg();
+    ifs.seekg(0, std::ios::end);
+    j["_binary_remaining"]        = static_cast<size_t>(ifs.tellg() - curr);
+    j["_binary_version"]["major"] = version_major;
+    j["_binary_version"]["minor"] = version_minor;
+
+    auto rli = std::make_shared<json>(std::move(j));
+    return LoadResource(rli, std::move(namehint));
 }
 
