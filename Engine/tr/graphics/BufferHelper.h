@@ -76,7 +76,7 @@ public:
     size_t GetBufferSize() const { return mDataSize; }
 
 private:
-    std::any   mHandle = 0;
+    uint       mHandle = 0;
     BufferType mType;
     Locality   mLocality;
     size_t     mDataSize;
@@ -195,7 +195,7 @@ public:
     operator bool() const;
 
 private:
-    std::any          mHandle;
+    uint              mHandle = 0;
     std::list<Buffer> mBuffers;
 };
 }

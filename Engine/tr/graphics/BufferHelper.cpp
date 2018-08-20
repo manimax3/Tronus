@@ -77,7 +77,7 @@ void tr::detail::Buffer::Destroy()
 {
     if (!*this)
         return;
-    Call(glDeleteBuffers(1, std::any_cast<GLuint>(&mHandle)));
+    Call(glDeleteBuffers(1, static_cast<GLuint*>(&mHandle)));
 }
 
 tr::detail::Buffer::operator bool() const
@@ -91,7 +91,7 @@ void tr::detail::Buffer::Bind()
     if (!*this)
         return;
 
-    Call(glBindBuffer(ToEnum(mType), std::any_cast<GLuint>(mHandle)));
+    Call(glBindBuffer(ToEnum(mType), static_cast<GLuint>(mHandle)));
 }
 void tr::detail::Buffer::Unbind() { Call(glBindBuffer(ToEnum(mType), 0)); }
 
@@ -141,7 +141,7 @@ void tr::detail::AttributBufferStore::Destroy(bool destory_buffers)
             b.Destroy();
     }
 
-    Call(glDeleteVertexArrays(1, std::any_cast<GLuint>(&mHandle)));
+    Call(glDeleteVertexArrays(1, static_cast<GLuint *>(&mHandle)));
 }
 
 void tr::detail::AttributBufferStore::Bind()
@@ -149,7 +149,7 @@ void tr::detail::AttributBufferStore::Bind()
     if (!*this)
         return;
 
-    Call(glBindVertexArray(std::any_cast<GLuint>(mHandle)));
+    Call(glBindVertexArray(static_cast<GLuint>(mHandle)));
 }
 
 void tr::detail::AttributBufferStore::Unbind() { Call(glBindVertexArray(0)); }
@@ -169,5 +169,5 @@ void tr::detail::BufferLayout::AddAttributesToShaderInterface(
 
 tr::detail::AttributBufferStore::operator bool() const
 {
-    return std::any_cast<GLuint>(mHandle) != 0;
+    return static_cast<GLuint>(mHandle) != 0;
 }

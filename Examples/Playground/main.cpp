@@ -1,5 +1,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "tr/core/Engine.h"
+#include "tr/gameobject/ColliderComponent2D.h"
+#include "tr/gameobject/Collision2DCapability.h"
 #include "tr/gameobject/Game.h"
 #include "tr/gameobject/GameObject.h"
 #include "tr/gameobject/SpriteComponent.h"
@@ -7,8 +9,6 @@
 #include "tr/graphics/GraphicsHandler.h"
 #include "tr/graphics/Texture.h"
 #include "tr/util/Keys.h"
-#include "tr/gameobject/Collision2DCapability.h"
-#include "tr/gameobject/ColliderComponent2D.h"
 
 class MyEntity : public tr::GameObject {
 public:
@@ -41,19 +41,47 @@ public:
             }
         });
 
-       TickingGameObject = true; 
+        TickingGameObject = true;
     }
 
 private:
-    tr::FlipbookComponent *    sSprite;
+    tr::FlipbookComponent *  sSprite;
     tr::ColliderComponent2D *sCollider;
 };
 
 class MyGame : public tr::Game {
-    void PreWorldLoad(tr::World &world) override {
+    void PreWorldLoad(tr::World &world) override
+    {
         world.AttachWorldCapability<tr::Collision2DCapability>();
     }
-    void PreWorldStart(tr::World &world) override { world.Spawn<MyEntity>(); }
+    void PreWorldStart(tr::World &world) override
+    {
+        world.Spawn<MyEntity>();
+        tr::ForwardRenderer::RenderInfo info;
+        info.mesh = tr::ResCast<tr::StaticMesh>(
+            tr::Engine::Get().sResourceManager->LoadResource("Object001.trb"));
+        info.material
+            = std::shared_ptr<tr::PhongMaterial>(new tr::PhongMaterial(
+                tr::ResCast<tr::Texture>(
+                    tr::Engine::Get().sResourceManager->GetResource(
+                        "test_texture.json")),
+                tr::ResCast<tr::Texture>(
+                    tr::Engine::Get().sResourceManager->GetResource(
+                        "test_texture.json")),
+                tr::ResCast<tr::Texture>(
+                    tr::Engine::Get().sResourceManager->GetResource(
+                        "test_texture.json")),
+                1.f));
+
+        tr::Mat4 m(1.f);
+        m          = tr::math::translate(m, tr::Vec3(0, -10, -50));
+        m          = tr::math::scale(m, tr::Vec3(20.f));
+        info.model = m;
+
+        tr::Engine::Get()
+            .sGraphicsHandler->GetForwardRenderer()
+            .CreateRenderInfo(std::move(info));
+    }
 };
 
 int main()

@@ -12,7 +12,7 @@ tr::ForwardRenderer::RenderInfoHandle::RenderInfoHandle(
     ForwardRenderer::RenderInfo info)
     : mInfo(std::move(info))
 {
-    if (!info.mesh || !info.material) {
+    if (!mInfo.mesh || !mInfo.material) {
         throw std::runtime_error("Couldnt create RenderInfoHandle because "
                                  "invalid RenderInfo provided");
     }
@@ -34,6 +34,8 @@ tr::ForwardRenderer::RenderInfoHandle::RenderInfoHandle(
 
     mBuffer.AddBuffer(vertex);
     mBuffer.AddBuffer(index);
+    vertex.Bind();
+    index.Bind();
 
     mBuffer.Unbind();
 
@@ -41,7 +43,7 @@ tr::ForwardRenderer::RenderInfoHandle::RenderInfoHandle(
     mVertexCount = mInfo.mesh->GetVertexCount();
 
     mInfo.mesh.reset();
-    mMaterial = std::move(info.material);
+    mMaterial = std::move(mInfo.material);
 }
 
 void tr::ForwardRenderer::Init(GraphicsHandler &gfx)
@@ -63,7 +65,7 @@ void tr::ForwardRenderer::Init(GraphicsHandler &gfx)
         return;
     }
 
-    mCamera = Mat4();
+    mCamera = Mat4(1.f);
 
     gfx.WindowChanged.connect([&](const WindowEvent &e) { this->OnEvent(e); });
 
@@ -112,10 +114,11 @@ void tr::ForwardRenderer::GeometryPass()
         const auto mvp = mProjection * mCamera * info.mInfo.model;
         mPhongShader->Bind();
         mPhongShader->Set("mvp", mvp);
-        info.mMaterial->Bind(*mPhongShader);
+        auto &shader = *mPhongShader;
+        info.mMaterial->Bind(shader);
         info.mBuffer.Bind();
-        Call(glDrawElements(GL_TRIANGLES, info.mVertexCount, GL_UNSIGNED_INT,
-                            (void *)nullptr));
+        Call(glDrawElements(GL_TRIANGLES, info.mIndexCount, GL_UNSIGNED_INT,
+                            (void *)0));
     }
 }
 
