@@ -4,6 +4,7 @@ project(Tronus)
 option(TRONUS_BUILD_EDITOR "Build Editor" OFF)
 option(TRONUS_BUILD_EXAMPLES "Build Examples" ON)
 option(TRONUS_BUILD_TESTS "Build Tests" ON)
+option(TRONUS_BUILD_TOOLS "Build Tools" ON)
 
 
 add_subdirectory(External)
@@ -13,8 +14,8 @@ if (TRONUS_BUILD_EXAMPLES)
 add_subdirectory(Editor)
 endif()
 
-if (TRONUS_BUILD_EXAMPLES)
-add_subdirectory(Examples)
+if (TRONUS_BUILD_TOOLS)
+add_subdirectory(Tools)
 endif()
 
 if (TRONUS_BUILD_TESTS)
