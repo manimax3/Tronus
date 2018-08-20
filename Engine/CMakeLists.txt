@@ -12,7 +12,7 @@ set(TRONUS_PROFILE_SRC Profiler.cpp)
 set(TRONUS_UTIL_SRC Timer.cpp stb_impl.cpp MakeID.cpp)
 set(TRONUS_EVENT_SRC)
 set(TRONUS_FILESYSTEM_SRC StreamBuffer.cpp ResourceManager.cpp Filesystem.cpp BinaryFileHelper.cpp)
-set(TRONUS_GRAPHICS_SRC GraphicsHandler.cpp GLCheck.cpp GLSLShader.cpp Simple2DRenderer.cpp Renderer2D.cpp Image.cpp Texture.cpp ImguiRenderer.cpp DebugWindow.cpp ForwardRenderer.cpp BufferHelper.cpp)
+set(TRONUS_GRAPHICS_SRC GraphicsHandler.cpp GLCheck.cpp GLSLShader.cpp Simple2DRenderer.cpp Renderer2D.cpp Image.cpp Texture.cpp ImguiRenderer.cpp DebugWindow.cpp ForwardRenderer.cpp BufferHelper.cpp StaticMesh.cpp)
 set(TRONUS_GAMEOBJECT_SRC World.cpp Component.cpp GameObject.cpp SpriteComponent.cpp Component2D.cpp InputComponent.cpp Collision2DCapability.cpp ColliderComponent2D.cpp)
 
 PREPEND(TRONUS_CORE_SRC tr/core ${TRONUS_CORE_SRC})

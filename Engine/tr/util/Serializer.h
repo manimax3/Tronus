@@ -2,6 +2,7 @@
 #include <tr.h>
 
 #include "Exceptions.h"
+#include "../math/Math.h"
 
 #include <algorithm>
 #include <cassert>
@@ -317,6 +318,39 @@ public:
         uint32_t len = v.length();
         *this &  len;
         m_stream.write(v.c_str(), len);
+        return *this;
+    }
+
+    Serializer &operator&(Vec2 &v)
+    {
+        *this &v.x &v.y;
+        return *this;
+    }
+    const Serializer &operator&(const Vec2 &v)
+    {
+        *this &v.x &v.y;
+        return *this;
+    }
+
+    Serializer &operator&(Vec3 &v)
+    {
+        *this &v.x &v.y &v.z;
+        return *this;
+    }
+    const Serializer &operator&(const Vec3 &v)
+    {
+        *this &v.x &v.y &v.z;
+        return *this;
+    }
+
+    Serializer &operator&(Vec4 &v)
+    {
+        *this &v.x &v.y &v.z &v.w;
+        return *this;
+    }
+    const Serializer &operator&(const Vec4 &v)
+    {
+        *this &v.x &v.y &v.z &v.w;
         return *this;
     }
 

@@ -18,6 +18,12 @@ struct Vertex_PNTBU {
     Vec3 tangent;
     Vec3 bitangent;
     Vec2 uv;
+
+    template<typename A>
+    void Serialize(A &a)
+    {
+        a &position &normal &tangent &bitangent &uv;
+    }
 };
 
 /**
@@ -176,5 +182,30 @@ private:
     ResourcePtr<Texture> mDiffues;
     ResourcePtr<Texture> mSpecular;
     float                mShininess;
+};
+
+class PhongMaterialLoader : public ResourceLoadHandler {
+public:
+    ResourcePtr<> LoadResource(ResourceLoadingInformation info,
+                               const ResourceType &       type,
+                               ResourceManager &          rm,
+                               ResourceLoadingContext     context) override;
+
+    inline std::list<ResourceType> GetSupportedTypes() const override
+    {
+        return { "PhongMaterial" };
+    }
+};
+
+class StaticMeshLoader : public ResourceLoadHandler {
+    ResourcePtr<> LoadResource(ResourceLoadingInformation info,
+                               const ResourceType &       type,
+                               ResourceManager &          rm,
+                               ResourceLoadingContext     context) override;
+
+    inline std::list<ResourceType> GetSupportedTypes() const override
+    {
+        return { "StaticMesh" };
+    }
 };
 }
