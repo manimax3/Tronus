@@ -105,21 +105,32 @@ tr::ResourceManager::LoadResource(ResourceLoadingInformation  info,
 
     ResourceID   id;
     ResourceName name;
-    if (namehint.has_value()) {
-        const auto v = namehint.value();
-        id           = GetResourceID(v);
-        name         = namehint.value();
-    } else {
-        name = loader_ptr->ResourceName(res_ptr);
-        id   = GetResourceID(name);
-    }
 
-    if (id == RESOURCE_ID_INVALID) {
-        mResourceIDGenerator.CreateID(id);
-    }
+    try {
+        if (namehint.has_value()) {
+            const auto v = namehint.value();
+            id           = GetResourceID(v);
+            name         = namehint.value();
+        } else {
+            name = loader_ptr->ResourceName(res_ptr);
+            id   = GetResourceID(name);
+        }
 
-    mResources[id]          = res_ptr;
-    mResourceIDLookup[name] = id;
+        if (id == RESOURCE_ID_INVALID) {
+            mResourceIDGenerator.CreateID(id);
+        }
+
+        mResources[id]          = res_ptr;
+        mResourceIDLookup[name] = id;
+
+    } catch (const NotImplementedError &e) {
+        Log().error(
+            "Couldnt resolve resource to a name the resource has been "
+            "loaded anyway but will not be kept alive by the ResouceManager "
+            "you have to store the returned ResourcePtr<> yourself | {}\n"
+            "Handle of resource: {}",
+            e.what(), res_info.dump());
+    }
 
     return res_ptr;
 }
@@ -398,6 +409,6 @@ tr::ResourceManager::LoadBinaryResource(std::string                file,
     j["_binary_version"]["minor"] = version_minor;
 
     auto rli = std::make_shared<json>(std::move(j));
-    return LoadResource(std::move(rli), std::move(namehint));
+    return LoadResource(rli, std::move(namehint));
 }
 
