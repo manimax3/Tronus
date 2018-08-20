@@ -23,7 +23,7 @@ public:
     static bool ShouldSwap()
     {
         static const uint16_t swapTest = 1;
-        return (*((char *)&swapTest) == 1);
+        return !(*((char *)&swapTest) == 1);
     }
 
     static void SwapBytes(uint8_t &v1, uint8_t &v2)
