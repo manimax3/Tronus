@@ -6,6 +6,7 @@ option(TRONUS_BUILD_EXAMPLES "Build Examples" ON)
 option(TRONUS_BUILD_TESTS "Build Tests" ON)
 option(TRONUS_BUILD_TOOLS "Build Tools" ON)
 
+set(CMAKE_MODULE_PATH cmake)
 
 add_subdirectory(External)
 add_subdirectory(Engine)
