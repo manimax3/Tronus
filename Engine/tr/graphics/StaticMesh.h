@@ -148,20 +148,16 @@ public:
     /**
      * Constructs the material given the required textures and shininess.
      */
-    explicit PhongMaterial(const ResourcePtr<Texture> &ambient,
-                           const ResourcePtr<Texture> &diffuse,
+    explicit PhongMaterial(const ResourcePtr<Texture> &diffuse,
                            const ResourcePtr<Texture> &specular,
                            float                       shininess)
-        : mAmbient(ambient)
-        , mDiffues(diffuse)
+        : mDiffues(diffuse)
         , mSpecular(specular)
         , mShininess(shininess)
     {
-        assert(ambient);
         assert(diffuse);
         assert(specular);
 
-        AddUniformElement(ShaderElementType::Sampler2D_Other, "ambient");
         AddUniformElement(ShaderElementType::Sampler2D_Diffuse, "diffuse");
         AddUniformElement(ShaderElementType::Sampler2D_Specular, "specular");
         AddUniformElement(ShaderElementType::Float, "shininess");
@@ -169,18 +165,15 @@ public:
 
     void Bind(GLSLShader &shader) override
     {
-        shader.Set("ambient", 0);
-        shader.Set("diffuse", 1);
-        shader.Set("specular", 2);
+        shader.Set("diffuse", 0);
+        shader.Set("specular", 1);
         shader.Set("shininess", mShininess);
 
-        mAmbient->Bind();
-        mDiffues->Bind(1);
-        mSpecular->Bind(2);
+        mDiffues->Bind();
+        mSpecular->Bind(1);
     }
 
 private:
-    ResourcePtr<Texture> mAmbient;
     ResourcePtr<Texture> mDiffues;
     ResourcePtr<Texture> mSpecular;
     float                mShininess;

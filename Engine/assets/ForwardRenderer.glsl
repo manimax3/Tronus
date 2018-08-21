@@ -31,12 +31,11 @@ in vec3 FragPos;
 in vec3 Normal;
 in vec2 TexCoords;
 
-uniform sampler2D ambient;
 uniform sampler2D diffuse;
 uniform sampler2D specular;
 uniform float     shininess;
 
 out vec4 color;
 
-void main() { color = texture(ambient, TexCoords); }
+void main() { color = texture(diffuse, TexCoords); }
 

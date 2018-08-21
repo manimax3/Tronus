@@ -90,9 +90,6 @@ public:
                 tr::ResCast<tr::Texture>(
                     tr::Engine::Get().sResourceManager->GetResource(
                         "test_texture.json")),
-                tr::ResCast<tr::Texture>(
-                    tr::Engine::Get().sResourceManager->GetResource(
-                        "test_texture.json")),
                 1.f));
 
         sMesh->Material = material;

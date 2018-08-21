@@ -1,7 +1,7 @@
 #include "StaticMesh.h"
+#include "../filesystem/BinaryFileHelper.h"
 #include "../util/Log.h"
 #include "Texture.h"
-#include "../filesystem/BinaryFileHelper.h"
 
 #include "nlohmann/json.hpp"
 
@@ -14,25 +14,22 @@ tr::PhongMaterialLoader::LoadResource(ResourceLoadingInformation info,
     json &handle = *info;
 
     try {
-        const auto &ambient  = handle.at("ambient");
         const auto &diffues  = handle.at("diffuse");
         const auto &specular = handle.at("specular");
 
         const float shininess = handle.at("shininess");
 
-        auto &at = context.dependencies.at(ambient);
         auto &dt = context.dependencies.at(diffues);
         auto &st = context.dependencies.at(specular);
 
-        if (std::get<0>(at) != ResourceLoadingContext::Loaded
-            || std::get<0>(dt) != ResourceLoadingContext::Loaded
+        if (std::get<0>(dt) != ResourceLoadingContext::Loaded
             || std::get<0>(st) != ResourceLoadingContext::Loaded) {
             Log().warn("Dependencies of PhongMaterial hadnt been loaded");
             return nullptr;
         }
 
         return ResourcePtr<>(new PhongMaterial(
-            ResCast<Texture>(std::get<1>(at)->lock()),
+
             ResCast<Texture>(std::get<1>(dt)->lock()),
             ResCast<Texture>(std::get<1>(st)->lock()), shininess));
     } catch (const json::out_of_range &e) {
@@ -53,17 +50,17 @@ tr::StaticMeshLoader::LoadResource(ResourceLoadingInformation info,
                                    ResourceManager &          rm,
                                    ResourceLoadingContext     context)
 {
-    json & handle  = *info;
+    json &handle = *info;
 
     try {
         BinaryFileHelper helper(handle);
-        
+
         std::vector<Vertex_PNTBU> vertices;
         std::vector<uint>         indices;
-        
+
         helper.Deserialize(vertices);
         helper.Deserialize(indices);
-        
+
         return ResourcePtr<>(
             new StaticMesh(std::move(vertices), std::move(indices)));
     } catch (const std::runtime_error &e) {
