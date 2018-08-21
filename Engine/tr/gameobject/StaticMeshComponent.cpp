@@ -40,7 +40,7 @@ void tr::StaticMeshComponent::PostWorldEnter()
 
         mRendererHandle = static_cast<void *>(&handle);
     } catch (const std::runtime_error &e) {
-        Log().warn("Couldnt add StaticMeshComponent to ForwardRenderer | ",
+        Log().warn("Couldnt add StaticMeshComponent to ForwardRenderer | {}",
                    e.what());
         return;
     }

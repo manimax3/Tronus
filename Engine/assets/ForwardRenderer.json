@@ -13,7 +13,9 @@
                 { "location" : 4, "type" : "Vec2" }
             ],
             "uniforms" : [
-                { "name" : "mvp", "type" : "Mat4" },
+                { "name" : "model", "type" : "Mat4" },
+                { "name" : "view", "type" : "Mat4" },
+                { "name" : "projection", "type" : "Mat4" },
                 { "name" : "ambient", "type" : "Sampler2D_Other" },
                 { "name" : "diffuse", "type" : "Sampler2D_Diffuse" },
                 { "name" : "specular", "type" : "Sampler2D_Specular" },

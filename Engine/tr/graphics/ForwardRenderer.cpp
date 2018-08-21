@@ -103,10 +103,10 @@ void tr::ForwardRenderer::GeometryPass()
     for (auto &info : mRenderables) {
         if (!info.visible)
             continue;
-        const auto mvp
-            = mCamera->GetProjection() * mCamera->GetView() * info.model;
         mPhongShader->Bind();
-        mPhongShader->Set("mvp", mvp);
+        mPhongShader->Set("model", info.model);
+        mPhongShader->Set("view", mCamera->GetView());
+        mPhongShader->Set("projection", mCamera->GetProjection());
         auto &shader = *mPhongShader;
         info.mMaterial->Bind(shader);
         info.mBuffer.Bind();
@@ -122,7 +122,9 @@ tr::ForwardRenderer::CreateRenderInfo(RenderInfo info)
     StaticMesh::GetVertexBufferLayout().AddAttributesToShaderInterface(
         interface);
     info.material->AddUniformsToInterface(interface);
-    interface.AddUniform(ShaderElementType::Mat4, "mvp");
+    interface.AddUniform(ShaderElementType::Mat4, "model");
+    interface.AddUniform(ShaderElementType::Mat4, "view");
+    interface.AddUniform(ShaderElementType::Mat4, "projection");
 
     if (mPhongShader->GetInterface().has_value()) {
         if (!(interface.IsCompatibleWith(*mPhongShader->GetInterface()))) {
