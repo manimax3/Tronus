@@ -65,13 +65,12 @@ public:
          */
         bool destroy = false;
 
-    private:
         /**
-         * Used to store some data.
-         * May be in an invalid state (not useable for reuse)
+         * The mesh model matrix
          */
-        RenderInfo mInfo;
+        Mat4 model = Mat4(1.f);
 
+    private:
         /**
          * The amount of indices in this mesh
          */

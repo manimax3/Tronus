@@ -7,6 +7,7 @@
 #include "tr/gameobject/GameObject.h"
 #include "tr/gameobject/MovementComponent.h"
 #include "tr/gameobject/SpriteComponent.h"
+#include "tr/gameobject/StaticMeshComponent.h"
 #include "tr/gameobject/World.h"
 #include "tr/graphics/GraphicsHandler.h"
 #include "tr/graphics/Texture.h"
@@ -20,6 +21,7 @@ public:
         sCollider = CreateComponent<tr::ColliderComponent2D>("Collider");
         sCamera   = CreateComponent<tr::CameraComponent>("Camera");
         sMovement = CreateComponent<tr::MovementComponent>("Move");
+        sMesh     = CreateComponent<tr::StaticMeshComponent>("pyramid");
 
         GetWorld().GetEngine().sResourceManager->LoadResource(
             "test_texture.json");
@@ -76,28 +78,12 @@ public:
         });
 
         TickingGameObject = true;
-    }
 
-private:
-    tr::FlipbookComponent *  sSprite;
-    tr::ColliderComponent2D *sCollider;
-    tr::CameraComponent *    sCamera;
-    tr::MovementComponent *  sMovement;
-};
+        sMesh->Mesh
+            = tr::Engine::Get().sResourceManager->LoadResource("Object001.trb");
 
-class MyGame : public tr::Game {
-    void PreWorldLoad(tr::World &world) override
-    {
-        world.AttachWorldCapability<tr::Collision2DCapability>();
-    }
-    void PreWorldStart(tr::World &world) override
-    {
-        world.Spawn<MyEntity>();
-        tr::ForwardRenderer::RenderInfo info;
-        info.mesh = tr::ResCast<tr::StaticMesh>(
-            tr::Engine::Get().sResourceManager->LoadResource("Object001.trb"));
-        info.material
-            = std::shared_ptr<tr::PhongMaterial>(new tr::PhongMaterial(
+        static std::shared_ptr<tr::PhongMaterial> material(
+            new tr::PhongMaterial(
                 tr::ResCast<tr::Texture>(
                     tr::Engine::Get().sResourceManager->GetResource(
                         "test_texture.json")),
@@ -109,15 +95,26 @@ class MyGame : public tr::Game {
                         "test_texture.json")),
                 1.f));
 
-        tr::Mat4 m(1.f);
-        m          = tr::math::translate(m, tr::Vec3(0, -10, -50));
-        m          = tr::math::scale(m, tr::Vec3(20.f));
-        info.model = m;
+        sMesh->Material = material;
 
-        tr::Engine::Get()
-            .sGraphicsHandler->GetForwardRenderer()
-            .CreateRenderInfo(std::move(info));
+        sMesh->SetRelativeTranslation(tr::Vec3(0, -10, -50));
+        sMesh->SetRelativeScale(tr::Vec3(20.f));
     }
+
+private:
+    tr::FlipbookComponent *  sSprite;
+    tr::ColliderComponent2D *sCollider;
+    tr::CameraComponent *    sCamera;
+    tr::MovementComponent *  sMovement;
+    tr::StaticMeshComponent *sMesh;
+};
+
+class MyGame : public tr::Game {
+    void PreWorldLoad(tr::World &world) override
+    {
+        world.AttachWorldCapability<tr::Collision2DCapability>();
+    }
+    void PreWorldStart(tr::World &world) override { world.Spawn<MyEntity>(); }
 };
 
 int main()

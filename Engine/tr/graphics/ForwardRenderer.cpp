@@ -11,9 +11,8 @@
 
 tr::ForwardRenderer::RenderInfoHandle::RenderInfoHandle(
     ForwardRenderer::RenderInfo info)
-    : mInfo(std::move(info))
 {
-    if (!mInfo.mesh || !mInfo.material) {
+    if (!info.mesh || !info.material) {
         throw std::runtime_error("Couldnt create RenderInfoHandle because "
                                  "invalid RenderInfo provided");
     }
@@ -24,11 +23,11 @@ tr::ForwardRenderer::RenderInfoHandle::RenderInfoHandle(
     detail::Buffer vertex(BufferType::Vertex, BufferLocality::Static);
     detail::Buffer index(BufferType::Index, BufferLocality::Static);
 
-    vertex.Create(sizeof(Vertex_PNTBU), mInfo.mesh->GetVertexCount(),
-                  static_cast<void *>(mInfo.mesh->GetVertices()));
+    vertex.Create(sizeof(Vertex_PNTBU), info.mesh->GetVertexCount(),
+                  static_cast<void *>(info.mesh->GetVertices()));
 
-    index.Create(sizeof(uint), mInfo.mesh->GetIndexCount(),
-                 static_cast<void *>(mInfo.mesh->GetIndices()));
+    index.Create(sizeof(uint), info.mesh->GetIndexCount(),
+                 static_cast<void *>(info.mesh->GetIndices()));
 
     auto layout = StaticMesh::GetVertexBufferLayout();
     layout.ApplyTo(vertex);
@@ -40,11 +39,12 @@ tr::ForwardRenderer::RenderInfoHandle::RenderInfoHandle(
 
     mBuffer.Unbind();
 
-    mIndexCount  = mInfo.mesh->GetIndexCount();
-    mVertexCount = mInfo.mesh->GetVertexCount();
+    mIndexCount  = info.mesh->GetIndexCount();
+    mVertexCount = info.mesh->GetVertexCount();
 
-    mInfo.mesh.reset();
-    mMaterial = std::move(mInfo.material);
+    info.mesh.reset();
+    mMaterial = std::move(info.material);
+    model     = info.model;
 }
 
 void tr::ForwardRenderer::Init(GraphicsHandler &gfx)
@@ -104,7 +104,7 @@ void tr::ForwardRenderer::GeometryPass()
         if (!info.visible)
             continue;
         const auto mvp
-            = mCamera->GetProjection() * mCamera->GetView() * info.mInfo.model;
+            = mCamera->GetProjection() * mCamera->GetView() * info.model;
         mPhongShader->Bind();
         mPhongShader->Set("mvp", mvp);
         auto &shader = *mPhongShader;
