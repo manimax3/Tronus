@@ -1,5 +1,6 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "tr/core/Engine.h"
+#include "tr/gameobject/CameraComponent.h"
 #include "tr/gameobject/ColliderComponent2D.h"
 #include "tr/gameobject/Collision2DCapability.h"
 #include "tr/gameobject/Game.h"
@@ -16,13 +17,14 @@ public:
     {
         sSprite   = CreateComponent<tr::FlipbookComponent>("Test sprite");
         sCollider = CreateComponent<tr::ColliderComponent2D>("Collider");
+        sCamera   = CreateComponent<tr::CameraComponent>("Camera");
 
         GetWorld().GetEngine().sResourceManager->LoadResource(
             "test_texture.json");
 
         sSprite->SetTexture("test_texture.json");
         sSprite->SetSize(tr::Vec2{ 5.f, 5.f });
-        /* sSprite->SetUVs(tr::Vec2{ 0.f }, tr::Vec2{ 256.f, 256.f }); */
+        sSprite->SetUVs(tr::Vec2{ 0.f }, tr::Vec2{ 256.f, 256.f });
         sSprite->AddFrame(tr::Rect(0, 0, 256.f, 256.f), 500);
         sSprite->AddFrame(tr::Rect(100, 100, 256.f, 256.f), 1000);
         sSprite->AddFrame(tr::Rect(200, 200, 256.f, 256.f), 250);
@@ -33,6 +35,8 @@ public:
 
         RootComponent = sCollider;
         sCollider->AttachChildComponent(sSprite);
+        sSprite->AttachChildComponent(sCamera);
+        sCamera->RelativeComponent = false;
 
         cInputComponent->InputRecieved.connect([&](const tr::InputEvent &e) {
             if (e.type == tr::InputEvent::Mouse) {
@@ -47,6 +51,7 @@ public:
 private:
     tr::FlipbookComponent *  sSprite;
     tr::ColliderComponent2D *sCollider;
+    tr::CameraComponent *    sCamera;
 };
 
 class MyGame : public tr::Game {

@@ -9,6 +9,8 @@
 
 namespace tr {
 
+class CameraComponent;
+
 /**
  * Renderer used for forward rendering.
  */
@@ -112,15 +114,14 @@ public:
     void Shutdown();
 
     /**
-     * handle a window event.
-     * used for resizing the internal buffer.
-     */
-    void OnEvent(const WindowEvent &e);
-
-    /**
      * Tell the renderer about a new Renderable for rendering
      */
     RenderInfoHandle &CreateRenderInfo(RenderInfo info);
+
+    /**
+     * Sets the camera
+     */
+    void SetCamera(CameraComponent *cam) { mCamera = cam; };
 
 private:
     /**
@@ -136,16 +137,11 @@ private:
     /**
      * The currently active camera
      */
-    Camera mCamera;
+    CameraComponent *mCamera = nullptr;
 
     /**
      * The currently active renderables
      */
     std::list<RenderInfoHandle> mRenderables;
-
-    /**
-     * The projetion matrix
-     */
-    Mat4 mProjection;
 };
 }

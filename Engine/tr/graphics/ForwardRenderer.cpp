@@ -1,6 +1,7 @@
 #include "ForwardRenderer.h"
 #include "../core/Engine.h"
 #include "../filesystem/ResourceManager.h"
+#include "../gameobject/CameraComponent.h"
 #include "../util/Log.h"
 #include "GLCheck.h"
 #include "GraphicsHandler.h"
@@ -65,25 +66,12 @@ void tr::ForwardRenderer::Init(GraphicsHandler &gfx)
         return;
     }
 
-    mCamera = Mat4(1.f);
-
-    gfx.WindowChanged.connect([&](const WindowEvent &e) { this->OnEvent(e); });
-
-    // TODO: Seems obvious doesnt it?
-    mProjection = math::perspective(
-        math::radians(45.f), gfx.GetWindowSize().x / gfx.GetWindowSize().y,
-        0.1f, 100.f);
-}
-
-void tr::ForwardRenderer::OnEvent(const WindowEvent &e)
-{
-    if (e.type != WindowEvent::RESIZED)
-        return;
-
-    // TODO: See @ForwardRenderer.cpp:61
-    mProjection = math::perspective(
-        math::radians(45.f),
-        static_cast<float>(e.xSize) / static_cast<float>(e.ySize), 0.1f, 100.f);
+    gfx.CameraUpdate.connect([&](CameraComponent *cam, bool reset) {
+        if (mCamera == cam && reset) {
+            mCamera = nullptr;
+        }
+        mCamera = cam;
+    });
 }
 
 void tr::ForwardRenderer::Tick()
@@ -108,10 +96,15 @@ void tr::ForwardRenderer::Render() { GeometryPass(); }
 
 void tr::ForwardRenderer::GeometryPass()
 {
+
+    if (!mCamera)
+        return;
+
     for (auto &info : mRenderables) {
         if (!info.visible)
             continue;
-        const auto mvp = mProjection * mCamera * info.mInfo.model;
+        const auto mvp
+            = mCamera->GetProjection() * mCamera->GetView() * info.mInfo.model;
         mPhongShader->Bind();
         mPhongShader->Set("mvp", mvp);
         auto &shader = *mPhongShader;

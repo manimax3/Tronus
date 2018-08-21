@@ -14,6 +14,7 @@
 namespace tr {
 
 class Engine;
+class CameraComponent;
 
 struct CreateWindowInfo {
     Vec2        Size          = { 1280, 720 };
@@ -60,8 +61,9 @@ public:
     inline ImguiRenderer &  GetImguiRenderer() { return mImguiRenderer; }
     inline ForwardRenderer &GetForwardRenderer() { return mForwardRenderer; }
 
-    Signal<void(const InputEvent &)>  InputRecieved;
-    Signal<void(const WindowEvent &)> WindowChanged;
+    Signal<void(const InputEvent &)>      InputRecieved;
+    Signal<void(const WindowEvent &)>     WindowChanged;
+    Signal<void(CameraComponent *, bool)> CameraUpdate;
 
 private:
     void HandleInputEvent(const InputEvent &e);
