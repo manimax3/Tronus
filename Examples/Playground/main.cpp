@@ -5,6 +5,7 @@
 #include "tr/gameobject/Collision2DCapability.h"
 #include "tr/gameobject/Game.h"
 #include "tr/gameobject/GameObject.h"
+#include "tr/gameobject/MovementComponent.h"
 #include "tr/gameobject/SpriteComponent.h"
 #include "tr/gameobject/World.h"
 #include "tr/graphics/GraphicsHandler.h"
@@ -18,6 +19,7 @@ public:
         sSprite   = CreateComponent<tr::FlipbookComponent>("Test sprite");
         sCollider = CreateComponent<tr::ColliderComponent2D>("Collider");
         sCamera   = CreateComponent<tr::CameraComponent>("Camera");
+        sMovement = CreateComponent<tr::MovementComponent>("Move");
 
         GetWorld().GetEngine().sResourceManager->LoadResource(
             "test_texture.json");
@@ -35,13 +37,41 @@ public:
 
         RootComponent = sCollider;
         sCollider->AttachChildComponent(sSprite);
-        sSprite->AttachChildComponent(sCamera);
-        sCamera->RelativeComponent = false;
+        /* sSprite->AttachChildComponent(sMovement); */
+        sMovement->AttachChildComponent(sCamera);
+        sMovement->RelativeComponent = true;
+        sCamera->RelativeComponent   = true;
 
         cInputComponent->InputRecieved.connect([&](const tr::InputEvent &e) {
             if (e.type == tr::InputEvent::Mouse) {
                 tr::Vec2 newp{ e.XPos, e.YPos };
                 sCollider->SetRelativePosition2D(newp);
+            }
+
+            if (e.type == tr::InputEvent::Keyboard) {
+                if (e.action == tr::InputEvent::PRESS) {
+
+                    if (e.Key == tr::KEY_D) {
+                        sMovement->AddVelocity({ 10.f, 0, 0 });
+                    } else if (e.Key == tr::KEY_A) {
+                        sMovement->AddVelocity({ -10.f, 0, 0 });
+                    } else if (e.Key == tr::KEY_W) {
+                        sMovement->AddVelocity({ 0.f, 10.f, 0 });
+                    } else if (e.Key == tr::KEY_S) {
+                        sMovement->AddVelocity({ 0.f, -10.f, 0 });
+                    }
+
+                } else if (e.action == tr::InputEvent::RELEASE) {
+                    if (e.Key == tr::KEY_A) {
+                        sMovement->AddVelocity({ 10.f, 0, 0 });
+                    } else if (e.Key == tr::KEY_D) {
+                        sMovement->AddVelocity({ -10.f, 0, 0 });
+                    } else if (e.Key == tr::KEY_S) {
+                        sMovement->AddVelocity({ 0.f, 10.f, 0 });
+                    } else if (e.Key == tr::KEY_W) {
+                        sMovement->AddVelocity({ 0.f, -10.f, 0 });
+                    }
+                }
             }
         });
 
@@ -52,6 +82,7 @@ private:
     tr::FlipbookComponent *  sSprite;
     tr::ColliderComponent2D *sCollider;
     tr::CameraComponent *    sCamera;
+    tr::MovementComponent *  sMovement;
 };
 
 class MyGame : public tr::Game {

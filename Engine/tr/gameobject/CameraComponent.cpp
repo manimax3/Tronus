@@ -38,12 +38,11 @@ tr::Mat4 tr::CameraComponent::GetProjection() const { return mProjection; }
 void tr::CameraComponent::CalculateView()
 {
     Vec4       forward{ 0.f, 0.f, -1.f, 1.f };
-    Vec4       up{ 0.f, 1.f, 0.f, 1.f };
+    const Vec4 up{ 0.f, 1.f, 0.f, 1.f };
     const auto pos = GetAbsoluteTranslation();
     const auto abs = GetAbsoluteTransform();
 
     forward = math::normalize(abs * forward);
-    up      = math::normalize(abs * up);
 
     mView = glm::lookAt(pos, pos + Vec3(forward), Vec3(up));
 }
