@@ -4,6 +4,14 @@
 
 #include <assert.h>
 
+tr::GameObject::~GameObject()
+{
+    // We need to break up the hierachy
+    for (auto &[n, comp] : mComponents) {
+        comp->mParentComponent = nullptr;
+    }
+}
+
 tr::GameObjectComponent &tr::GameObject::GetRootComponent()
 {
     static SceneComponent s;

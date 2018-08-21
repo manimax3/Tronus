@@ -27,7 +27,7 @@ public:
     /**
      * Default Destructor
      */
-    virtual ~GameObject() = default;
+    virtual ~GameObject();
 
     GameObject(GameObject &&) = default;
     GameObject &operator=(GameObject &&) = default;
@@ -150,7 +150,7 @@ private:
 
     // The input component needs to be desturcted before the components.
     // Which is why there is this extra block
-protected:
+public:
     /**
      * We use this component to setup our input listenting.
      * For easier lifetime tracking and segfault prevention a shared_ptr is used

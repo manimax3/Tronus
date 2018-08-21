@@ -24,8 +24,8 @@ struct Transform {
     explicit operator Mat4() const
     {
         Mat4 m(1.f);
-        math::translate(m, this->translation);
-        math::scale(m, this->scale);
+        m = math::translate(m, this->translation);
+        m = math::scale(m, this->scale);
         return m * math::mat4_cast(this->rotation);
     }
 };

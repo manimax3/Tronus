@@ -18,6 +18,8 @@ class GameObject;
  */
 class GameObjectComponent {
 public:
+    friend class GameObject;
+
     explicit GameObjectComponent();
     virtual ~GameObjectComponent();
 

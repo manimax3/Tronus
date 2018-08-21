@@ -1,10 +1,12 @@
 #pragma once
 
 // We need a default constructor
+#ifndef BETTER_ENUMS_DEFAULT_CONSTRUCTOR
 #define BETTER_ENUMS_DEFAULT_CONSTRUCTOR(Enum)                                 \
 public:                                                                        \
     Enum() = default;
 #include "../util/enum.h"
+#endif
 
 namespace tr {
 /**

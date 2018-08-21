@@ -12,7 +12,8 @@ tr::GameObjectComponent::~GameObjectComponent()
             continue;
 
         // We need to make sure that no child component keeps refering to us
-        ptr->mParentComponent = nullptr;
+        /* ptr->mParentComponent = nullptr; */ // Disabled because this is done
+                                               // by the gameobject now
     }
 }
 
@@ -145,7 +146,7 @@ tr::Vec3 tr::SceneComponent::GetRelativeScale() const
 tr::Vec3 tr::SceneComponent::GetAbsoluteTranslation() const
 {
     auto *const p = GetParentAsSceneComponent();
-    if (p) {
+    if (p && IsComponentRelative()) {
         return p->GetAbsoluteTranslation() + GetRelativeTranslation();
     } else {
         return GetRelativeTranslation();
@@ -155,7 +156,7 @@ tr::Vec3 tr::SceneComponent::GetAbsoluteTranslation() const
 tr::EulerAngles tr::SceneComponent::GetAbsoluteRotation() const
 {
     auto *const p = GetParentAsSceneComponent();
-    if (p) {
+    if (p && IsComponentRelative()) {
         Quaternion p_quat(p->GetAbsoluteRotation());
         return math::eulerAngles(p_quat * mTransform.rotation);
     } else {
@@ -166,7 +167,7 @@ tr::EulerAngles tr::SceneComponent::GetAbsoluteRotation() const
 tr::Vec3 tr::SceneComponent::GetAbsoluteScale() const
 {
     auto *const p = GetParentAsSceneComponent();
-    if (p) {
+    if (p && IsComponentRelative()) {
         return p->GetAbsoluteScale() * GetRelativeScale();
     } else {
         return GetRelativeScale();
@@ -181,10 +182,10 @@ tr::Mat4 tr::SceneComponent::GetRelativeTransform() const
 tr::Mat4 tr::SceneComponent::GetAbsoluteTransform() const
 {
     auto *const p = GetParentAsSceneComponent();
-    if (p) {
+    if (p && IsComponentRelative()) {
         return p->GetAbsoluteTransform() * GetRelativeTransform();
     } else {
-        return p->GetRelativeTransform();
+        return GetRelativeTransform();
     }
 }
 
