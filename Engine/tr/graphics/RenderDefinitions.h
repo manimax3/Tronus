@@ -10,4 +10,6 @@ BETTER_ENUM(RenderStrategy,
             DefferedRendering,
             BatchRendering,
             InstancedRendering);
+
+BETTER_ENUM(ShadingModel, int, Phong, BlinnPhong, PBR)
 }
