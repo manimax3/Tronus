@@ -1,5 +1,6 @@
 #include "StaticMesh.h"
 #include "../filesystem/BinaryFileHelper.h"
+#include "../profile/Profiler.h"
 #include "../util/Log.h"
 #include "Texture.h"
 
@@ -11,6 +12,7 @@ tr::PhongMaterialLoader::LoadResource(ResourceLoadingInformation info,
                                       ResourceManager &          rm,
                                       ResourceLoadingContext     context)
 {
+    EASY_BLOCK("PhongMaterialLoader::LoadResource");
     json &handle = *info;
 
     try {
@@ -50,6 +52,7 @@ tr::StaticMeshLoader::LoadResource(ResourceLoadingInformation info,
                                    ResourceManager &          rm,
                                    ResourceLoadingContext     context)
 {
+    EASY_BLOCK("StaticMeshLoader::LoadResource");
     json &handle = *info;
 
     try {

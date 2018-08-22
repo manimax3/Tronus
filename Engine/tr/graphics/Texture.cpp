@@ -1,6 +1,7 @@
 #include "Texture.h"
 #include "../core/Engine.h"
 #include "../filesystem/ResourceManager.h"
+#include "../profile/Profiler.h"
 #include "GLCheck.h"
 #include "GraphicsHandler.h"
 #include "Image.h"
@@ -60,6 +61,8 @@ tr::TextureLoader::LoadResource(ResourceLoadingInformation info,
                                 ResourceManager &          rm,
                                 ResourceLoadingContext     context)
 {
+    EASY_BLOCK("TextureLoader::LoadResource");
+
     using json    = nlohmann::json;
     json &jhandle = *info;
 

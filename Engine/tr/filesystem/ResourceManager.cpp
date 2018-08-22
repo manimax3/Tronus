@@ -7,6 +7,7 @@
 #include "../graphics/Image.h"
 #include "../graphics/StaticMesh.h"
 #include "../graphics/Texture.h"
+#include "../profile/Profiler.h"
 #include "Filesystem.h"
 #include "spdlog/fmt/fmt.h"
 
@@ -73,6 +74,8 @@ tr::ResourcePtr<>
 tr::ResourceManager::LoadResource(ResourceLoadingInformation  info,
                                   std::optional<ResourceName> namehint)
 {
+    EASY_BLOCK("LoadResource::SharedInfo");
+
     if (const auto &opt = InvalidInfoCheck(info); opt) {
 
         Log().warn("ResourceLoading aborted because of invalid Loading "
@@ -151,6 +154,8 @@ tr::ResourcePtr<>
 tr::ResourceManager::LoadResource(std::string_view            file,
                                   std::optional<ResourceName> namehint)
 {
+    EASY_BLOCK("LoadResource::File");
+
     std::string f(file.data(), file.size());
     f = GetEngineAssetPath() + f;
 
@@ -177,6 +182,8 @@ tr::ResourcePtr<>
 tr::ResourceManager::LoadResource(std::istream &              in,
                                   std::optional<ResourceName> namehint)
 {
+    EASY_BLOCK("LoadResource::Stream");
+
     auto info = std::make_shared<json>();
     try {
         in >> *info;
@@ -290,6 +297,8 @@ tr::ResourceName tr::ResourceManager::GetResourceName(ResourceID id)
 void tr::ResourceManager::LoadDependecies(ResourceLoadingInformation &info,
                                           ResourceLoadingContext &    context)
 {
+    EASY_BLOCK("Resource Load Dependencies");
+
     assert(!InvalidInfoCheck(info));
     const json &res_info     = *info;
     const auto &dependencies = res_info.find("dependencies");
@@ -377,6 +386,8 @@ tr::ResourcePtr<>
 tr::ResourceManager::LoadBinaryResource(std::string                file,
                                         std::optional<std::string> namehint)
 {
+    EASY_BLOCK("LoadBinaryResource");
+
     std::ifstream ifs(file, std::ios::binary);
 
     if (!ifs) {

@@ -25,6 +25,7 @@ void tr::World::Update()
 
 void tr::World::Start()
 {
+    EASY_BLOCK("World Start");
     for (const auto &[name, ptr] : mWorldCapabilities) {
         ptr->OnStart();
     }
@@ -32,6 +33,7 @@ void tr::World::Start()
 
 void tr::World::Load()
 {
+    EASY_BLOCK("World Load");
     for (const auto &[name, ptr] : mWorldCapabilities) {
         ptr->OnLoad();
     }

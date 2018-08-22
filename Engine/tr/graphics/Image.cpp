@@ -3,6 +3,7 @@
 #include "../core/Engine.h"
 #include "../filesystem/Filesystem.h"
 #include "../filesystem/ResourceManager.h"
+#include "../profile/Profiler.h"
 #include "nlohmann/json.hpp"
 #include "stb_image.h"
 
@@ -66,6 +67,8 @@ tr::ResourcePtr<> tr::ImageLoader::LoadResource(ResourceLoadingInformation info,
                                                 ResourceManager &          rm,
                                                 ResourceLoadingContext context)
 {
+    EASY_BLOCK("ImageLoader::LoadResource");
+
     json &jhandle = *info;
 
     if (auto it = jhandle.find("file"); it != jhandle.end()) {
