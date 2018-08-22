@@ -16,6 +16,7 @@ constexpr uint16 V_MIN = 0;
 
 void process_node(aiNode *node, const aiScene *scene);
 void process_mesh(aiMesh *mesh, const aiScene *scene);
+void process_material(aiMaterial *material, const aiScene *scene);
 
 int main(int argc, char *argv[])
 {
@@ -110,6 +111,9 @@ void process_mesh(aiMesh *mesh, const aiScene *scene)
         }
     }
 
+    if (mesh->mMaterialIndex >= 0)
+        process_material(scene->mMaterials[mesh->mMaterialIndex], scene);
+
     json j;
     j["type"]                   = "StaticMesh";
     j["name"]                   = name;
@@ -121,4 +125,54 @@ void process_mesh(aiMesh *mesh, const aiScene *scene)
     Serializer<std::ofstream> ser(mesh_out);
     ser << V_MAJ << V_MIN << msg_pack;
     ser << vertices << indices;
+}
+
+void create_material(const std::string &name, const std::string &type);
+
+void process_material(aiMaterial *material, const aiScene *scene)
+{
+
+    for (uint i = 0; i < material->GetTextureCount(aiTextureType_DIFFUSE);
+         i++) {
+        aiString path;
+        material->GetTexture(aiTextureType_DIFFUSE, i, &path);
+        std::string file(path.C_Str());
+        create_material(file, "diffuse");
+    }
+
+    for (uint i = 0; i < material->GetTextureCount(aiTextureType_SPECULAR);
+         i++) {
+        aiString path;
+        material->GetTexture(aiTextureType_SPECULAR, i, &path);
+        std::string file(path.C_Str());
+        create_material(file, "specular");
+    }
+}
+
+void create_material(const std::string &name, const std::string &type)
+{
+    if (!fs::FileExists(name)) {
+        Log().error("Couldnt find {} for texture loading", name);
+        return;
+    }
+
+    Log().info("Exporting texture name: {} type: {}", name, type);
+
+    json j;
+    j["type"] = "Image";
+    j["file"] = fmt::format("$ENGINE/{}", name);
+    j["name"] = fmt::format("image_{}_{}", type, fs::FileName(name));
+
+    json texture;
+    texture["type"]             = "Texture";
+    texture["compression"]      = true;
+    texture["generate_mipmaps"] = true;
+    texture["mag_filter"]       = 1;
+    texture["min_filter"]       = 1;
+    texture["wrap_s"]           = 1;
+    texture["wrap_t"]           = 1;
+    texture["dependencies"]     = j;
+
+    std::ofstream of(fmt::format("{}.json", fs::FileName(name)));
+    of << texture.dump();
 }
