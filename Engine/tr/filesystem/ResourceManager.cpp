@@ -82,6 +82,12 @@ tr::ResourceManager::LoadResource(ResourceLoadingInformation  info,
                                      + opt.value());
     }
 
+    if (namehint.has_value()) {
+        std::string name = namehint.value();
+        if (IsResourceLoaded(name))
+            return GetResource(name);
+    }
+
     json &res_info = *info;
 
     const auto type = res_info.at("type").get<std::string>();
@@ -96,8 +102,8 @@ tr::ResourceManager::LoadResource(ResourceLoadingInformation  info,
     }
 
     auto &loader_ptr = std::get<1>(*loader_iter);
-    auto  res_ptr    = loader_ptr->LoadResource(std::move(info), type, *this,
-                                            std::move(context));
+    auto  res_ptr
+        = loader_ptr->LoadResource(info, type, *this, std::move(context));
 
     if (!res_ptr) {
         Log().warn("ResourceLoadHandler returned nullptr while loadint a "
@@ -291,6 +297,11 @@ void tr::ResourceManager::LoadDependecies(ResourceLoadingInformation &info,
     if (dependencies == res_info.end())
         return; // No deps specified
 
+    if (!dependencies->is_array()) {
+        Log().info("Dependencies should be an array! | {}", info->dump());
+        return;
+    }
+
     for (const auto &dep : *dependencies) {
         if (dep.is_string()) {
 
@@ -319,7 +330,7 @@ void tr::ResourceManager::LoadDependecies(ResourceLoadingInformation &info,
             // create a ResourceLoadingInformation
             try {
 
-                const auto                  id_iter = dep.find("id");
+                const auto                  id_iter = dep.find("name");
                 std::optional<ResourceName> hint;
                 if (id_iter != dep.end() && id_iter->is_string()) {
                     hint = id_iter->get<std::string>();

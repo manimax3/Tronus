@@ -72,7 +72,7 @@ tr::ResourcePtr<> tr::ImageLoader::LoadResource(ResourceLoadingInformation info,
 
         if (!it->is_string())
             return nullptr;
-        auto s = fs::GetExecutablePath() + it->get<std::string>();
+        auto s = /*fs::GetExecutablePath() + */ it->get<std::string>();
         s      = rm.ResolvePath(s);
         return ResourcePtr<>(new Image(s));
 

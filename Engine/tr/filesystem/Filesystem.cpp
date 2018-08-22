@@ -59,3 +59,9 @@ std::string tr::fs::Extension(std::string_view file) {
     auto fn = p.extension();
     return fn.generic_string<std::string>();
 }
+
+std::string tr::fs::Stem(std::string_view file) {
+    boost::filesystem::path p(file.begin(), file.end());
+    auto fn = p.stem();
+    return fn.generic_string<std::string>();
+}

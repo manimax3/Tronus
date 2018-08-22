@@ -70,7 +70,7 @@ void tr::ImguiRenderer::Init(GraphicsHandler *gfx, ResourceManager *rm)
                                  &height);
 
     json texture_handle;
-    texture_handle["id"]               = TEXTURE_ID;
+    texture_handle["name"]             = TEXTURE_ID;
     texture_handle["type"]             = "Texture";
     texture_handle["compression"]      = false;
     texture_handle["generate_mipmaps"] = false;
@@ -79,7 +79,7 @@ void tr::ImguiRenderer::Init(GraphicsHandler *gfx, ResourceManager *rm)
     texture_handle["wrap_s"]           = 1;
     texture_handle["wrap_t"]           = 1;
     texture_handle["dependencies"]     = json::array();
-    json o                             = { { "id", IMAGE_ID },
+    json o                             = { { "name", IMAGE_ID },
                { "type", "Image" },
                { "memory", reinterpret_cast<uint64>(pixels) },
                { "xSize", width },

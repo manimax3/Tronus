@@ -119,7 +119,7 @@ void process_mesh(aiMesh *mesh, const aiScene *scene)
     j["name"]                   = name;
     std::vector<uint8> msg_pack = json::to_msgpack(j);
 
-    std::ofstream mesh_out(name + ".trb");
+    std::ofstream mesh_out(name + ".trb", std::ios::binary);
     mesh_out.write("TRBF", 4);
 
     Serializer<std::ofstream> ser(mesh_out);
@@ -127,17 +127,29 @@ void process_mesh(aiMesh *mesh, const aiScene *scene)
     ser << vertices << indices;
 }
 
-void create_material(const std::string &name, const std::string &type);
+struct texture_t {
+    std::string name;
+    std::string type;
+    json        handle;
+};
+
+texture_t create_material(const std::string &name, const std::string &type);
 
 void process_material(aiMaterial *material, const aiScene *scene)
 {
+
+    std::vector<texture_t> diffuse_textures;
+    std::vector<texture_t> specular_textures;
+    std::vector<texture_t> normal_textures;
+    float                  shininess;
+    aiString               materialname;
 
     for (uint i = 0; i < material->GetTextureCount(aiTextureType_DIFFUSE);
          i++) {
         aiString path;
         material->GetTexture(aiTextureType_DIFFUSE, i, &path);
         std::string file(path.C_Str());
-        create_material(file, "diffuse");
+        diffuse_textures.push_back(create_material(file, "diffuse"));
     }
 
     for (uint i = 0; i < material->GetTextureCount(aiTextureType_SPECULAR);
@@ -145,15 +157,58 @@ void process_material(aiMaterial *material, const aiScene *scene)
         aiString path;
         material->GetTexture(aiTextureType_SPECULAR, i, &path);
         std::string file(path.C_Str());
-        create_material(file, "specular");
+        specular_textures.push_back(create_material(file, "specular"));
     }
+
+    for (uint i = 0; i < material->GetTextureCount(aiTextureType_NORMALS);
+         i++) {
+        aiString path;
+        material->GetTexture(aiTextureType_NORMALS, i, &path);
+        std::string file(path.C_Str());
+        normal_textures.push_back(create_material(file, "normal"));
+    }
+
+    material->Get(AI_MATKEY_SHININESS, shininess);
+    material->Get(AI_MATKEY_NAME, materialname);
+
+    json phongmaterial;
+    phongmaterial["type"]         = "PhongMaterial";
+    phongmaterial["name"]         = materialname.C_Str();
+    phongmaterial["dependencies"] = json::array();
+
+    for (auto &t : diffuse_textures) {
+        phongmaterial["dependencies"].push_back(t.handle);
+    }
+
+    for (auto &t : specular_textures) {
+        phongmaterial["dependencies"].push_back(t.handle);
+    }
+
+    for (auto &t : normal_textures) {
+        phongmaterial["dependencies"].push_back(t.handle);
+    }
+
+    if (diffuse_textures.size() > 0) {
+        phongmaterial["diffuse"] = diffuse_textures[0].name;
+    }
+    if (specular_textures.size() > 0) {
+        phongmaterial["specular"] = diffuse_textures[0].name;
+    }
+    if (normal_textures.size() > 0) {
+        phongmaterial["normal"] = diffuse_textures[0].name;
+    }
+
+    phongmaterial["shininess"] = shininess;
+
+    std::ofstream of(fmt::format("material_{}.json", materialname.C_Str()));
+    of << phongmaterial;
 }
 
-void create_material(const std::string &name, const std::string &type)
+texture_t create_material(const std::string &name, const std::string &type)
 {
     if (!fs::FileExists(name)) {
         Log().error("Couldnt find {} for texture loading", name);
-        return;
+        return {};
     }
 
     Log().info("Exporting texture name: {} type: {}", name, type);
@@ -161,18 +216,27 @@ void create_material(const std::string &name, const std::string &type)
     json j;
     j["type"] = "Image";
     j["file"] = fmt::format("$ENGINE/{}", name);
-    j["name"] = fmt::format("image_{}_{}", type, fs::FileName(name));
+    j["name"] = fmt::format("image_{}_{}", type, fs::Stem(name));
 
     json texture;
     texture["type"]             = "Texture";
-    texture["compression"]      = true;
+    texture["compression"]      = false;
     texture["generate_mipmaps"] = true;
     texture["mag_filter"]       = 1;
     texture["min_filter"]       = 1;
     texture["wrap_s"]           = 1;
     texture["wrap_t"]           = 1;
-    texture["dependencies"]     = j;
+    texture["dependencies"]     = json::array({ j });
 
-    std::ofstream of(fmt::format("{}.json", fs::FileName(name)));
-    of << texture.dump();
+    std::string handlename
+        = fmt::format("texture_{1}_{0}", fs::Stem(name), type);
+
+    texture["name"] = handlename;
+
+    texture_t t;
+    t.handle = texture;
+    t.type   = type;
+    t.name   = handlename;
+
+    return t;
 }

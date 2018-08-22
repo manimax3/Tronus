@@ -9,6 +9,7 @@ bool DirExists(const std::string &name);
 
 std::string FileName(std::string_view path);
 std::string Extension(std::string_view file);
+std::string Stem(std::string_view file);
 
 std::string CurrentWorkingDir();
 std::string GetExecutablePath();
