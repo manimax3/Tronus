@@ -345,10 +345,10 @@ void tr::ResourceManager::LoadDependecies(ResourceLoadingInformation &info,
                     hint = id_iter->get<std::string>();
                 }
 
-                auto       info = std::make_shared<json>(dep);
-                const auto ptr  = LoadResource(std::move(info), hint);
-                const auto id   = GetResourceID(ptr);
-                const auto name = GetResourceName(id);
+                auto       dep_info = std::make_shared<json>(dep);
+                const auto ptr      = LoadResource(std::move(dep_info), hint);
+                const auto id       = GetResourceID(ptr);
+                const auto name     = GetResourceName(id);
 
                 context.dependencies[name]
                     = { ResourceLoadingContext::Loaded, ptr };
