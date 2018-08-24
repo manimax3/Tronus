@@ -1,0 +1,15 @@
+{
+    "type" : "GLSLShader",
+    "shader_source" : "$ENGINE/df_null.glsl",
+    "vertex_seperator" : "#shader vertex",
+    "fragment_seperator" : "#shader fragment",
+    "interface" : {
+        "attributes" :
+            [
+                { "location" : 0, "type" : "Vec3" }
+            ],
+            "uniforms" : [
+                { "name" : "mvp", "type" : "Mat4" }
+            ]
+    }
+}

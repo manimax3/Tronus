@@ -20,7 +20,7 @@ void main()
     vec4 wp     = model * vec4(position, 1.0);
     FragPos     = wp.xyz;
     TexCoords   = uv;
-    Normal      = transpos(inverse(mat3(model))) * normal;
+    Normal      = transpose(inverse(mat3(model))) * normal;
     gl_Position = projection * view * wp;
 }
 
@@ -33,7 +33,7 @@ in vec2 TexCoords;
 
 layout(location = 0) out vec3 oPosition;
 layout(location = 1) out vec3 oNormal;
-layout(location = 3) out vec4 oDiffuse;
+layout(location = 2) out vec4 oDiffuse;
 
 uniform sampler2D diffuse;
 uniform sampler2D specular;
@@ -44,5 +44,5 @@ void main()
     oPosition    = FragPos;
     oNormal      = normalize(Normal);
     oDiffuse.rgb = texture(diffuse, TexCoords).rgb;
-    oDiffuse.a   = texture(specular).r;
+    oDiffuse.a   = texture(specular, TexCoords).r;
 }

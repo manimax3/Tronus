@@ -1,0 +1,21 @@
+{
+    "type" : "GLSLShader",
+    "shader_source" : "$ENGINE/df_lightning.glsl",
+    "vertex_seperator" : "#shader vertex",
+    "fragment_seperator" : "#shader fragment",
+    "interface" : {
+        "attributes" :
+            [
+                { "location" : 0, "type" : "Vec3" }
+            ],
+            "uniforms" : [
+                { "name" : "mvp", "type" : "Mat4" },
+                { "name" : "position", "type" : "Sampler2D_Other" },
+                { "name" : "normal", "type" : "Sampler2D_Other" },
+                { "name" : "diffuse", "type" : "Sampler2D_Diffuse" },
+                { "name" : "light", "type" : "Struct" },
+                { "name" : "viewpos", "type" : "Vec3" },
+                { "name" : "screensize", "type" : "Vec2" }
+            ]
+    }
+}

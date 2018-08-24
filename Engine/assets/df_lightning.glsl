@@ -2,20 +2,18 @@
 #version 330 core
 
 layout(location = 0) in vec3 position;
-layout(location = 1) in vec2 uv;
 
-out vec2 TexCoords;
+uniform mat4 mvp;
 
-void main()
-{
-    TexCoords   = uv;
-    gl_Position = vec4(position, 1.0);
-}
+void main() { gl_Position = mvp * vec4(position, 1.0); }
 
 #shader fragment
 #version 330 core
 
-in vec2 TexCoords;
+#define ambient_intensity 0.1
+#define diffuse_intensity 0.1
+
+out vec4 FragColor;
 
 uniform sampler2D position;
 uniform sampler2D normal;
@@ -29,41 +27,54 @@ struct Light {
     float Quadratic;
     float Radius;
 };
-const int NR_LIGHTS = 32;
-uniform Light lights[NR_LIGHTS];
-uniform vec3 viewPos;
+
+uniform Light light;
+uniform vec3 viewpos;
+uniform vec2 screensize;
+
+vec2 CalcTexCoord() { return gl_FragCoord.xy / screensize; }
+
+vec4 calc_point_light(vec3 worldpos, vec3 normal, float spec)
+{
+    vec3  LightDirection = viewpos - light.Position;
+    float distance       = length(LightDirection);
+    LightDirection       = normalize(LightDirection);
+
+    vec4  ambient_color = vec4(light.Color * ambient_intensity, 1.0);
+    float DiffuseFactor = dot(normal, -LightDirection);
+    vec4  DiffuseColor  = vec4(0, 0, 0, 0);
+    vec4  SpecularColor = vec4(0, 0, 0, 0);
+
+    if (DiffuseFactor > 0) {
+        DiffuseColor
+            = vec4(light.Color * diffuse_intensity * DiffuseFactor, 1.0);
+        vec3  VertexToEye    = normalize(viewpos - worldpos);
+        vec3  LightReflect   = normalize(reflect(VertexToEye, normal));
+        float SpecularFactor = dot(VertexToEye, LightReflect);
+        if (SpecularFactor > 0) {
+            SpecularFactor = pow(SpecularFactor, spec);
+            SpecularColor  = vec4(light.Color * spec * SpecularFactor, 1.0);
+        }
+    }
+
+    vec4 color = vec4(ambient_color + DiffuseColor + SpecularColor);
+
+    float atten
+        = light.Linear * distance + light.Quadratic * distance * distance;
+    atten = max(1.0, atten);
+
+    return color / atten;
+}
 
 void main()
 {
     // retrieve data from gbuffer
-    vec3  FragPos  = texture(position, TexCoords).rgb;
-    vec3  Normal   = texture(normal, TexCoords).rgb;
-    vec3  Diffuse  = texture(diffuse, TexCoords).rgb;
-    float Specular = texture(diffuse, TexCoords).a;
+    vec2  TexCoords = CalcTexCoord();
+    vec3  FragPos   = texture(position, TexCoords).rgb;
+    vec3  Normal    = texture(normal, TexCoords).rgb;
+    vec3  Diffuse   = texture(diffuse, TexCoords).rgb;
+    float Specular  = texture(diffuse, TexCoords).a;
 
-    // then calculate lighting as usual
-    vec3 lighting = Diffuse * 0.1; // hard-coded ambient component
-    vec3 viewDir  = normalize(viewPos - FragPos);
-    for (int i = 0; i < NR_LIGHTS; ++i) {
-        // calculate distance between light source and current fragment
-        float distance = length(lights[i].Position - FragPos);
-        if (distance < lights[i].Radius) {
-            // diffuse
-            vec3 lightDir = normalize(lights[i].Position - FragPos);
-            vec3 diffuse
-                = max(dot(Normal, lightDir), 0.0) * Diffuse * lights[i].Color;
-            // specular
-            vec3  halfwayDir = normalize(lightDir + viewDir);
-            float spec       = pow(max(dot(Normal, halfwayDir), 0.0), 16.0);
-            vec3  specular   = lights[i].Color * spec * Specular;
-            // attenuation
-            float attenuation = 1.0
-                / (1.0 + lights[i].Linear * distance
-                   + lights[i].Quadratic * distance * distance);
-            diffuse *= attenuation;
-            specular *= attenuation;
-            lighting += diffuse + specular;
-        }
-    }
-    FragColor = vec4(lighting, 1.0);
+    FragColor
+        = vec4(Diffuse * calc_point_light(FragPos, Normal, Specular).xyz, 1.0);
 }

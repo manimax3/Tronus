@@ -75,7 +75,7 @@ void tr::GBuffer::PrepareGeometryPass()
     Call(glDrawBuffers(3, draw));
 }
 
-/* void tr::GBuffer::PrepareStenciPass() { Call(glDrawBuffer(GL_NONE)); } */
+void tr::GBuffer::PrepareStencilPass() { Call(glDrawBuffer(GL_NONE)); }
 
 void tr::GBuffer::PrepareLightPass()
 {

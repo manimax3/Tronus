@@ -49,6 +49,7 @@ public:
     class RenderInfoHandle {
     public:
         friend class ForwardRenderer;
+        friend class DeferredRenderer;
 
         /**
          * Construct a internal renderables based on the provided data

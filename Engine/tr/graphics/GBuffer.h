@@ -32,7 +32,7 @@ public:
 
     void PrepareFrame();
     void PrepareGeometryPass();
-    /* void PrepareStenciPass(); */
+    void PrepareStencilPass();
     void PrepareLightPass();
     void PrepareFinalPass();
 
