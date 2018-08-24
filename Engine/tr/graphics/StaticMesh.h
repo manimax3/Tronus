@@ -65,18 +65,22 @@ public:
                         std::vector<uint>         indices)
         : mVertices(std::move(vertices))
         , mIndices(std::move(indices))
+        , mVertexBuffer(BufferType::Vertex, BufferLocality::Static)
+        , mIndexBuffer(BufferType::Index, BufferLocality::Static)
+        , mVertexCount(mVertices.size())
+        , mIndexCount(mIndices.size())
     {
     }
 
     /**
      * Amount of vertices.
      */
-    int GetVertexCount() const { return mVertices.size(); }
+    int GetVertexCount() const {return mVertexCount;}
 
     /**
      * Amount of indices.
      */
-    int GetIndexCount() const { return mIndices.size(); }
+    int GetIndexCount() const { return mIndexCount; }
 
     /**
      * Amount of Triangles.
@@ -102,9 +106,36 @@ public:
         mIndices.clear();
     }
 
+    /**
+     * Uploads the data to the gpu.
+     * Uses the BufferLayout returned by GetVertexBufferLayout()
+     * @param free_mem if true clear the data from memory
+     */
+    void UploadToGpu(bool free_mem = true);
+
+    /**
+     * Returns the buffer store
+     */
+    detail::AttributBufferStore &GetBufferStore() { return mBufferStore; };
+
+    /**
+     * Returns if the data is currently on the gpu
+     */
+    bool IsOnGpu() const
+    {
+        return mVertexBuffer && mIndexBuffer && mBufferStore;
+    };
+
 private:
     std::vector<Vertex_PNTBU> mVertices;
     std::vector<uint>         mIndices;
+
+    uint mVertexCount = 0;
+    uint mIndexCount  = 0;
+
+    detail::Buffer              mVertexBuffer;
+    detail::Buffer              mIndexBuffer;
+    detail::AttributBufferStore mBufferStore;
 };
 
 /**

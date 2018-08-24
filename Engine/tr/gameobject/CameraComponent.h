@@ -51,7 +51,7 @@ public:
     /**
      * Near plane
      */
-    float Near = 1.f;
+    float Near = 0.1f;
 
     /**
      * Far Plane

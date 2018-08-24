@@ -10,8 +10,8 @@ void main() { gl_Position = mvp * vec4(position, 1.0); }
 #shader fragment
 #version 330 core
 
-#define ambient_intensity 0.1
-#define diffuse_intensity 0.1
+#define ambient_intensity 1.0
+#define diffuse_intensity 1.0 
 
 out vec4 FragColor;
 
@@ -23,9 +23,9 @@ struct Light {
     vec3 Position;
     vec3 Color;
 
+    float Constant;
     float Linear;
     float Quadratic;
-    float Radius;
 };
 
 uniform Light light;
@@ -59,8 +59,8 @@ vec4 calc_point_light(vec3 worldpos, vec3 normal, float spec)
 
     vec4 color = vec4(ambient_color + DiffuseColor + SpecularColor);
 
-    float atten
-        = light.Linear * distance + light.Quadratic * distance * distance;
+    float atten = light.Constant + light.Linear * distance
+        + light.Quadratic * distance * distance;
     atten = max(1.0, atten);
 
     return color / atten;

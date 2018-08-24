@@ -6,6 +6,33 @@
 
 #include "nlohmann/json.hpp"
 
+void tr::StaticMesh::UploadToGpu(bool free_mem)
+{
+    mBufferStore.Create();
+    mBufferStore.Bind();
+
+    mVertexBuffer.Create(sizeof(Vertex_PNTBU), GetVertexCount(),
+                         static_cast<void *>(GetVertices()));
+    mIndexBuffer.Create(sizeof(uint), GetIndexCount(),
+                        static_cast<void *>(GetIndices()));
+
+    auto layout = GetVertexBufferLayout();
+    layout.ApplyTo(mVertexBuffer);
+    mBufferStore.AddBuffer(mVertexBuffer);
+    mBufferStore.AddBuffer(mIndexBuffer);
+
+    mVertexBuffer.Bind();
+    mIndexBuffer.Bind();
+
+    if (free_mem) {
+        FreeData();
+    }
+
+    mBufferStore.Unbind();
+    mVertexBuffer.Unbind();
+    mIndexBuffer.Unbind();
+}
+
 tr::ResourcePtr<>
 tr::PhongMaterialLoader::LoadResource(ResourceLoadingInformation info,
                                       const ResourceType &       type,

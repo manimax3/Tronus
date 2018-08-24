@@ -27,31 +27,13 @@ void tr::StaticMeshComponent::PostWorldEnter()
         return;
     }
 
-    ForwardRenderer::RenderInfo info;
-    info.mesh     = std::move(mesh);
-    info.material = std::move(mat);
-    info.model    = GetAbsoluteTransform();
-
-    try {
-        ForwardRenderer::RenderInfoHandle &handle
-            = tr::Engine::Get()
-                  .sGraphicsHandler->GetForwardRenderer()
-                  .CreateRenderInfo(std::move(info));
-
-        mRendererHandle = static_cast<void *>(&handle);
-    } catch (const std::runtime_error &e) {
-        Log().warn("Couldnt add StaticMeshComponent to ForwardRenderer | {}",
-                   e.what());
-        return;
-    }
+    tr::Engine::Get().sGraphicsHandler->GetDeferredRenderer().AddMesh(
+        std::move(mesh), std::move(mat), GetAbsoluteTransform());
 }
 
 void tr::StaticMeshComponent::OnRelativeChange()
 {
-    if (mRendererHandle) {
-        ForwardRenderer::RenderInfoHandle &h
-            = *static_cast<ForwardRenderer::RenderInfoHandle *>(
-                mRendererHandle);
-        h.model = GetAbsoluteTransform();
-    }
+    auto mesh = ResCast<StaticMesh>(Mesh.lock());
+    tr::Engine::Get().sGraphicsHandler->GetDeferredRenderer().RemoveMesh(mesh);
+    PostWorldEnter();
 }

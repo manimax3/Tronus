@@ -82,8 +82,7 @@ void tr::detail::Buffer::Destroy()
 
 tr::detail::Buffer::operator bool() const
 {
-    auto i = std::any_cast<GLuint>(mHandle);
-    return i != 0;
+    return mHandle != 0;
 }
 
 void tr::detail::Buffer::Bind()

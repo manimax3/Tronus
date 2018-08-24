@@ -25,8 +25,8 @@ class GBuffer {
 public:
     using TextureTypes = GBuffer_Texture_Types;
 
-    GBuffer() = default;
-    ~GBuffer();
+    GBuffer()  = default;
+    ~GBuffer() = default;
     void Create(uint width, uint height);
     void Resize(uint width, uint height);
 

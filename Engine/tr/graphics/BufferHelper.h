@@ -53,7 +53,7 @@ public:
     }
 
     BufferType GetType() const { return mType; }
-    std::any   GetHandle() { return mHandle; }
+    uint       GetHandle() const { return mHandle; }
 
     /**
      * Check if the buffer is valid

@@ -9,6 +9,7 @@
 #include "tr/gameobject/SpriteComponent.h"
 #include "tr/gameobject/StaticMeshComponent.h"
 #include "tr/gameobject/World.h"
+#include "tr/graphics/DeferredRenderer.h"
 #include "tr/graphics/GraphicsHandler.h"
 #include "tr/graphics/Texture.h"
 #include "tr/util/Keys.h"
@@ -43,6 +44,7 @@ public:
         sMovement->AttachChildComponent(sCamera);
         sMovement->RelativeComponent = true;
         sCamera->RelativeComponent   = true;
+        sCamera->SetRelativeTranslation(tr::Vec3(0, 0.f, 2.f));
 
         cInputComponent->InputRecieved.connect([&](const tr::InputEvent &e) {
             if (e.type == tr::InputEvent::Mouse) {
@@ -80,22 +82,14 @@ public:
         TickingGameObject = true;
 
         sMesh->Mesh
-            = tr::Engine::Get().sResourceManager->LoadResource("Object001.trb");
+            = tr::Engine::Get().sResourceManager->LoadResource("Arms.trb");
 
-        static std::shared_ptr<tr::PhongMaterial> material(
-            new tr::PhongMaterial(
-                tr::ResCast<tr::Texture>(
-                    tr::Engine::Get().sResourceManager->GetResource(
-                        "test_texture.json")),
-                tr::ResCast<tr::Texture>(
-                    tr::Engine::Get().sResourceManager->GetResource(
-                        "test_texture.json")),
-                1.f));
+        sMesh->Material = tr::Engine::Get().sResourceManager->LoadResource(
+            "material_Arm.json");
 
-        sMesh->Material = material;
-
-        sMesh->SetRelativeTranslation(tr::Vec3(0, -10, -50));
-        sMesh->SetRelativeScale(tr::Vec3(20.f));
+        sMesh->SetRelativeTranslation(tr::Vec3(0, -0.5, 0));
+        sMesh->SetRelativeScale(tr::Vec3(1.f / 9.f));
+        /* sMesh->SetRelativeScale(tr::Vec3(5.f)); */
     }
 
 private:
@@ -111,7 +105,18 @@ class MyGame : public tr::Game {
     {
         world.AttachWorldCapability<tr::Collision2DCapability>();
     }
-    void PreWorldStart(tr::World &world) override { world.Spawn<MyEntity>(); }
+    void PreWorldStart(tr::World &world) override
+    {
+        world.Spawn<MyEntity>();
+        auto &df = tr::Engine::Get().sGraphicsHandler->GetDeferredRenderer();
+        tr::PointLight l;
+        l.position  = tr::Vec3(0.f, 0.f, 0.f);
+        l.color     = tr::Vec3(1.f);
+        l.Constant  = 1.f;
+        l.Linear    = 0.09f;
+        l.Quadratic = 0.032f;
+        df.AddPointLight(l);
+    }
 };
 
 int main()
