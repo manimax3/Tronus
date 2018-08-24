@@ -49,6 +49,8 @@ void tr::DeferredRenderer::Init(GraphicsHandler &gfx)
         mCamera = cam;
     });
 
+    gfx.WindowChanged.connect([&](const WindowEvent &e) { this->OnEvent(e); });
+
     mGBuffer.Create(gfx.GetWindowSize().x, gfx.GetWindowSize().y);
 
     mLightSphere->UploadToGpu();
@@ -220,4 +222,12 @@ float tr::DeferredRenderer::CalcPointLightScale(const PointLight &light)
         / (2 * light.Quadratic);
 
     return ret;
+}
+
+void tr::DeferredRenderer::OnEvent(const WindowEvent &e)
+{
+    if (e.type != WindowEvent::RESIZED)
+        return;
+
+    mGBuffer.Resize(e.xSize, e.ySize);
 }

@@ -75,6 +75,31 @@ void tr::GBuffer::Create(uint width, uint height)
     Call(glBindFramebuffer(GL_FRAMEBUFFER, 0));
 }
 
+void tr::GBuffer::Resize(uint width, uint height)
+{
+    Call(glBindTexture(GL_TEXTURE_2D, mTextures[TextureTypes::Position]));
+    Call(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, width, height, 0, GL_RGB,
+                      GL_FLOAT, nullptr));
+
+    Call(glBindTexture(GL_TEXTURE_2D, mTextures[TextureTypes::Normal]));
+    Call(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB,
+                      GL_FLOAT, nullptr));
+
+    Call(glBindTexture(GL_TEXTURE_2D,
+                       mTextures[TextureTypes::Diffuse_Specular]));
+    Call(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
+                      GL_UNSIGNED_BYTE, nullptr));
+
+    Call(glBindTexture(GL_TEXTURE_2D, mTextures[TextureTypes::Depth_Stencil]));
+    Call(glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0,
+                      GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV,
+                      NULL));
+
+    Call(glBindTexture(GL_TEXTURE_2D, mTextures[TextureTypes::Final]));
+    Call(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGB,
+                      GL_FLOAT, nullptr));
+}
+
 void tr::GBuffer::PrepareFrame()
 {
     Call(glBindFramebuffer(GL_FRAMEBUFFER, mFrameBufferHandle));
@@ -95,7 +120,7 @@ void tr::GBuffer::PrepareStencilPass() { Call(glDrawBuffer(GL_NONE)); }
 void tr::GBuffer::PrepareLightPass()
 {
     Call(glBindFramebuffer(GL_FRAMEBUFFER, mFrameBufferHandle));
-    GLenum draw[] = {GL_COLOR_ATTACHMENT3};
+    GLenum draw[] = { GL_COLOR_ATTACHMENT3 };
     Call(glDrawBuffers(1, draw));
 
     Call(glActiveTexture(GL_TEXTURE0 + 0));

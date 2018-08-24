@@ -8,14 +8,38 @@
 namespace tr {
 class CameraComponent;
 
+/**
+ * Represents a point light
+ */
 struct PointLight {
+    /**
+     * Lights position
+     */
     Vec3 position;
+
+    /**
+     * Lights color
+     */
     Vec3 color;
 
-    float Constant;
-    float Linear;
-    float Quadratic;
+    /**
+     * Constant attenuation part.
+     */
+    float Constant = 1.f;
 
+    /**
+     * Linear attenuation part.
+     */
+    float Linear = 0.09f;
+
+    /**
+     * Quadratic attenuation part.
+     */
+    float Quadratic = 0.032f;
+
+    /**
+     * Equal comparison
+     */
     bool operator==(const PointLight &other)
     {
         return position == other.position && color == other.color
@@ -24,21 +48,60 @@ struct PointLight {
     }
 };
 
+/**
+ * 3D renderer using deferred shading.
+ */
 class DeferredRenderer {
 public:
+    /**
+     * Init the renderer
+     */
     void Init(class GraphicsHandler &gfx);
+
+    /**
+     * Render the scene
+     */
     void Render();
+
+    /**
+     * Update
+     */
     void Tick(){};
+
+    /**
+     * Handle window event.
+     * Used for handling resizing
+     */
     void OnEvent(const WindowEvent &e);
 
+    /**
+     * Adds a new mesh to the scene
+     * @param[in] the mesh to render (Gets uploaded to the gpu)
+     * @param[in] The material used to render the mesh
+     * @param model Model matrix of the mesh
+     */
     void AddMesh(ResourcePtr<StaticMesh>    mesh,
                  ResourcePtr<PhongMaterial> material,
                  Mat4                       model);
 
+    /**
+     * Removes a mesh
+     */
     void RemoveMesh(const ResourcePtr<StaticMesh> &mesh);
 
+    /**
+     * Updates the model matrix of mesh
+     */
+    void UpdateModel(const ResourcePtr<StaticMesh> &mesh, Mat4 model);
+
+    /**
+     * Adds a point light to the scene
+     */
     void AddPointLight(const PointLight &light);
 
+    /**
+     * Removes a point light from the scene.
+     */
     void RemovePointLight(const PointLight &light);
 
 private:
@@ -53,8 +116,10 @@ private:
     ResourcePtr<GLSLShader> mGeometryShader;
     ResourcePtr<GLSLShader> mLightingPoint;
     ResourcePtr<GLSLShader> mNullShader;
-    ResourcePtr<GLSLShader> mFinalShader;
 
+    /**
+     * Used to render the point lights
+     */
     ResourcePtr<StaticMesh> mLightSphere;
 
     CameraComponent *mCamera = nullptr;
