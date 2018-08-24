@@ -40,11 +40,34 @@ struct PointLight {
     /**
      * Equal comparison
      */
-    bool operator==(const PointLight &other)
+    bool operator==(const PointLight &other) const
     {
         return position == other.position && color == other.color
             && Constant == other.Constant && Linear == other.Linear
             && Quadratic == other.Quadratic;
+    }
+};
+
+/**
+ * represents a directional light
+ */
+struct DirectionalLight {
+    /**
+     * Color of the light
+     */
+    Vec3 color;
+
+    /**
+     * Direction of the light
+     */
+    Vec3 direction;
+
+    /**
+     * Equal comparison
+     */
+    bool operator==(const DirectionalLight &other) const
+    {
+        return color == other.color && direction == other.direction;
     }
 };
 
@@ -104,10 +127,21 @@ public:
      */
     void RemovePointLight(const PointLight &light);
 
+    /**
+     * Adds a directional light
+     */
+    void AddDirectionalLight(const DirectionalLight &light);
+
+    /**
+     * Remvoes a directional light
+     */
+    void RemoveDirectionalLight(const DirectionalLight &light);
+
 private:
     void  GeometryPass();
     void  StencilPass(const PointLight &light, const Mat4 &mvp);
     void  LightingPass(const PointLight &light, const Mat4 &mvp);
+    void  DirLightPass();
     void  FinalPass();
     float CalcPointLightScale(const PointLight &light);
 
@@ -115,6 +149,7 @@ private:
 
     ResourcePtr<GLSLShader> mGeometryShader;
     ResourcePtr<GLSLShader> mLightingPoint;
+    ResourcePtr<GLSLShader> mLightingDir;
     ResourcePtr<GLSLShader> mNullShader;
 
     /**
@@ -122,12 +157,18 @@ private:
      */
     ResourcePtr<StaticMesh> mLightSphere;
 
+    /**
+     * Used to render directional lights
+     */
+    std::unique_ptr<StaticMesh> mScreenQuad;
+
     CameraComponent *mCamera = nullptr;
 
     using Renderable
         = std::tuple<ResourcePtr<StaticMesh>, ResourcePtr<Material>, Mat4>;
 
-    std::vector<Renderable> mRenderables;
-    std::vector<PointLight> mPointLights;
+    std::vector<Renderable>       mRenderables;
+    std::vector<PointLight>       mPointLights;
+    std::vector<DirectionalLight> mDirectionalLights;
 };
 }

@@ -109,13 +109,17 @@ class MyGame : public tr::Game {
     {
         world.Spawn<MyEntity>();
         auto &df = tr::Engine::Get().sGraphicsHandler->GetDeferredRenderer();
-        tr::PointLight l;
-        l.position  = tr::Vec3(0.f, 0.f, 0.f);
-        l.color     = tr::Vec3(1.f);
-        l.Constant  = 1.f;
-        l.Linear    = 0.09f;
-        l.Quadratic = 0.032f;
-        df.AddPointLight(l);
+        /* tr::PointLight l; */
+        /* l.position  = tr::Vec3(0.f, 0.f, 0.f); */
+        /* l.color     = tr::Vec3(1.f); */
+        /* l.Constant  = 1.f; */
+        /* l.Linear    = 0.09f; */
+        /* l.Quadratic = 0.032f; */
+        /* df.AddPointLight(l); */
+        tr::DirectionalLight l;
+        l.color     = tr::Vec3(1.f, 0.f, 0.f);
+        l.direction = tr::Vec3(0.5f, -1.f, 0.f);
+        df.AddDirectionalLight(l);
     }
 };
 

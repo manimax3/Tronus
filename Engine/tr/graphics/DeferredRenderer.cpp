@@ -23,6 +23,9 @@ void tr::DeferredRenderer::Init(GraphicsHandler &gfx)
         mLightingPoint = ResCast<GLSLShader>(
             tr::Engine::Get().sResourceManager->LoadResource(
                 "df_lightning.json"));
+        mLightingDir = ResCast<GLSLShader>(
+            tr::Engine::Get().sResourceManager->LoadResource(
+                "df_dir_lightning.json"));
         mNullShader = ResCast<GLSLShader>(
             tr::Engine::Get().sResourceManager->LoadResource("df_null.json"));
     } catch (const ResourceNotLoadedError &e) {
@@ -57,6 +60,18 @@ void tr::DeferredRenderer::Init(GraphicsHandler &gfx)
 
     mRenderables.reserve(1000);
     mPointLights.reserve(50);
+
+    // Setup the screen quad
+    std::vector<Vertex_PNTBU> vertices{ { { -1.f, 1.f, 0.f } },
+                                        { { 1.f, 1.f, 0.f } },
+                                        { { 1.f, -1.f, 0.f } },
+                                        { { -1.f, -1.f, 0.f } } };
+
+    std::vector<uint> indices{ 0, 1, 3, 1, 2, 3 };
+
+    mScreenQuad
+        = std::make_unique<StaticMesh>(std::move(vertices), std::move(indices));
+    mScreenQuad->UploadToGpu();
 }
 
 void tr::DeferredRenderer::GeometryPass()
@@ -147,6 +162,40 @@ void tr::DeferredRenderer::FinalPass()
                            GL_COLOR_BUFFER_BIT, GL_NEAREST));
 }
 
+void tr::DeferredRenderer::DirLightPass()
+{
+
+    mLightingDir->Bind();
+    mGBuffer.PrepareLightPass();
+
+    mLightingDir->Set("viewpos", mCamera->GetAbsoluteTranslation());
+    mLightingDir->Set("screensize",
+                      tr::Engine::Get().sGraphicsHandler->GetWindowSize());
+
+    mLightingDir->Set("position", 0);
+    mLightingDir->Set("normal", 1);
+    mLightingDir->Set("diffuse", 2);
+
+    const Mat4 m = Mat4(1.f);
+    mLightingDir->Set("mvp", m);
+
+    Call(glEnable(GL_BLEND));
+    Call(glBlendEquation(GL_FUNC_ADD));
+    Call(glBlendFunc(GL_ONE, GL_ONE));
+
+    mScreenQuad->GetBufferStore().Bind();
+
+    for (auto &l : mDirectionalLights) {
+        mLightingDir->Set("light.Direction", l.direction);
+        mLightingDir->Set("light.Color", l.color);
+
+        Call(glDrawElements(GL_TRIANGLES, mLightSphere->GetIndexCount(),
+                            GL_UNSIGNED_INT, (void *)0));
+    }
+
+    Call(glDisable(GL_BLEND));
+}
+
 void tr::DeferredRenderer::Render()
 {
     if (!mCamera)
@@ -174,6 +223,9 @@ void tr::DeferredRenderer::Render()
 
     Call(glDisable(GL_STENCIL_TEST));
     Call(glDisable(GL_DEPTH_TEST));
+
+    DirLightPass();
+
     FinalPass();
 }
 
@@ -230,4 +282,17 @@ void tr::DeferredRenderer::OnEvent(const WindowEvent &e)
         return;
 
     mGBuffer.Resize(e.xSize, e.ySize);
+}
+
+void tr::DeferredRenderer::AddDirectionalLight(const DirectionalLight &light)
+{
+    mDirectionalLights.push_back(light);
+}
+
+void tr::DeferredRenderer::RemoveDirectionalLight(const DirectionalLight &light)
+{
+    const auto it = std::remove(std::begin(mDirectionalLights),
+                                std::end(mDirectionalLights), light);
+    if (it != std::end(mDirectionalLights))
+        mDirectionalLights.erase(it);
 }
