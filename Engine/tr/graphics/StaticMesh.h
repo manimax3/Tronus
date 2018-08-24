@@ -181,9 +181,11 @@ public:
      */
     explicit PhongMaterial(const ResourcePtr<Texture> &diffuse,
                            const ResourcePtr<Texture> &specular,
-                           float                       shininess)
+                           float                       shininess,
+                           ResourcePtr<Texture>        normal = nullptr)
         : mDiffues(diffuse)
         , mSpecular(specular)
+        , mNormal(std::move(normal))
         , mShininess(shininess)
     {
         assert(diffuse);
@@ -191,6 +193,7 @@ public:
 
         AddUniformElement(ShaderElementType::Sampler2D_Diffuse, "diffuse");
         AddUniformElement(ShaderElementType::Sampler2D_Specular, "specular");
+        AddUniformElement(ShaderElementType::Sampler2D_Other, "normal");
         AddUniformElement(ShaderElementType::Float, "shininess");
     }
 
@@ -198,15 +201,22 @@ public:
     {
         shader.Set("diffuse", 0);
         shader.Set("specular", 1);
+        shader.Set("normal", 2);
         shader.Set("shininess", mShininess);
 
         mDiffues->Bind();
         mSpecular->Bind(1);
+
+        if (mNormal) {
+            mNormal->Bind(2);
+            shader.Set("usenormalmap", 1);
+        }
     }
 
 private:
     ResourcePtr<Texture> mDiffues;
     ResourcePtr<Texture> mSpecular;
+    ResourcePtr<Texture> mNormal;
     float                mShininess;
 };
 

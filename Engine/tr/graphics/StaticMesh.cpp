@@ -42,10 +42,13 @@ tr::PhongMaterialLoader::LoadResource(ResourceLoadingInformation info,
     EASY_BLOCK("PhongMaterialLoader::LoadResource");
     json &handle = *info;
 
-    try {
-        const auto &diffues  = handle.at("diffuse");
-        const auto &specular = handle.at("specular");
+    auto normal_it = handle.find("normal");
+    bool has_normal = normal_it != handle.end();
 
+    try {
+        const auto &diffues   = handle.at("diffuse");
+        const auto &specular  = handle.at("specular");
+        std::string normal    = has_normal ? *normal_it : "";
         const float shininess = handle.at("shininess");
 
         auto &dt = context.dependencies.at(diffues);
@@ -57,10 +60,20 @@ tr::PhongMaterialLoader::LoadResource(ResourceLoadingInformation info,
             return nullptr;
         }
 
+        ResourcePtr<Texture> normalres = nullptr;
+        if (has_normal) {
+            const auto &nt = context.dependencies.at(normal);
+            if (std::get<0>(nt) == ResourceLoadingContext::Loaded) {
+                normalres = ResCast<Texture>(std::get<1>(nt).value().lock());
+            }
+        }
+
         return ResourcePtr<>(new PhongMaterial(
 
             ResCast<Texture>(std::get<1>(dt)->lock()),
-            ResCast<Texture>(std::get<1>(st)->lock()), shininess));
+            ResCast<Texture>(std::get<1>(st)->lock()), shininess,
+            std::move(normalres)));
+
     } catch (const json::out_of_range &e) {
         Log().warn("Missing fields in handle for PhongMaterial loading | {}",
                    e.what());

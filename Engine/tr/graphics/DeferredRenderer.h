@@ -99,8 +99,8 @@ public:
 
     /**
      * Adds a new mesh to the scene
-     * @param[in] the mesh to render (Gets uploaded to the gpu)
-     * @param[in] The material used to render the mesh
+     * @param[in] mesh the mesh to render (Gets uploaded to the gpu)
+     * @param[in] material The material used to render the mesh
      * @param model Model matrix of the mesh
      */
     void AddMesh(ResourcePtr<StaticMesh>    mesh,
