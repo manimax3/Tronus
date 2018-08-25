@@ -1,36 +1,20 @@
 #pragma once
 
-#include "../core/Subsystem.h"
-#include "../filesystem/Stream.h"
-#include "../filesystem/Filesystem.h"
-#include <bitset>
-#include <string>
-#include <tr.h>
-#include <type_traits>
+#include "enum.h"
+#include "spdlog/logger.h"
 
-#include "spdlog/sinks/basic_file_sink.h"
-#include "spdlog/sinks/stdout_color_sinks.h"
-#include "spdlog/spdlog.h"
+#include <string>
 
 namespace tr {
 using namespace std::literals::string_literals;
 
-namespace detail {
-    inline auto CreateLoggerInternal()
-    {
-        auto console_sink
-            = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
-        console_sink->set_pattern("[%T] [%l] %v");
-        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(
-            fs::GetExecutablePath() + "tronus_log.txt");
-        file_sink->set_pattern("[%T] [%l] %v");
+BETTER_ENUM(LogLevel, int, Debug, Info, Warn, Error, Critical);
 
-        std::vector<spdlog::sink_ptr> sinks{ console_sink, file_sink };
-        auto log = std::make_shared<spdlog::logger>("EngineLogger", std::begin(sinks), std::end(sinks));
-        spdlog::register_logger(log);
-        return log;
-    }
+namespace detail {
+    std::shared_ptr<spdlog::logger> CreateLoggerInternal();
 }
+
+void SetLogLevel(LogLevel level);
 
 inline auto &Log()
 {

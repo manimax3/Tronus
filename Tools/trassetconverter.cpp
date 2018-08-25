@@ -2,6 +2,7 @@
 #include "tr/graphics/StaticMesh.h"
 #include "tr/util/Log.h"
 #include "tr/util/Serializer.h"
+#include "tr/filesystem/Filesystem.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
