@@ -34,6 +34,6 @@ void tr::StaticMeshComponent::PostWorldEnter()
 void tr::StaticMeshComponent::OnRelativeChange()
 {
     auto mesh = ResCast<StaticMesh>(Mesh.lock());
-    tr::Engine::Get().sGraphicsHandler->GetDeferredRenderer().RemoveMesh(mesh);
-    PostWorldEnter();
+    tr::Engine::Get().sGraphicsHandler->GetDeferredRenderer().UpdateModel(
+        mesh, GetAbsoluteTransform());
 }

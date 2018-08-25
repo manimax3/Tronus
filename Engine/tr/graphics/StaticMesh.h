@@ -193,15 +193,18 @@ public:
 
         AddUniformElement(ShaderElementType::Sampler2D_Diffuse, "diffuse");
         AddUniformElement(ShaderElementType::Sampler2D_Specular, "specular");
-        AddUniformElement(ShaderElementType::Sampler2D_Other, "normal");
-        AddUniformElement(ShaderElementType::Float, "shininess");
+        /* AddUniformElement(ShaderElementType::Float, "shininess"); */
+
+        if (mNormal) {
+            AddUniformElement(ShaderElementType::Bool, "usenormalmap");
+            AddUniformElement(ShaderElementType::Sampler2D_Other, "normal");
+        }
     }
 
     void Bind(GLSLShader &shader) override
     {
         shader.Set("diffuse", 0);
         shader.Set("specular", 1);
-        shader.Set("normal", 2);
         shader.Set("shininess", mShininess);
 
         mDiffues->Bind();
@@ -209,6 +212,7 @@ public:
 
         if (mNormal) {
             mNormal->Bind(2);
+            shader.Set("normal", 2);
             shader.Set("usenormalmap", 1);
         }
     }

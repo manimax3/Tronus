@@ -18,6 +18,7 @@
                 { "name" : "projection", "type" : "Mat4" },
                 { "name" : "diffuse", "type" : "Sampler2D_Diffuse" },
                 { "name" : "normal", "type" : "Sampler2D_Other" },
+                { "name" : "usenormalmap", "type" : "Bool" },
                 { "name" : "specular", "type" : "Sampler2D_Specular" }
             ]
     }

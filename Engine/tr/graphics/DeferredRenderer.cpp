@@ -236,6 +236,18 @@ void tr::DeferredRenderer::AddMesh(ResourcePtr<StaticMesh>    mesh,
     if (!mesh->IsOnGpu())
         mesh->UploadToGpu();
 
+    ShaderInterface interface;
+    mesh->GetVertexBufferLayout().AddAttributesToShaderInterface(interface);
+    material->AddUniformsToInterface(interface);
+
+    if (mGeometryShader->GetInterface().has_value()
+        && !interface.IsCompatibleWith(
+               mGeometryShader->GetInterface().value())) {
+        Log().warn("Couldnt add mesh to DeferredRenderer because of an "
+                   "incompatible shader interface.");
+        return;
+    }
+
     mRenderables.emplace_back(std::move(mesh), std::move(material), model);
 }
 
@@ -248,6 +260,16 @@ void tr::DeferredRenderer::RemoveMesh(const ResourcePtr<StaticMesh> &mesh)
                                    });
     if (it != std::end(mRenderables))
         mRenderables.erase(it);
+}
+
+void tr::DeferredRenderer::UpdateModel(const ResourcePtr<StaticMesh> &mesh,
+                                       Mat4                           model)
+{
+    for (auto &[_mesh, _material, _model] : mRenderables) {
+        if (mesh == _mesh) {
+            _model = model;
+        }
+    }
 }
 
 void tr::DeferredRenderer::AddPointLight(const PointLight &light)
