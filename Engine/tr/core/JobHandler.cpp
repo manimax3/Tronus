@@ -2,6 +2,8 @@
 #include "Engine.h"
 #include "profile/Profiler.h"
 
+#include "blockingconcurrentqueue.h"
+
 using namespace tr;
 
 JobHandler::JobHandler()
@@ -9,6 +11,7 @@ JobHandler::JobHandler()
     , mThreadPool(std::max((int)std::thread::hardware_concurrency() - 2, 2))
     , mActiveThreads(0)
 {
+    mQueue = std::make_shared<moodycamel::BlockingConcurrentQueue<TaskPtr>>(10);
 }
 
 JobHandler::~JobHandler() { Shutdown(); }
@@ -21,26 +24,35 @@ bool JobHandler::Initialize(Engine *engine)
 
     for (auto &ptr : mThreadPool) {
         ptr = std::make_unique<std::thread>([&]() {
-
             EASY_THREAD_SCOPE("Worker");
 
             mActiveThreads++;
-            Job func;
+            TaskPtr task;
 
             while (mRunning) {
-                mQueue.wait_dequeue(func);
-
-                {
+                std::static_pointer_cast<
+                    moodycamel::BlockingConcurrentQueue<TaskPtr>>(mQueue)
+                    ->wait_dequeue(task);
+                if (task) {
                     EASY_BLOCK("Task");
-                    func();
+                    mActiveExecutingThreads++;
+                    (*task)();
+                    task.reset();
+                    mActiveExecutingThreads--;
                 }
             }
-
             mActiveThreads--;
         });
     }
 
     return true;
+}
+
+void tr::JobHandler::QueueTaskInternal(TaskPtr task)
+{
+    std::static_pointer_cast<moodycamel::BlockingConcurrentQueue<TaskPtr>>(
+        mQueue)
+        ->enqueue(std::move(task));
 }
 
 bool JobHandler::Shutdown()
@@ -52,14 +64,10 @@ bool JobHandler::Shutdown()
 
     // Make sure that each thread leaves the while loop
     while (mActiveThreads > 0) {
-        for (int i = 0; i < mThreadPool.size(); i++)
-            AddJob(
-                []() {
-                    std::this_thread::sleep_for(std::chrono::milliseconds(5));
-                },
-                true);
-
-        std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        QueueTask([]() {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        });
+        std::this_thread::sleep_for(std::chrono::milliseconds(2));
     }
 
     for (auto &thread : mThreadPool) {
@@ -70,8 +78,3 @@ bool JobHandler::Shutdown()
 }
 
 bool JobHandler::Tick() { return true; }
-
-// JobHandler::Job::operator bool() const
-//{
-//	return mStatus;
-//}
