@@ -1,5 +1,6 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "tr/core/Engine.h"
+#include "tr/filesystem/ResourceManager.h"
 #include "tr/gameobject/CameraComponent.h"
 #include "tr/gameobject/ColliderComponent2D.h"
 #include "tr/gameobject/Collision2DCapability.h"

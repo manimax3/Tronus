@@ -7,7 +7,6 @@
 #include "ForwardRenderer.h"
 #include "ImguiRenderer.h"
 #include "Renderer2D.h"
-#include "Simple2DRenderer.h"
 #include <memory>
 #include <queue>
 #include <tr.h>
@@ -73,7 +72,6 @@ private:
 
 private:
     RenderContext    mContext;
-    Simple2DRenderer mSimpleRenderer2D;
     Renderer2D       mRenderer2D;
     ImguiRenderer    mImguiRenderer;
     ForwardRenderer  mForwardRenderer;

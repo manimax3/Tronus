@@ -1,6 +1,7 @@
 #include "ImguiRenderer.h"
 
 #include "../core/Engine.h"
+#include "../filesystem/ResourceManager.h"
 #include "../profile/Profiler.h"
 #include "../util/Keys.h"
 #include "GLCheck.h"

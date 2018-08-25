@@ -81,7 +81,6 @@ bool tr::GraphicsHandler::Shutdown()
     if (Context().valid)
         return true;
 
-    mSimpleRenderer2D.Shutdown();
     mForwardRenderer.Shutdown();
     /* mDefferedRenderer.Shutdown(); */
     mRenderer2D.Shutdown();
@@ -103,9 +102,9 @@ void tr::GraphicsHandler::Render()
 
     glClear(GL_COLOR_BUFFER_BIT);
     mImguiRenderer.StartDebugFrame();
-    /* mForwardRenderer.Render(); */
+    mForwardRenderer.Render();
     mDefferedRenderer.Render();
-    /* mRenderer2D.Render(); */
+    mRenderer2D.Render();
     mImguiRenderer.Render();
     glfwSwapBuffers(static_cast<GLFWwindow *>(mContext.window));
 }
@@ -217,7 +216,6 @@ void tr::GraphicsHandler::CreateWindow(const CreateWindowInfo &info)
     mContext.windowInfo = info;
     mContext.valid      = true;
 
-    mSimpleRenderer2D.Init(this, GetEngine().sResourceManager);
     mRenderer2D.Init(this, GetEngine().sResourceManager);
     mImguiRenderer.Init(this, GetEngine().sResourceManager);
     mForwardRenderer.Init(*this);

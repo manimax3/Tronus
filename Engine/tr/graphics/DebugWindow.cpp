@@ -1,6 +1,7 @@
 #include "DebugWindow.h"
 #include "../core/Engine.h"
 #include "../event/CommonEvents.h"
+#include "../filesystem/ResourceManager.h"
 #include "../gameobject/World.h"
 #include "../util/Keys.h"
 #include "GraphicsHandler.h"

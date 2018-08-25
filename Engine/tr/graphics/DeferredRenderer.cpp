@@ -1,5 +1,6 @@
 #include "DeferredRenderer.h"
 #include "../core/Engine.h"
+#include "../filesystem/ResourceManager.h"
 #include "../gameobject/CameraComponent.h"
 #include "GLCheck.h"
 #include "GraphicsHandler.h"
