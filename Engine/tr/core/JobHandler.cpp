@@ -2,6 +2,7 @@
 #include "Engine.h"
 #include "profile/Profiler.h"
 
+#include "concurrentqueue.h"
 #include "blockingconcurrentqueue.h"
 
 using namespace tr;
@@ -12,6 +13,7 @@ JobHandler::JobHandler()
     , mActiveThreads(0)
 {
     mQueue = std::make_shared<moodycamel::BlockingConcurrentQueue<TaskPtr>>(10);
+    mSyncQueue = std::make_shared<moodycamel::ConcurrentQueue<TaskPtr>>();
 }
 
 JobHandler::~JobHandler() { Shutdown(); }
@@ -48,10 +50,36 @@ bool JobHandler::Initialize(Engine *engine)
     return true;
 }
 
+bool JobHandler::Tick()
+{
+    if (mRunning) {
+        TaskPtr task;
+
+        auto sq
+            = std::static_pointer_cast<moodycamel::ConcurrentQueue<TaskPtr>>(
+                mQueue);
+
+        sq->try_dequeue(task);
+        while (task) {
+            (*task)();
+            task.reset();
+            sq->try_dequeue(task);
+        }
+
+    }
+    return true;
+}
+
 void tr::JobHandler::QueueTaskInternal(TaskPtr task)
 {
     std::static_pointer_cast<moodycamel::BlockingConcurrentQueue<TaskPtr>>(
         mQueue)
+        ->enqueue(std::move(task));
+}
+
+void tr::JobHandler::QueueSyncTaskInternal(TaskPtr task)
+{
+    std::static_pointer_cast<moodycamel::ConcurrentQueue<TaskPtr>>(mQueue)
         ->enqueue(std::move(task));
 }
 
@@ -77,4 +105,3 @@ bool JobHandler::Shutdown()
     return true;
 }
 
-bool JobHandler::Tick() { return true; }
