@@ -154,8 +154,6 @@ tr::ResourcePtr<>
 tr::ResourceManager::LoadResource(std::string_view            file,
                                   std::optional<ResourceName> namehint)
 {
-    EASY_BLOCK("LoadResource::File");
-
     std::string f(file.data(), file.size());
     f = GetEngineAssetPath() + f;
 
@@ -182,8 +180,6 @@ tr::ResourcePtr<>
 tr::ResourceManager::LoadResource(std::istream &              in,
                                   std::optional<ResourceName> namehint)
 {
-    EASY_BLOCK("LoadResource::Stream");
-
     auto info = std::make_shared<json>();
     try {
         in >> *info;
