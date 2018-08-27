@@ -7,13 +7,18 @@
 
 using namespace tr;
 
+/**
+ * Queue for tasks on the main thread.
+ * PIMPL doesnt seem to work so we do it like this.
+ */
+static moodycamel::ConcurrentQueue<tr::JobHandler::TaskPtr> main_thread_queue;
+
 JobHandler::JobHandler()
     : mRunning(false)
     , mThreadPool(std::max((int)std::thread::hardware_concurrency() - 2, 2))
     , mActiveThreads(0)
 {
     mQueue = std::make_shared<moodycamel::BlockingConcurrentQueue<TaskPtr>>(10);
-    mSyncQueue = std::make_shared<moodycamel::ConcurrentQueue<TaskPtr>>();
 }
 
 JobHandler::~JobHandler() { Shutdown(); }
@@ -55,16 +60,25 @@ bool JobHandler::Tick()
     if (mRunning) {
         TaskPtr task;
 
-        auto sq
-            = std::static_pointer_cast<moodycamel::ConcurrentQueue<TaskPtr>>(
-                mQueue);
+        /* auto sq */
+        /*     = std::static_pointer_cast<moodycamel::ConcurrentQueue<TaskPtr>>( */
+        /*         mQueue); */
 
-        sq->try_dequeue(task);
+        main_thread_queue.try_dequeue(task);
         while (task) {
             (*task)();
             task.reset();
-            sq->try_dequeue(task);
+            main_thread_queue.try_dequeue(task);
         }
+
+        /* std::lock_guard<std::mutex> m(mSQLock); */
+        /* while (!mSyncQueue.empty()) { */
+        /*     TaskPtr &task = mSyncQueue.front(); */
+        /*     if (task) { */
+        /*         (*task)(); */
+        /*         mSyncQueue.pop(); */
+        /*     } */
+        /* } */
 
     }
     return true;
@@ -79,8 +93,9 @@ void tr::JobHandler::QueueTaskInternal(TaskPtr task)
 
 void tr::JobHandler::QueueSyncTaskInternal(TaskPtr task)
 {
-    std::static_pointer_cast<moodycamel::ConcurrentQueue<TaskPtr>>(mQueue)
-        ->enqueue(std::move(task));
+    /* std::static_pointer_cast<moodycamel::ConcurrentQueue<TaskPtr>>(mSyncQueue) */
+    /*     ->enqueue(std::move(task)); */
+    main_thread_queue.enqueue(std::move(task));
 }
 
 bool JobHandler::Shutdown()

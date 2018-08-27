@@ -1,8 +1,8 @@
 #include "nlohmann/json.hpp"
+#include "tr/filesystem/Filesystem.h"
 #include "tr/graphics/StaticMesh.h"
 #include "tr/util/Log.h"
 #include "tr/util/Serializer.h"
-#include "tr/filesystem/Filesystem.h"
 
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
@@ -214,10 +214,10 @@ texture_t create_material(const std::string &name, const std::string &type)
 
     Log().info("Exporting texture name: {} type: {}", name, type);
 
-    json j;
-    j["type"] = "Image";
-    j["file"] = fmt::format("$ENGINE/{}", name);
-    j["name"] = fmt::format("image_{}_{}", type, fs::Stem(name));
+    /* json j; */
+    /* j["type"] = "Image"; */
+    /* j["file"] = fmt::format("$ENGINE/{}", name); */
+    /* j["name"] = fmt::format("image_{}_{}", type, fs::Stem(name)); */
 
     json texture;
     texture["type"]             = "Texture";
@@ -227,7 +227,8 @@ texture_t create_material(const std::string &name, const std::string &type)
     texture["min_filter"]       = 1;
     texture["wrap_s"]           = 1;
     texture["wrap_t"]           = 1;
-    texture["dependencies"]     = json::array({ j });
+    /* texture["dependencies"]     = json::array({ j }); */
+    texture["file"] = fmt::format("$ENGINE/{}", name);
 
     std::string handlename
         = fmt::format("texture_{1}_{0}", fs::Stem(name), type);

@@ -5,6 +5,7 @@
 #include <functional>
 #include <future>
 #include <memory>
+#include <queue>
 #include <thread>
 #include <tuple>
 #include <vector>
@@ -17,6 +18,10 @@ namespace tr {
  */
 class JobHandler : public Subsystem<JobHandler> {
 public:
+    using Task      = std::packaged_task<void()>;
+    using TaskPtr   = std::shared_ptr<Task>;
+    using ThreadPtr = std::unique_ptr<std::thread>;
+
     JobHandler();
     ~JobHandler();
     bool Initialize(Engine *engine) override;
@@ -45,16 +50,11 @@ public:
     }
 
 private:
-    using Task      = std::packaged_task<void()>;
-    using TaskPtr   = std::shared_ptr<Task>;
-    using ThreadPtr = std::unique_ptr<std::thread>;
-
     void QueueTaskInternal(TaskPtr task);
     void QueueSyncTaskInternal(TaskPtr task);
 
     std::vector<ThreadPtr> mThreadPool;
     std::shared_ptr<void>  mQueue;
-    std::shared_ptr<void>  mSyncQueue;
 
     std::atomic_bool   mRunning;
     std::atomic_int8_t mActiveThreads;

@@ -33,6 +33,14 @@ public:
             bool         generate_mipmaps = false,
             bool         compressed       = false);
 
+    Texture(const std::string &file,
+            WrapMode           s,
+            WrapMode           t,
+            ScaleFilter        mag,
+            ScaleFilter        min,
+            bool               generate_mipmaps = false,
+            bool               compressed       = false);
+
     ~Texture() override;
 
     void Bind(int slot = 0);
